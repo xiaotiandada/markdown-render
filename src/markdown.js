@@ -19,38 +19,40 @@ let markdown = md
 // };
 
 // 表情
-let emoji = require('markdown-it-emoji');
+import emoji from 'markdown-it-emoji'
 // 下标
-let sub = require('markdown-it-sub')
+import sub from 'markdown-it-sub'
 // 上标
-let sup = require('markdown-it-sup')
+import sup from 'markdown-it-sup'
 // container
-let container = require('markdown-it-container')
+import container from 'markdown-it-container'
 // <dl/>
-let deflist = require('markdown-it-deflist')
+import deflist from 'markdown-it-deflist'
 // <abbr/>
-let abbr = require('markdown-it-abbr')
+import abbr from 'markdown-it-abbr'
 // footnote
-let footnote = require('markdown-it-footnote')
+import footnote from 'markdown-it-footnote'
 // insert 带有下划线 样式 ++ ++
-let insert = require('markdown-it-ins')
+import insert from 'markdown-it-ins'
 // mark
-let mark = require('markdown-it-mark')
+import mark from 'markdown-it-mark'
 // taskLists
-let taskLists = require('markdown-it-task-lists')
+import taskLists from 'markdown-it-task-lists'
 
 // 注释原因: 因为和markdown-it-anchor的功能冲突了(他们的实现方法不一样)
 // let toc = require('markdown-it-toc')
 // anchor
 // error: plugin.apply is not a function
 // fix: https://github.com/tylingsoft/markdown-it-mermaid/issues/4
-let anchor = require('markdown-it-anchor').default
+import anchor from 'markdown-it-anchor'
 // toc 替换原来的
-let tableOfContents = require('markdown-it-table-of-contents')
+import tableOfContents from 'markdown-it-table-of-contents'
 
 // math katex
-// let katex = require('markdown-it-katex-external');
-let miip = require('markdown-it-images-preview');
+// import katex from 'markdown-it-katex-external'
+import miip from 'markdown-it-images-preview'
+
+import mathjax from 'markdown-it-mathjax'
 
 // add target="_blank" to all link
 let defaultRender = markdown.renderer.rules.link_open || function(tokens, idx, options, env, self) {
@@ -94,7 +96,7 @@ markdown
   .use(insert)
   .use(mark)
   .use(miip)
-  .use(require('markdown-it-mathjax')({
+  .use(mathjax({
     beforeMath: '<span class="mathjax raw">',
     afterMath: '</span>',
     beforeInlineMath: '<span class="mathjax raw">\\(',

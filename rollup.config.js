@@ -9,11 +9,11 @@ export default {
   output: [
     {
       file: 'dist/bundle.js',
-      format: 'cjs'
+      format: 'es'
     },
     {
       file: 'dist/bundle.min.js',
-      format: 'cjs',
+      format: 'es',
       name: 'version',
       plugins: [ terser() ]
     }
@@ -25,8 +25,8 @@ export default {
         moduleDirectory: 'node_modules'
       }
     }),
+    commonjs(),
     babel({ babelHelpers: 'bundled' }),
-    commonjs()
   ],
   external: [
     'jquery'

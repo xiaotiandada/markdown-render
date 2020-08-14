@@ -7,6 +7,9 @@ import isURL from 'validator/lib/isURL'
 import Plugin from 'markdown-it-regexp'
 import $ from 'jquery'
 
+import mdIt from "markdown-it";
+
+
 // import flowchart from 'flowchart.js'
 // let viz = new Viz()
 
@@ -95,7 +98,8 @@ function highlightRender (code, lang) {
   return result.value
 }
 
-const md = require('markdown-it')({
+
+const md = mdIt({
   html: true,        // Enable HTML tags in source
   xhtmlOut: true,        // Use '/' to close single tags (<br />).
   breaks: true,        // Convert '\n' in paragraphs into <br>
