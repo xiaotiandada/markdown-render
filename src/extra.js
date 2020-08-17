@@ -5,10 +5,8 @@ import escapeHTML from 'lodash/escape'
 import PDFObject from 'pdfobject'
 import isURL from 'validator/lib/isURL'
 import Plugin from 'markdown-it-regexp'
-import $ from 'jquery'
-
+// import $ from 'jquery'
 import mdIt from "markdown-it";
-
 
 // import flowchart from 'flowchart.js'
 // let viz = new Viz()

@@ -6,19 +6,18 @@ import commonjs from '@rollup/plugin-commonjs';
 
 export default {
   input: 'src/main.js',
-  output: [
-    {
-      file: 'dist/bundle.js',
-      format: 'es'
+  output: [{
+      file: 'dist/markdown-render-js.js',
+      format: 'es',
     },
     {
-      file: 'dist/bundle.min.js',
+      file: 'dist/markdown-render-js.min.js',
       format: 'es',
-      name: 'version',
-      plugins: [ terser() ]
+      plugins: [terser()],
     }
   ],
-  plugins: [ 
+  external: ['jquery'],
+  plugins: [
     json(),
     resolve({
       customResolveOptions: {
@@ -26,10 +25,9 @@ export default {
       }
     }),
     commonjs(),
-    babel({ babelHelpers: 'bundled' }),
-  ],
-  external: [
-    'jquery'
+    babel({
+      babelHelpers: 'bundled'
+    }),
   ],
   // https://stackoverflow.com/questions/61827807/svelte-i18n-svelte-rollup-compiler-warning-this-has-been-rewritten-to-unde
   moduleContext: (id) => {
@@ -42,7 +40,7 @@ export default {
     const thisAsWindowForModules = [
       'node_modules/pdfobject/pdfobject.js'
     ];
-  
+
     if (thisAsWindowForModules.some(id_ => id.trimRight().endsWith(id_))) {
       return 'window';
     }
