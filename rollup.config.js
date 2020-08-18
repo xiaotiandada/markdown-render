@@ -5,7 +5,7 @@ import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 
 export default {
-  input: 'src/main.js',
+  input: 'src/index.js',
   output: [{
       file: 'dist/markdown-render-js.js',
       format: 'es',
@@ -13,7 +13,9 @@ export default {
     {
       file: 'dist/markdown-render-js.min.js',
       format: 'es',
-      plugins: [terser()],
+      plugins: [
+        terser()
+      ],
     }
   ],
   external: ['jquery'],

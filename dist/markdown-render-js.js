@@ -1,7 +1,7 @@
 import util from 'util';
 import punycode from 'punycode';
 
-var version = "1.0.0";
+var version = "1.0.3";
 
 // https://github.com/substack/deep-freeze/blob/master/index.js
 
