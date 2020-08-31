@@ -1,0 +1,11 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.container img,
+.container iframe {
+  max-width: 100%;
+}
+
+
+/*# sourceMappingURL=/test.5aa9afe8.css.map */

@@ -1,17 +1,2091 @@
-import hljsDefineSolidity from 'highlightjs-solidity';
-import util from 'util';
-import punycode from 'punycode';
+// modules are defined as an array
+// [ module function, map of requires ]
+//
+// map of requires is short require name -> numeric require
+//
+// anything defined in a previous bundle is accessed via the
+// orig method which is the require for previous bundles
+parcelRequire = (function (modules, cache, entry, globalName) {
+  // Save the require from previous bundle to this closure if any
+  var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
+  var nodeRequire = typeof require === 'function' && require;
 
-var version = "1.0.4";
+  function newRequire(name, jumped) {
+    if (!cache[name]) {
+      if (!modules[name]) {
+        // if we cannot find the module within our internal map or
+        // cache jump to the current global require ie. the last bundle
+        // that was added to the page.
+        var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
+        if (!jumped && currentRequire) {
+          return currentRequire(name, true);
+        }
 
-// https://github.com/substack/deep-freeze/blob/master/index.js
+        // If there are other bundles on this page the require from the
+        // previous one is saved to 'previousRequire'. Repeat this as
+        // many times as there are bundles until the module is found or
+        // we exhaust the require chain.
+        if (previousRequire) {
+          return previousRequire(name, true);
+        }
+
+        // Try the node require function if it exists.
+        if (nodeRequire && typeof name === 'string') {
+          return nodeRequire(name);
+        }
+
+        var err = new Error('Cannot find module \'' + name + '\'');
+        err.code = 'MODULE_NOT_FOUND';
+        throw err;
+      }
+
+      localRequire.resolve = resolve;
+      localRequire.cache = {};
+
+      var module = cache[name] = new newRequire.Module(name);
+
+      modules[name][0].call(module.exports, localRequire, module, module.exports, this);
+    }
+
+    return cache[name].exports;
+
+    function localRequire(x){
+      return newRequire(localRequire.resolve(x));
+    }
+
+    function resolve(x){
+      return modules[name][1][x] || x;
+    }
+  }
+
+  function Module(moduleName) {
+    this.id = moduleName;
+    this.bundle = newRequire;
+    this.exports = {};
+  }
+
+  newRequire.isParcelRequire = true;
+  newRequire.Module = Module;
+  newRequire.modules = modules;
+  newRequire.cache = cache;
+  newRequire.parent = previousRequire;
+  newRequire.register = function (id, exports) {
+    modules[id] = [function (require, module) {
+      module.exports = exports;
+    }, {}];
+  };
+
+  var error;
+  for (var i = 0; i < entry.length; i++) {
+    try {
+      newRequire(entry[i]);
+    } catch (e) {
+      // Save first error but execute all entries
+      if (!error) {
+        error = e;
+      }
+    }
+  }
+
+  if (entry.length) {
+    // Expose entry point to Node, AMD or browser globals
+    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
+    var mainExports = newRequire(entry[entry.length - 1]);
+
+    // CommonJS
+    if (typeof exports === "object" && typeof module !== "undefined") {
+      module.exports = mainExports;
+
+    // RequireJS
+    } else if (typeof define === "function" && define.amd) {
+     define(function () {
+       return mainExports;
+     });
+
+    // <script>
+    } else if (globalName) {
+      this[globalName] = mainExports;
+    }
+  }
+
+  // Override the current require with this new one
+  parcelRequire = newRequire;
+
+  if (error) {
+    // throw error from earlier, _after updating parcelRequire_
+    throw error;
+  }
+
+  return newRequire;
+})({"../node_modules/highlightjs-solidity/solidity.js":[function(require,module,exports) {
+/**
+ * highlight.js Solidity syntax highlighting definition
+ *
+ * @see https://github.com/isagalaev/highlight.js
+ *
+ * @package: highlightjs-solidity
+ * @author:  Sam Pospischil <sam@changegiving.com>
+ * @since:   2016-07-01
+ */
+
+var module = module ? module : {};     // shim for browser use
+
+function hljsDefineSolidity(hljs) {
+
+    //first: let's set up all parameterized types (bytes, int, uint, fixed, ufixed)
+    //NOTE: unparameterized versions are *not* included here, those are included
+    //manually
+    var byteSizes = [];
+    for(var i = 0; i < 32; i++) {
+        byteSizes[i] = i+1;
+    }
+    var numSizes = byteSizes.map(function(bytes) { return bytes * 8 } );
+    var precisions = [];
+    for(i = 0; i <= 80; i++) {
+        precisions[i] = i;
+    }
+
+    var bytesTypes = byteSizes.map(function(size) { return 'bytes' + size });
+    var bytesTypesString = bytesTypes.join(' ') + ' ';
+
+    var uintTypes = numSizes.map(function(size) { return 'uint' + size });
+    var uintTypesString = uintTypes.join(' ') + ' ';
+
+    var intTypes = numSizes.map(function(size) { return 'int' + size });
+    var intTypesString = intTypes.join(' ') + ' ';
+
+    var sizePrecisionPairs = [].concat.apply([],
+        numSizes.map(function(size) {
+            return precisions.map(function(precision) {
+                return size + 'x' + precision;
+            })
+        })
+    );
+
+    var fixedTypes = sizePrecisionPairs.map(function(pair) { return 'fixed' + pair });
+    var fixedTypesString = fixedTypes.join(' ') + ' ';
+
+    var ufixedTypes = sizePrecisionPairs.map(function(pair) { return 'ufixed' + pair });
+    var ufixedTypesString = ufixedTypes.join(' ') + ' ';
+
+    var SOL_KEYWORDS = {
+        keyword:
+            'var bool string ' +
+            'int uint ' + intTypesString + uintTypesString +
+            'byte bytes ' + bytesTypesString +
+            'fixed ufixed ' + fixedTypesString + ufixedTypesString +
+            'enum struct mapping address ' +
+
+            'new delete ' +
+            'if else for while continue break return throw emit try catch ' +
+            //NOTE: doesn't always act as a keyword, but seems fine to include
+            '_ ' +
+
+            'function modifier event constructor fallback receive ' +
+            'virtual override ' +
+            'constant immutable anonymous indexed ' +
+            'storage memory calldata ' +
+            'external public internal payable pure view private returns ' +
+
+            'import from as using pragma ' +
+            'contract interface library is abstract ' +
+            'assembly',
+        literal:
+            'true false ' +
+            'wei gwei szabo finney ether ' +
+            'seconds minutes hours days weeks years',
+        built_in:
+            'self ' +   // :NOTE: not a real keyword, but a convention used in storage manipulation libraries
+            'this super selfdestruct suicide ' +
+            'now ' +
+            'msg block tx abi ' +
+            'type ' +
+            'blockhash gasleft ' +
+            'assert revert require ' +
+            'Error ' + //Not exactly a builtin? but this seems the best category for it
+            'sha3 sha256 keccak256 ripemd160 ecrecover addmod mulmod ' +
+            'log0 log1 log2 log3 log4' +
+            // :NOTE: not really toplevel, but advantageous to have highlighted as if reserved to
+            //        avoid newcomers making mistakes due to accidental name collisions.
+            'send transfer call callcode delegatecall staticcall '
+    };
+
+    var SOL_ASSEMBLY_KEYWORDS = {
+        keyword:
+            'assembly ' +
+            'let function ' +
+            'if switch case default for leave ' +
+            'break continue ' +
+            'u256 ' + //not in old-style assembly, but in Yul
+            //NOTE: We're counting most opcodes as builtins, but the following ones we're
+            //treating as keywords because they alter control flow or halt execution
+            'jump jumpi ' +
+            'stop return revert selfdestruct invalid',
+        built_in:
+            //NOTE that push1 through push32, as well as jumpdest, are not included
+            'add sub mul div sdiv mod smod exp not lt gt slt sgt eq iszero ' +
+            'and or xor byte shl shr sar ' +
+            'addmod mulmod signextend keccak256 ' +
+            'pc pop ' +
+            'dup1 dup2 dup3 dup4 dup5 dup6 dup7 dup8 dup9 dup10 dup11 dup12 dup13 dup14 dup15 dup16 ' +
+            'swap1 swap2 swap3 swap4 swap5 swap6 swap7 swap8 swap9 swap10 swap11 swap12 swap13 swap14 swap15 swap16 ' +
+            'mload mstore mstore8 sload sstore msize ' +
+            'gas address balance selfbalance caller callvalue ' +
+            'calldataload calldatasize calldatacopy codesize codecopy extcodesize extcodecopy returndatasize returndatacopy extcodehash ' +
+            'create create2 call callcode delegatecall staticcall ' +
+            'log0 log1 log2 log3 log4 ' +
+            'chainid origin gasprice blockhash coinbase timestamp number difficulty gaslimit',
+        literal:
+            'true false'
+    };
+
+    //covers the special slot/offset notation in assembly
+    //(old-style, with an underscore)
+    var SOL_ASSEMBLY_MEMBERS_OLD = {
+        begin: /_/,
+        end: /[^A-Za-z0-9$.]/,
+        excludeBegin: true,
+        excludeEnd: true,
+        keywords: {
+            built_in: 'slot offset'
+        },
+        relevance: 2,
+    };
+
+    //covers the special slot/offset notation in assembly
+    //(new-style, with a dot; keeping this separate as it
+    //may be expanded in the future)
+    var SOL_ASSEMBLY_MEMBERS = {
+        begin: /\./,
+        end: /[^A-Za-z0-9$.]/,
+        excludeBegin: true,
+        excludeEnd: true,
+        keywords: {
+            built_in: 'slot offset'
+        },
+        relevance: 2,
+    };
+
+    function isNegativeLookbehindAvailable() {
+        try {
+            new RegExp('(?<!.)');
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    //like a C number, except:
+    //1. no octal literals (leading zeroes disallowed)
+    //2. underscores (1 apiece) are allowed between consecutive digits
+    //(including hex digits)
+    //also, all instances of \b (word boundary) have been replaced with (?<!\$)\b
+    //NOTE: we use string rather than regexp in the case where negative lookbehind
+    //is allowed to avoid Firefox parse errors; sorry about the resulting double backslashes!
+    if (isNegativeLookbehindAvailable()) {
+        var SOL_NUMBER_RE = '-?((?<!\\$)\\b0[xX]([a-fA-F0-9]_?)*[a-fA-F0-9]|((?<!\\$)\\b[1-9](_?\\d)*(\\.((\\d_?)*\\d)?)?|\\.\\d(_?\\d)*)([eE][-+]?\\d(_?\\d)*)?|(?<!\\$)\\b0)';
+    } else {
+        var SOL_NUMBER_RE = /-?(\b0[xX]([a-fA-F0-9]_?)*[a-fA-F0-9]|(\b[1-9](_?\d)*(\.((\d_?)*\d)?)?|\.\d(_?\d)*)([eE][-+]?\d(_?\d)*)?|\b0)/;
+    }
+
+
+    var SOL_NUMBER = {
+        className: 'number',
+        begin: SOL_NUMBER_RE,
+        relevance: 0,
+    };
+
+    var HEX_APOS_STRING_MODE = {
+        className: 'string',
+        begin: /hex'(([0-9a-fA-F]{2}_?)*[0-9a-fA-F]{2})?'/, //please also update HEX_QUOTE_STRING_MODE
+    };
+    var HEX_QUOTE_STRING_MODE = {
+        className: 'string',
+        begin: /hex"(([0-9a-fA-F]{2}_?)*[0-9a-fA-F]{2})?"/, //please also update HEX_APOS_STRING_MODE
+    };
+
+    //I've set these up exactly like hljs's builtin STRING_MODEs,
+    //except with the optional initial "unicode" text
+    var SOL_APOS_STRING_MODE = hljs.inherit(hljs.APOS_STRING_MODE, //please also update SOL_QUOTE_STRING_MODE
+        { begin: /(unicode)?'/ }
+    );
+    var SOL_QUOTE_STRING_MODE = hljs.inherit(hljs.QUOTE_STRING_MODE, //please also update SOL_APOS_STRING_MODE
+        { begin: /(unicode)?"/ }
+    );
+
+    var SOL_FUNC_PARAMS = {
+        className: 'params',
+        begin: /\(/, end: /\)/,
+        excludeBegin: true,
+        excludeEnd: true,
+        keywords: SOL_KEYWORDS,
+        contains: [
+            hljs.C_LINE_COMMENT_MODE,
+            hljs.C_BLOCK_COMMENT_MODE,
+            SOL_APOS_STRING_MODE,
+            SOL_QUOTE_STRING_MODE,
+            SOL_NUMBER,
+            'self' //to account for mappings and fn variables
+        ]
+    };
+
+    //NOTE: including "*" as a "lexeme" because we use it as a "keyword" below
+    var SOL_LEXEMES_RE = /[A-Za-z_$][A-Za-z_$0-9]*|\*/;
+    //in assembly, identifiers can contain periods (but may not start with them)
+    var SOL_ASSEMBLY_LEXEMES_RE = /[A-Za-z_$][A-Za-z_$0-9.]*/;
+
+    var SOL_RESERVED_MEMBERS = {
+        begin: /\.\s*/,  // match any property access up to start of prop
+        end: /[^A-Za-z0-9$_\.]/,
+        excludeBegin: true,
+        excludeEnd: true,
+        keywords: {
+            built_in: 'gas value selector address length push pop ' +
+               'send transfer call callcode delegatecall staticcall balance ' +
+               'name creationCode runtimeCode interfaceId min max'
+        },
+        relevance: 2,
+    };
+
+    var SOL_TITLE_MODE =
+        hljs.inherit(hljs.TITLE_MODE, {
+            begin: /[A-Za-z$_][0-9A-Za-z$_]*/,
+            lexemes: SOL_LEXEMES_RE,
+            keywords: SOL_KEYWORDS,
+        });
+
+    var SOL_SPECIAL_PARAMETERS = {
+        //special parameters (note: these aren't really handled properly, but this seems like the best compromise for now)
+        className: 'built_in',
+        begin: /(gas|value|salt):/
+    };
+
+    function makeBuiltinProps(obj, props) {
+        return {
+            begin: (isNegativeLookbehindAvailable() ? '(?<!\\$)\\b' : '\\b') + obj + '\\.\\s*',
+            end: /[^A-Za-z0-9$_\.]/,
+            excludeBegin: false,
+            excludeEnd: true,
+            lexemes: SOL_LEXEMES_RE,
+            keywords: {
+                built_in: obj + ' ' + props,
+            },
+            contains: [
+                SOL_RESERVED_MEMBERS
+            ],
+            relevance: 10,
+        };
+    }
+
+    return {
+        aliases: ['sol'],
+        keywords: SOL_KEYWORDS,
+        lexemes: SOL_LEXEMES_RE,
+        contains: [
+            // basic literal definitions
+            SOL_APOS_STRING_MODE,
+            SOL_QUOTE_STRING_MODE,
+            HEX_APOS_STRING_MODE,
+            HEX_QUOTE_STRING_MODE,
+            hljs.C_LINE_COMMENT_MODE,
+            hljs.C_BLOCK_COMMENT_MODE,
+            SOL_NUMBER,
+            SOL_SPECIAL_PARAMETERS,
+            { // functions
+                className: 'function',
+                lexemes: SOL_LEXEMES_RE,
+                beginKeywords: 'function modifier event constructor', end: /[{;]/, excludeEnd: true,
+                contains: [
+                    SOL_TITLE_MODE,
+                    SOL_FUNC_PARAMS,
+                    SOL_SPECIAL_PARAMETERS,
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE
+                ],
+                illegal: /%/,
+            },
+            // built-in members
+            makeBuiltinProps('msg', 'gas value data sender sig'),
+            makeBuiltinProps('block', 'blockhash coinbase difficulty gaslimit number timestamp '),
+            makeBuiltinProps('tx', 'gasprice origin'),
+            makeBuiltinProps('abi', 'decode encode encodePacked encodeWithSelector encodeWithSignature'),
+            SOL_RESERVED_MEMBERS,
+            { // contracts & libraries & interfaces
+                className: 'class',
+                lexemes: SOL_LEXEMES_RE,
+                beginKeywords: 'contract interface library', end: '{', excludeEnd: true,
+                illegal: /[:"\[\]]/,
+                contains: [
+                    { beginKeywords: 'is', lexemes: SOL_LEXEMES_RE },
+                    SOL_TITLE_MODE,
+                    SOL_FUNC_PARAMS,
+                    SOL_SPECIAL_PARAMETERS,
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE
+                ]
+            },
+            { // structs & enums
+                lexemes: SOL_LEXEMES_RE,
+                beginKeywords: 'struct enum', end: '{', excludeEnd: true,
+                illegal: /[:"\[\]]/,
+                contains: [
+                    SOL_TITLE_MODE,
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE
+                ]
+            },
+            { // imports
+                beginKeywords: 'import', end: ';',
+                lexemes: SOL_LEXEMES_RE,
+                keywords: 'import * from as',
+                contains: [
+                    SOL_TITLE_MODE,
+                    SOL_APOS_STRING_MODE,
+                    SOL_QUOTE_STRING_MODE,
+                    HEX_APOS_STRING_MODE,
+                    HEX_QUOTE_STRING_MODE,
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE
+                ]
+            },
+            { // using
+                beginKeywords: 'using', end: ';',
+                lexemes: SOL_LEXEMES_RE,
+                keywords: 'using * for',
+                contains: [
+                    SOL_TITLE_MODE,
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE
+                ]
+            },
+            { // pragmas
+                className: 'meta',
+                beginKeywords: 'pragma', end: ';',
+                lexemes: SOL_LEXEMES_RE,
+                keywords: {
+                    keyword: 'pragma solidity experimental',
+                    built_in: 'ABIEncoderV2 SMTChecker'
+                },
+                contains: [
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE,
+                    hljs.inherit(SOL_APOS_STRING_MODE, { className: 'meta-string' }),
+                    hljs.inherit(SOL_QUOTE_STRING_MODE, { className: 'meta-string' })
+                ]
+            },
+            { //assembly section
+                beginKeywords: 'assembly',
+                end: /\b\B/, //unsatisfiable regex; ended by endsParent instead
+                contains: [
+                    hljs.C_LINE_COMMENT_MODE,
+                    hljs.C_BLOCK_COMMENT_MODE,
+                    { //the actual *block* in the assembly section
+                        begin: '{', end: '}',
+                        endsParent: true,
+                        keywords: SOL_ASSEMBLY_KEYWORDS,
+                        lexemes: SOL_ASSEMBLY_LEXEMES_RE,
+                        contains: [
+                            SOL_APOS_STRING_MODE,
+                            SOL_QUOTE_STRING_MODE,
+                            HEX_APOS_STRING_MODE,
+                            HEX_QUOTE_STRING_MODE,
+                            hljs.C_LINE_COMMENT_MODE,
+                            hljs.C_BLOCK_COMMENT_MODE,
+                            SOL_NUMBER,
+                            SOL_ASSEMBLY_MEMBERS,
+                            SOL_ASSEMBLY_MEMBERS_OLD,
+                            { //block within assembly; note the lack of endsParent
+                                begin: '{', end: '}',
+                                keywords: SOL_ASSEMBLY_KEYWORDS,
+                                lexemes: SOL_ASSEMBLY_LEXEMES_RE,
+                                contains: [
+                                    SOL_APOS_STRING_MODE,
+                                    SOL_QUOTE_STRING_MODE,
+                                    HEX_APOS_STRING_MODE,
+                                    HEX_QUOTE_STRING_MODE,
+                                    hljs.C_LINE_COMMENT_MODE,
+                                    hljs.C_BLOCK_COMMENT_MODE,
+                                    SOL_NUMBER,
+                                    SOL_ASSEMBLY_MEMBERS,
+                                    SOL_ASSEMBLY_MEMBERS_OLD,
+                                    'self'
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        illegal: /#/
+    };
+}
+
+module.exports = function(hljs) {
+    hljs.registerLanguage('solidity', hljsDefineSolidity);
+};
+
+module.exports.definer = hljsDefineSolidity;
+
+},{}],"../../../.config/yarn/global/node_modules/util/support/isBufferBrowser.js":[function(require,module,exports) {
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],"../../../.config/yarn/global/node_modules/util/node_modules/inherits/inherits_browser.js":[function(require,module,exports) {
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],"../../../.config/yarn/global/node_modules/process/browser.js":[function(require,module,exports) {
+
+// shim for using process in browser
+var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+  throw new Error('setTimeout has not been defined');
+}
+
+function defaultClearTimeout() {
+  throw new Error('clearTimeout has not been defined');
+}
+
+(function () {
+  try {
+    if (typeof setTimeout === 'function') {
+      cachedSetTimeout = setTimeout;
+    } else {
+      cachedSetTimeout = defaultSetTimout;
+    }
+  } catch (e) {
+    cachedSetTimeout = defaultSetTimout;
+  }
+
+  try {
+    if (typeof clearTimeout === 'function') {
+      cachedClearTimeout = clearTimeout;
+    } else {
+      cachedClearTimeout = defaultClearTimeout;
+    }
+  } catch (e) {
+    cachedClearTimeout = defaultClearTimeout;
+  }
+})();
+
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+  } // if setTimeout wasn't available but was latter defined
+
+
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    //normal enviroments in sane situations
+    return clearTimeout(marker);
+  } // if clearTimeout wasn't available but was latter defined
+
+
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+      return cachedClearTimeout.call(null, marker);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+
+  draining = false;
+
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+
+  if (queue.length) {
+    drainQueue();
+  }
+}
+
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+
+    queueIndex = -1;
+    len = queue.length;
+  }
+
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+  var args = new Array(arguments.length - 1);
+
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+
+  queue.push(new Item(fun, args));
+
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}; // v8 likes predictible objects
+
+
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+
+Item.prototype.run = function () {
+  this.fun.apply(null, this.array);
+};
+
+process.title = 'browser';
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+  return [];
+};
+
+process.binding = function (name) {
+  throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+  return '/';
+};
+
+process.chdir = function (dir) {
+  throw new Error('process.chdir is not supported');
+};
+
+process.umask = function () {
+  return 0;
+};
+},{}],"../../../.config/yarn/global/node_modules/util/util.js":[function(require,module,exports) {
+var process = require("process");
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors || function getOwnPropertyDescriptors(obj) {
+  var keys = Object.keys(obj);
+  var descriptors = {};
+
+  for (var i = 0; i < keys.length; i++) {
+    descriptors[keys[i]] = Object.getOwnPropertyDescriptor(obj, keys[i]);
+  }
+
+  return descriptors;
+};
+
+var formatRegExp = /%[sdj%]/g;
+
+exports.format = function (f) {
+  if (!isString(f)) {
+    var objects = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function (x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+
+    switch (x) {
+      case '%s':
+        return String(args[i++]);
+
+      case '%d':
+        return Number(args[i++]);
+
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+
+      default:
+        return x;
+    }
+  });
+
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+
+  return str;
+}; // Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+
+
+exports.deprecate = function (fn, msg) {
+  if (typeof process !== 'undefined' && process.noDeprecation === true) {
+    return fn;
+  } // Allow for deprecating things in the process of starting up.
+
+
+  if (typeof process === 'undefined') {
+    return function () {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  var warned = false;
+
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+
+      warned = true;
+    }
+
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+var debugs = {};
+var debugEnviron;
+
+exports.debuglog = function (set) {
+  if (isUndefined(debugEnviron)) debugEnviron = undefined || '';
+  set = set.toUpperCase();
+
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+
+      debugs[set] = function () {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function () {};
+    }
+  }
+
+  return debugs[set];
+};
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+
+/* legacy: obj, showHidden, depth, colors*/
+
+
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  }; // legacy...
+
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  } // set default options
+
+
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+
+exports.inspect = inspect; // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+
+inspect.colors = {
+  'bold': [1, 22],
+  'italic': [3, 23],
+  'underline': [4, 24],
+  'inverse': [7, 27],
+  'white': [37, 39],
+  'grey': [90, 39],
+  'black': [30, 39],
+  'blue': [34, 39],
+  'cyan': [36, 39],
+  'green': [32, 39],
+  'magenta': [35, 39],
+  'red': [31, 39],
+  'yellow': [33, 39]
+}; // Don't use 'blue' not visible on cmd.exe
+
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str + '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+function arrayToHash(array) {
+  var hash = {};
+  array.forEach(function (val, idx) {
+    hash[val] = true;
+  });
+  return hash;
+}
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect && value && isFunction(value.inspect) && // Filter out the util module, it's inspect function is special
+  value.inspect !== exports.inspect && // Also filter out any prototype objects using the circular check.
+  !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+
+    return ret;
+  } // Primitive types cannot have properties
+
+
+  var primitive = formatPrimitive(ctx, value);
+
+  if (primitive) {
+    return primitive;
+  } // Look up the keys of the object.
+
+
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  } // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+
+
+  if (isError(value) && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  } // Some type of object without properties can be shortcutted.
+
+
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '',
+      array = false,
+      braces = ['{', '}']; // Make Array say that they are Array
+
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  } // Make functions say that they are functions
+
+
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  } // Make RegExps say that they are RegExps
+
+
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  } // Make dates with properties first say the date
+
+
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  } // Make error with message first say the error
+
+
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+  var output;
+
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function (key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+  return reduceToSingleString(output, base, braces);
+}
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value)) return ctx.stylize('undefined', 'undefined');
+
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '').replace(/'/g, "\\'").replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+
+  if (isNumber(value)) return ctx.stylize('' + value, 'number');
+  if (isBoolean(value)) return ctx.stylize('' + value, 'boolean'); // For some reason typeof null is "object", so special case here.
+
+  if (isNull(value)) return ctx.stylize('null', 'null');
+}
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+
+  keys.forEach(function (key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+    }
+  });
+  return output;
+}
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || {
+    value: value[key]
+  };
+
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function (line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function (line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+
+    name = JSON.stringify('' + key);
+
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function (prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] + (base === '' ? '' : base + '\n ') + ' ' + output.join(',\n  ') + ' ' + braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+} // NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+
+
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' || // ES6 symbol
+  typeof arg === 'undefined';
+}
+
+exports.isPrimitive = isPrimitive;
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; // 26 Feb 16:19:34
+
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+} // log is just a thin wrapper to console.log that prepends a timestamp
+
+
+exports.log = function () {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+
+
+exports.inherits = require('inherits');
+
+exports._extend = function (origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+  var keys = Object.keys(add);
+  var i = keys.length;
+
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+var kCustomPromisifiedSymbol = typeof Symbol !== 'undefined' ? Symbol('util.promisify.custom') : undefined;
+
+exports.promisify = function promisify(original) {
+  if (typeof original !== 'function') throw new TypeError('The "original" argument must be of type Function');
+
+  if (kCustomPromisifiedSymbol && original[kCustomPromisifiedSymbol]) {
+    var fn = original[kCustomPromisifiedSymbol];
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('The "util.promisify.custom" argument must be of type Function');
+    }
+
+    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+      value: fn,
+      enumerable: false,
+      writable: false,
+      configurable: true
+    });
+    return fn;
+  }
+
+  function fn() {
+    var promiseResolve, promiseReject;
+    var promise = new Promise(function (resolve, reject) {
+      promiseResolve = resolve;
+      promiseReject = reject;
+    });
+    var args = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    args.push(function (err, value) {
+      if (err) {
+        promiseReject(err);
+      } else {
+        promiseResolve(value);
+      }
+    });
+
+    try {
+      original.apply(this, args);
+    } catch (err) {
+      promiseReject(err);
+    }
+
+    return promise;
+  }
+
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+  if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    value: fn,
+    enumerable: false,
+    writable: false,
+    configurable: true
+  });
+  return Object.defineProperties(fn, getOwnPropertyDescriptors(original));
+};
+
+exports.promisify.custom = kCustomPromisifiedSymbol;
+
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    var newReason = new Error('Promise was rejected with a falsy value');
+    newReason.reason = reason;
+    reason = newReason;
+  }
+
+  return cb(reason);
+}
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new TypeError('The "original" argument must be of type Function');
+  } // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+
+
+  function callbackified() {
+    var args = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    var maybeCb = args.pop();
+
+    if (typeof maybeCb !== 'function') {
+      throw new TypeError('The last argument must be of type Function');
+    }
+
+    var self = this;
+
+    var cb = function () {
+      return maybeCb.apply(self, arguments);
+    }; // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+
+
+    original.apply(this, args).then(function (ret) {
+      process.nextTick(cb, null, ret);
+    }, function (rej) {
+      process.nextTick(callbackifyOnRejected, rej, cb);
+    });
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified, getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+
+exports.callbackify = callbackify;
+},{"./support/isBuffer":"../../../.config/yarn/global/node_modules/util/support/isBufferBrowser.js","inherits":"../../../.config/yarn/global/node_modules/util/node_modules/inherits/inherits_browser.js","process":"../../../.config/yarn/global/node_modules/process/browser.js"}],"../../../.config/yarn/global/node_modules/punycode/punycode.js":[function(require,module,exports) {
+var global = arguments[3];
+var define;
+/*! https://mths.be/punycode v1.4.1 by @mathias */
+;(function(root) {
+
+	/** Detect free variables */
+	var freeExports = typeof exports == 'object' && exports &&
+		!exports.nodeType && exports;
+	var freeModule = typeof module == 'object' && module &&
+		!module.nodeType && module;
+	var freeGlobal = typeof global == 'object' && global;
+	if (
+		freeGlobal.global === freeGlobal ||
+		freeGlobal.window === freeGlobal ||
+		freeGlobal.self === freeGlobal
+	) {
+		root = freeGlobal;
+	}
+
+	/**
+	 * The `punycode` object.
+	 * @name punycode
+	 * @type Object
+	 */
+	var punycode,
+
+	/** Highest positive signed 32-bit float value */
+	maxInt = 2147483647, // aka. 0x7FFFFFFF or 2^31-1
+
+	/** Bootstring parameters */
+	base = 36,
+	tMin = 1,
+	tMax = 26,
+	skew = 38,
+	damp = 700,
+	initialBias = 72,
+	initialN = 128, // 0x80
+	delimiter = '-', // '\x2D'
+
+	/** Regular expressions */
+	regexPunycode = /^xn--/,
+	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
+	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
+
+	/** Error messages */
+	errors = {
+		'overflow': 'Overflow: input needs wider integers to process',
+		'not-basic': 'Illegal input >= 0x80 (not a basic code point)',
+		'invalid-input': 'Invalid input'
+	},
+
+	/** Convenience shortcuts */
+	baseMinusTMin = base - tMin,
+	floor = Math.floor,
+	stringFromCharCode = String.fromCharCode,
+
+	/** Temporary variable */
+	key;
+
+	/*--------------------------------------------------------------------------*/
+
+	/**
+	 * A generic error utility function.
+	 * @private
+	 * @param {String} type The error type.
+	 * @returns {Error} Throws a `RangeError` with the applicable error message.
+	 */
+	function error(type) {
+		throw new RangeError(errors[type]);
+	}
+
+	/**
+	 * A generic `Array#map` utility function.
+	 * @private
+	 * @param {Array} array The array to iterate over.
+	 * @param {Function} callback The function that gets called for every array
+	 * item.
+	 * @returns {Array} A new array of values returned by the callback function.
+	 */
+	function map(array, fn) {
+		var length = array.length;
+		var result = [];
+		while (length--) {
+			result[length] = fn(array[length]);
+		}
+		return result;
+	}
+
+	/**
+	 * A simple `Array#map`-like wrapper to work with domain name strings or email
+	 * addresses.
+	 * @private
+	 * @param {String} domain The domain name or email address.
+	 * @param {Function} callback The function that gets called for every
+	 * character.
+	 * @returns {Array} A new string of characters returned by the callback
+	 * function.
+	 */
+	function mapDomain(string, fn) {
+		var parts = string.split('@');
+		var result = '';
+		if (parts.length > 1) {
+			// In email addresses, only the domain name should be punycoded. Leave
+			// the local part (i.e. everything up to `@`) intact.
+			result = parts[0] + '@';
+			string = parts[1];
+		}
+		// Avoid `split(regex)` for IE8 compatibility. See #17.
+		string = string.replace(regexSeparators, '\x2E');
+		var labels = string.split('.');
+		var encoded = map(labels, fn).join('.');
+		return result + encoded;
+	}
+
+	/**
+	 * Creates an array containing the numeric code points of each Unicode
+	 * character in the string. While JavaScript uses UCS-2 internally,
+	 * this function will convert a pair of surrogate halves (each of which
+	 * UCS-2 exposes as separate characters) into a single code point,
+	 * matching UTF-16.
+	 * @see `punycode.ucs2.encode`
+	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
+	 * @memberOf punycode.ucs2
+	 * @name decode
+	 * @param {String} string The Unicode input string (UCS-2).
+	 * @returns {Array} The new array of code points.
+	 */
+	function ucs2decode(string) {
+		var output = [],
+		    counter = 0,
+		    length = string.length,
+		    value,
+		    extra;
+		while (counter < length) {
+			value = string.charCodeAt(counter++);
+			if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
+				// high surrogate, and there is a next character
+				extra = string.charCodeAt(counter++);
+				if ((extra & 0xFC00) == 0xDC00) { // low surrogate
+					output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
+				} else {
+					// unmatched surrogate; only append this code unit, in case the next
+					// code unit is the high surrogate of a surrogate pair
+					output.push(value);
+					counter--;
+				}
+			} else {
+				output.push(value);
+			}
+		}
+		return output;
+	}
+
+	/**
+	 * Creates a string based on an array of numeric code points.
+	 * @see `punycode.ucs2.decode`
+	 * @memberOf punycode.ucs2
+	 * @name encode
+	 * @param {Array} codePoints The array of numeric code points.
+	 * @returns {String} The new Unicode string (UCS-2).
+	 */
+	function ucs2encode(array) {
+		return map(array, function(value) {
+			var output = '';
+			if (value > 0xFFFF) {
+				value -= 0x10000;
+				output += stringFromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			output += stringFromCharCode(value);
+			return output;
+		}).join('');
+	}
+
+	/**
+	 * Converts a basic code point into a digit/integer.
+	 * @see `digitToBasic()`
+	 * @private
+	 * @param {Number} codePoint The basic numeric code point value.
+	 * @returns {Number} The numeric value of a basic code point (for use in
+	 * representing integers) in the range `0` to `base - 1`, or `base` if
+	 * the code point does not represent a value.
+	 */
+	function basicToDigit(codePoint) {
+		if (codePoint - 48 < 10) {
+			return codePoint - 22;
+		}
+		if (codePoint - 65 < 26) {
+			return codePoint - 65;
+		}
+		if (codePoint - 97 < 26) {
+			return codePoint - 97;
+		}
+		return base;
+	}
+
+	/**
+	 * Converts a digit/integer into a basic code point.
+	 * @see `basicToDigit()`
+	 * @private
+	 * @param {Number} digit The numeric value of a basic code point.
+	 * @returns {Number} The basic code point whose value (when used for
+	 * representing integers) is `digit`, which needs to be in the range
+	 * `0` to `base - 1`. If `flag` is non-zero, the uppercase form is
+	 * used; else, the lowercase form is used. The behavior is undefined
+	 * if `flag` is non-zero and `digit` has no uppercase form.
+	 */
+	function digitToBasic(digit, flag) {
+		//  0..25 map to ASCII a..z or A..Z
+		// 26..35 map to ASCII 0..9
+		return digit + 22 + 75 * (digit < 26) - ((flag != 0) << 5);
+	}
+
+	/**
+	 * Bias adaptation function as per section 3.4 of RFC 3492.
+	 * https://tools.ietf.org/html/rfc3492#section-3.4
+	 * @private
+	 */
+	function adapt(delta, numPoints, firstTime) {
+		var k = 0;
+		delta = firstTime ? floor(delta / damp) : delta >> 1;
+		delta += floor(delta / numPoints);
+		for (/* no initialization */; delta > baseMinusTMin * tMax >> 1; k += base) {
+			delta = floor(delta / baseMinusTMin);
+		}
+		return floor(k + (baseMinusTMin + 1) * delta / (delta + skew));
+	}
+
+	/**
+	 * Converts a Punycode string of ASCII-only symbols to a string of Unicode
+	 * symbols.
+	 * @memberOf punycode
+	 * @param {String} input The Punycode string of ASCII-only symbols.
+	 * @returns {String} The resulting string of Unicode symbols.
+	 */
+	function decode(input) {
+		// Don't use UCS-2
+		var output = [],
+		    inputLength = input.length,
+		    out,
+		    i = 0,
+		    n = initialN,
+		    bias = initialBias,
+		    basic,
+		    j,
+		    index,
+		    oldi,
+		    w,
+		    k,
+		    digit,
+		    t,
+		    /** Cached calculation results */
+		    baseMinusT;
+
+		// Handle the basic code points: let `basic` be the number of input code
+		// points before the last delimiter, or `0` if there is none, then copy
+		// the first basic code points to the output.
+
+		basic = input.lastIndexOf(delimiter);
+		if (basic < 0) {
+			basic = 0;
+		}
+
+		for (j = 0; j < basic; ++j) {
+			// if it's not a basic code point
+			if (input.charCodeAt(j) >= 0x80) {
+				error('not-basic');
+			}
+			output.push(input.charCodeAt(j));
+		}
+
+		// Main decoding loop: start just after the last delimiter if any basic code
+		// points were copied; start at the beginning otherwise.
+
+		for (index = basic > 0 ? basic + 1 : 0; index < inputLength; /* no final expression */) {
+
+			// `index` is the index of the next character to be consumed.
+			// Decode a generalized variable-length integer into `delta`,
+			// which gets added to `i`. The overflow checking is easier
+			// if we increase `i` as we go, then subtract off its starting
+			// value at the end to obtain `delta`.
+			for (oldi = i, w = 1, k = base; /* no condition */; k += base) {
+
+				if (index >= inputLength) {
+					error('invalid-input');
+				}
+
+				digit = basicToDigit(input.charCodeAt(index++));
+
+				if (digit >= base || digit > floor((maxInt - i) / w)) {
+					error('overflow');
+				}
+
+				i += digit * w;
+				t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+
+				if (digit < t) {
+					break;
+				}
+
+				baseMinusT = base - t;
+				if (w > floor(maxInt / baseMinusT)) {
+					error('overflow');
+				}
+
+				w *= baseMinusT;
+
+			}
+
+			out = output.length + 1;
+			bias = adapt(i - oldi, out, oldi == 0);
+
+			// `i` was supposed to wrap around from `out` to `0`,
+			// incrementing `n` each time, so we'll fix that now:
+			if (floor(i / out) > maxInt - n) {
+				error('overflow');
+			}
+
+			n += floor(i / out);
+			i %= out;
+
+			// Insert `n` at position `i` of the output
+			output.splice(i++, 0, n);
+
+		}
+
+		return ucs2encode(output);
+	}
+
+	/**
+	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
+	 * Punycode string of ASCII-only symbols.
+	 * @memberOf punycode
+	 * @param {String} input The string of Unicode symbols.
+	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
+	 */
+	function encode(input) {
+		var n,
+		    delta,
+		    handledCPCount,
+		    basicLength,
+		    bias,
+		    j,
+		    m,
+		    q,
+		    k,
+		    t,
+		    currentValue,
+		    output = [],
+		    /** `inputLength` will hold the number of code points in `input`. */
+		    inputLength,
+		    /** Cached calculation results */
+		    handledCPCountPlusOne,
+		    baseMinusT,
+		    qMinusT;
+
+		// Convert the input in UCS-2 to Unicode
+		input = ucs2decode(input);
+
+		// Cache the length
+		inputLength = input.length;
+
+		// Initialize the state
+		n = initialN;
+		delta = 0;
+		bias = initialBias;
+
+		// Handle the basic code points
+		for (j = 0; j < inputLength; ++j) {
+			currentValue = input[j];
+			if (currentValue < 0x80) {
+				output.push(stringFromCharCode(currentValue));
+			}
+		}
+
+		handledCPCount = basicLength = output.length;
+
+		// `handledCPCount` is the number of code points that have been handled;
+		// `basicLength` is the number of basic code points.
+
+		// Finish the basic string - if it is not empty - with a delimiter
+		if (basicLength) {
+			output.push(delimiter);
+		}
+
+		// Main encoding loop:
+		while (handledCPCount < inputLength) {
+
+			// All non-basic code points < n have been handled already. Find the next
+			// larger one:
+			for (m = maxInt, j = 0; j < inputLength; ++j) {
+				currentValue = input[j];
+				if (currentValue >= n && currentValue < m) {
+					m = currentValue;
+				}
+			}
+
+			// Increase `delta` enough to advance the decoder's <n,i> state to <m,0>,
+			// but guard against overflow
+			handledCPCountPlusOne = handledCPCount + 1;
+			if (m - n > floor((maxInt - delta) / handledCPCountPlusOne)) {
+				error('overflow');
+			}
+
+			delta += (m - n) * handledCPCountPlusOne;
+			n = m;
+
+			for (j = 0; j < inputLength; ++j) {
+				currentValue = input[j];
+
+				if (currentValue < n && ++delta > maxInt) {
+					error('overflow');
+				}
+
+				if (currentValue == n) {
+					// Represent delta as a generalized variable-length integer
+					for (q = delta, k = base; /* no condition */; k += base) {
+						t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+						if (q < t) {
+							break;
+						}
+						qMinusT = q - t;
+						baseMinusT = base - t;
+						output.push(
+							stringFromCharCode(digitToBasic(t + qMinusT % baseMinusT, 0))
+						);
+						q = floor(qMinusT / baseMinusT);
+					}
+
+					output.push(stringFromCharCode(digitToBasic(q, 0)));
+					bias = adapt(delta, handledCPCountPlusOne, handledCPCount == basicLength);
+					delta = 0;
+					++handledCPCount;
+				}
+			}
+
+			++delta;
+			++n;
+
+		}
+		return output.join('');
+	}
+
+	/**
+	 * Converts a Punycode string representing a domain name or an email address
+	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
+	 * it doesn't matter if you call it on a string that has already been
+	 * converted to Unicode.
+	 * @memberOf punycode
+	 * @param {String} input The Punycoded domain name or email address to
+	 * convert to Unicode.
+	 * @returns {String} The Unicode representation of the given Punycode
+	 * string.
+	 */
+	function toUnicode(input) {
+		return mapDomain(input, function(string) {
+			return regexPunycode.test(string)
+				? decode(string.slice(4).toLowerCase())
+				: string;
+		});
+	}
+
+	/**
+	 * Converts a Unicode string representing a domain name or an email address to
+	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
+	 * i.e. it doesn't matter if you call it with a domain that's already in
+	 * ASCII.
+	 * @memberOf punycode
+	 * @param {String} input The domain name or email address to convert, as a
+	 * Unicode string.
+	 * @returns {String} The Punycode representation of the given domain name or
+	 * email address.
+	 */
+	function toASCII(input) {
+		return mapDomain(input, function(string) {
+			return regexNonASCII.test(string)
+				? 'xn--' + encode(string)
+				: string;
+		});
+	}
+
+	/*--------------------------------------------------------------------------*/
+
+	/** Define the public API */
+	punycode = {
+		/**
+		 * A string representing the current Punycode.js version number.
+		 * @memberOf punycode
+		 * @type String
+		 */
+		'version': '1.4.1',
+		/**
+		 * An object of methods to convert from JavaScript's internal character
+		 * representation (UCS-2) to Unicode code points, and back.
+		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
+		 * @memberOf punycode
+		 * @type Object
+		 */
+		'ucs2': {
+			'decode': ucs2decode,
+			'encode': ucs2encode
+		},
+		'decode': decode,
+		'encode': encode,
+		'toASCII': toASCII,
+		'toUnicode': toUnicode
+	};
+
+	/** Expose `punycode` */
+	// Some AMD build optimizers, like r.js, check for specific condition patterns
+	// like the following:
+	if (
+		typeof define == 'function' &&
+		typeof define.amd == 'object' &&
+		define.amd
+	) {
+		define('punycode', function() {
+			return punycode;
+		});
+	} else if (freeExports && freeModule) {
+		if (module.exports == freeExports) {
+			// in Node.js, io.js, or RingoJS v0.8.0+
+			freeModule.exports = punycode;
+		} else {
+			// in Narwhal or RingoJS v0.7.0-
+			for (key in punycode) {
+				punycode.hasOwnProperty(key) && (freeExports[key] = punycode[key]);
+			}
+		}
+	} else {
+		// in Rhino or a web browser
+		root.punycode = punycode;
+	}
+
+}(this));
+
+},{}],"../dist/markdown-render-js.js":[function(require,module,exports) {
+var global = arguments[3];
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.finishView = finishView;
+exports.markdown = void 0;
+
+var _highlightjsSolidity = _interopRequireDefault2(require("highlightjs-solidity"));
+
+var _util = _interopRequireDefault2(require("util"));
+
+var _punycode = _interopRequireDefault2(require("punycode"));
+
+function _interopRequireDefault2(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof2(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+
+var version = "1.0.4"; // https://github.com/substack/deep-freeze/blob/master/index.js
 
 /** @param {any} obj */
+
 function deepFreeze(obj) {
   Object.freeze(obj);
   var objIsFunction = typeof obj === 'function';
   Object.getOwnPropertyNames(obj).forEach(function (prop) {
-    if (Object.hasOwnProperty.call(obj, prop) && obj[prop] !== null && (typeof obj[prop] === "object" || typeof obj[prop] === "function") // IE11 fix: https://github.com/highlightjs/highlight.js/issues/2318
+    if (Object.hasOwnProperty.call(obj, prop) && obj[prop] !== null && (_typeof2(obj[prop]) === "object" || typeof obj[prop] === "function") // IE11 fix: https://github.com/highlightjs/highlight.js/issues/2318
     // TODO: remove in the future
     && (objIsFunction ? prop !== 'caller' && prop !== 'callee' && prop !== 'arguments' : true) && !Object.isFrozen(obj[prop])) {
       deepFreeze(obj[prop]);
@@ -20,21 +2094,29 @@ function deepFreeze(obj) {
   return obj;
 }
 
-class Response {
+var Response =
+/*#__PURE__*/
+function () {
   /**
    * @param {CompiledMode} mode
    */
-  constructor(mode) {
+  function Response(mode) {
+    _classCallCheck(this, Response);
+
     // eslint-disable-next-line no-undefined
     if (mode.data === undefined) mode.data = {};
     this.data = mode.data;
   }
 
-  ignoreMatch() {
-    this.ignore = true;
-  }
+  _createClass(Response, [{
+    key: "ignoreMatch",
+    value: function ignoreMatch() {
+      this.ignore = true;
+    }
+  }]);
 
-}
+  return Response;
+}();
 /**
  * @param {string} value
  * @returns {string}
@@ -54,17 +2136,21 @@ function escapeHTML(value) {
  */
 
 
-function inherit(original, ...objects) {
+function inherit(original) {
   /** @type Record<string,any> */
   var result = {};
 
-  for (const key in original) {
-    result[key] = original[key];
+  for (var _key2 in original) {
+    result[_key2] = original[_key2];
+  }
+
+  for (var _len = arguments.length, objects = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    objects[_key - 1] = arguments[_key];
   }
 
   objects.forEach(function (obj) {
-    for (const key in obj) {
-      result[key] = obj[key];
+    for (var _key3 in obj) {
+      result[_key3] = obj[_key3];
     }
   });
   return (
@@ -229,7 +2315,9 @@ function mergeStreams(original, highlighted, value) {
   return result + escapeHTML(value.substr(processed));
 }
 
-var utils = /*#__PURE__*/Object.freeze({
+var utils =
+/*#__PURE__*/
+Object.freeze({
   __proto__: null,
   escapeHTML: escapeHTML,
   inherit: inherit,
@@ -250,26 +2338,30 @@ var utils = /*#__PURE__*/Object.freeze({
 
 /** */
 
-const SPAN_CLOSE = '</span>';
+var SPAN_CLOSE = '</span>';
 /**
  * Determines if a node needs to be wrapped in <span>
  *
  * @param {Node} node */
 
-const emitsWrappingTags = node => {
+var emitsWrappingTags = function emitsWrappingTags(node) {
   return !!node.kind;
 };
 /** @type {Renderer} */
 
 
-class HTMLRenderer {
+var HTMLRenderer =
+/*#__PURE__*/
+function () {
   /**
    * Creates a new HTMLRenderer
    *
    * @param {Tree} parseTree - the parse tree (must support `walk` API)
    * @param {{classPrefix: string}} options
    */
-  constructor(parseTree, options) {
+  function HTMLRenderer(parseTree, options) {
+    _classCallCheck(this, HTMLRenderer);
+
     this.buffer = "";
     this.classPrefix = options.classPrefix;
     parseTree.walk(this);
@@ -280,55 +2372,63 @@ class HTMLRenderer {
    * @param {string} text */
 
 
-  addText(text) {
-    this.buffer += escapeHTML(text);
-  }
-  /**
-   * Adds a node open to the output stream (if needed)
-   *
-   * @param {Node} node */
-
-
-  openNode(node) {
-    if (!emitsWrappingTags(node)) return;
-    let className = node.kind;
-
-    if (!node.sublanguage) {
-      className = `${this.classPrefix}${className}`;
+  _createClass(HTMLRenderer, [{
+    key: "addText",
+    value: function addText(text) {
+      this.buffer += escapeHTML(text);
     }
+    /**
+     * Adds a node open to the output stream (if needed)
+     *
+     * @param {Node} node */
 
-    this.span(className);
-  }
-  /**
-   * Adds a node close to the output stream (if needed)
-   *
-   * @param {Node} node */
+  }, {
+    key: "openNode",
+    value: function openNode(node) {
+      if (!emitsWrappingTags(node)) return;
+      var className = node.kind;
 
+      if (!node.sublanguage) {
+        className = "".concat(this.classPrefix).concat(className);
+      }
 
-  closeNode(node) {
-    if (!emitsWrappingTags(node)) return;
-    this.buffer += SPAN_CLOSE;
-  }
-  /**
-   * returns the accumulated buffer
-  */
+      this.span(className);
+    }
+    /**
+     * Adds a node close to the output stream (if needed)
+     *
+     * @param {Node} node */
 
+  }, {
+    key: "closeNode",
+    value: function closeNode(node) {
+      if (!emitsWrappingTags(node)) return;
+      this.buffer += SPAN_CLOSE;
+    }
+    /**
+     * returns the accumulated buffer
+    */
 
-  value() {
-    return this.buffer;
-  } // helpers
+  }, {
+    key: "value",
+    value: function value() {
+      return this.buffer;
+    } // helpers
 
-  /**
-   * Builds a span element
-   *
-   * @param {string} className */
+    /**
+     * Builds a span element
+     *
+     * @param {string} className */
 
+  }, {
+    key: "span",
+    value: function span(className) {
+      this.buffer += "<span class=\"".concat(className, "\">");
+    }
+  }]);
 
-  span(className) {
-    this.buffer += `<span class="${className}">`;
-  }
-
-}
+  return HTMLRenderer;
+}();
 /** @typedef {{kind?: string, sublanguage?: boolean, children: Node[]} | string} Node */
 
 /** @typedef {{kind?: string, sublanguage?: boolean, children: Node[]} } DataNode */
@@ -336,8 +2436,12 @@ class HTMLRenderer {
 /**  */
 
 
-class TokenTree {
-  constructor() {
+var TokenTree =
+/*#__PURE__*/
+function () {
+  function TokenTree() {
+    _classCallCheck(this, TokenTree);
+
     /** @type DataNode */
     this.rootNode = {
       children: []
@@ -345,97 +2449,118 @@ class TokenTree {
     this.stack = [this.rootNode];
   }
 
-  get top() {
-    return this.stack[this.stack.length - 1];
-  }
+  _createClass(TokenTree, [{
+    key: "add",
 
-  get root() {
-    return this.rootNode;
-  }
-  /** @param {Node} node */
-
-
-  add(node) {
-    this.top.children.push(node);
-  }
-  /** @param {string} kind */
-
-
-  openNode(kind) {
-    /** @type Node */
-    const node = {
-      kind,
-      children: []
-    };
-    this.add(node);
-    this.stack.push(node);
-  }
-
-  closeNode() {
-    if (this.stack.length > 1) {
-      return this.stack.pop();
-    } // eslint-disable-next-line no-undefined
-
-
-    return undefined;
-  }
-
-  closeAllNodes() {
-    while (this.closeNode());
-  }
-
-  toJSON() {
-    return JSON.stringify(this.rootNode, null, 4);
-  }
-  /**
-   * @typedef { import("./html_renderer").Renderer } Renderer
-   * @param {Renderer} builder
-   */
-
-
-  walk(builder) {
-    // this does not
-    return this.constructor._walk(builder, this.rootNode); // this works
-    // return TokenTree._walk(builder, this.rootNode);
-  }
-  /**
-   * @param {Renderer} builder
-   * @param {Node} node
-   */
-
-
-  static _walk(builder, node) {
-    if (typeof node === "string") {
-      builder.addText(node);
-    } else if (node.children) {
-      builder.openNode(node);
-      node.children.forEach(child => this._walk(builder, child));
-      builder.closeNode(node);
+    /** @param {Node} node */
+    value: function add(node) {
+      this.top.children.push(node);
     }
+    /** @param {string} kind */
 
-    return builder;
-  }
-  /**
-   * @param {Node} node
-   */
-
-
-  static _collapse(node) {
-    if (typeof node === "string") return;
-    if (!node.children) return;
-
-    if (node.children.every(el => typeof el === "string")) {
-      // node.text = node.children.join("");
-      // delete node.children;
-      node.children = [node.children.join("")];
-    } else {
-      node.children.forEach(child => {
-        TokenTree._collapse(child);
-      });
+  }, {
+    key: "openNode",
+    value: function openNode(kind) {
+      /** @type Node */
+      var node = {
+        kind: kind,
+        children: []
+      };
+      this.add(node);
+      this.stack.push(node);
     }
-  }
+  }, {
+    key: "closeNode",
+    value: function closeNode() {
+      if (this.stack.length > 1) {
+        return this.stack.pop();
+      } // eslint-disable-next-line no-undefined
 
-}
+
+      return undefined;
+    }
+  }, {
+    key: "closeAllNodes",
+    value: function closeAllNodes() {
+      while (this.closeNode()) {
+        ;
+      }
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return JSON.stringify(this.rootNode, null, 4);
+    }
+    /**
+     * @typedef { import("./html_renderer").Renderer } Renderer
+     * @param {Renderer} builder
+     */
+
+  }, {
+    key: "walk",
+    value: function walk(builder) {
+      // this does not
+      return this.constructor._walk(builder, this.rootNode); // this works
+      // return TokenTree._walk(builder, this.rootNode);
+    }
+    /**
+     * @param {Renderer} builder
+     * @param {Node} node
+     */
+
+  }, {
+    key: "top",
+    get: function get() {
+      return this.stack[this.stack.length - 1];
+    }
+  }, {
+    key: "root",
+    get: function get() {
+      return this.rootNode;
+    }
+  }], [{
+    key: "_walk",
+    value: function _walk(builder, node) {
+      var _this = this;
+
+      if (typeof node === "string") {
+        builder.addText(node);
+      } else if (node.children) {
+        builder.openNode(node);
+        node.children.forEach(function (child) {
+          return _this._walk(builder, child);
+        });
+        builder.closeNode(node);
+      }
+
+      return builder;
+    }
+    /**
+     * @param {Node} node
+     */
+
+  }, {
+    key: "_collapse",
+    value: function _collapse(node) {
+      if (typeof node === "string") return;
+      if (!node.children) return;
+
+      if (node.children.every(function (el) {
+        return typeof el === "string";
+      })) {
+        // node.text = node.children.join("");
+        // delete node.children;
+        node.children = [node.children.join("")];
+      } else {
+        node.children.forEach(function (child) {
+          TokenTree._collapse(child);
+        });
+      }
+    }
+  }]);
+
+  return TokenTree;
+}();
 /**
   Currently this is all private API, but this is the minimal API necessary
   that an Emitter must implement to fully support the parser.
@@ -458,13 +2583,22 @@ class TokenTree {
  */
 
 
-class TokenTreeEmitter extends TokenTree {
+var TokenTreeEmitter =
+/*#__PURE__*/
+function (_TokenTree) {
+  _inherits(TokenTreeEmitter, _TokenTree);
+
   /**
    * @param {*} options
    */
-  constructor(options) {
-    super();
-    this.options = options;
+  function TokenTreeEmitter(options) {
+    var _this2;
+
+    _classCallCheck(this, TokenTreeEmitter);
+
+    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(TokenTreeEmitter).call(this));
+    _this2.options = options;
+    return _this2;
   }
   /**
    * @param {string} text
@@ -472,51 +2606,59 @@ class TokenTreeEmitter extends TokenTree {
    */
 
 
-  addKeyword(text, kind) {
-    if (text === "") {
-      return;
+  _createClass(TokenTreeEmitter, [{
+    key: "addKeyword",
+    value: function addKeyword(text, kind) {
+      if (text === "") {
+        return;
+      }
+
+      this.openNode(kind);
+      this.addText(text);
+      this.closeNode();
     }
+    /**
+     * @param {string} text
+     */
 
-    this.openNode(kind);
-    this.addText(text);
-    this.closeNode();
-  }
-  /**
-   * @param {string} text
-   */
+  }, {
+    key: "addText",
+    value: function addText(text) {
+      if (text === "") {
+        return;
+      }
 
-
-  addText(text) {
-    if (text === "") {
-      return;
+      this.add(text);
     }
+    /**
+     * @param {Emitter & {root: DataNode}} emitter
+     * @param {string} name
+     */
 
-    this.add(text);
-  }
-  /**
-   * @param {Emitter & {root: DataNode}} emitter
-   * @param {string} name
-   */
+  }, {
+    key: "addSublanguage",
+    value: function addSublanguage(emitter, name) {
+      /** @type DataNode */
+      var node = emitter.root;
+      node.kind = name;
+      node.sublanguage = true;
+      this.add(node);
+    }
+  }, {
+    key: "toHTML",
+    value: function toHTML() {
+      var renderer = new HTMLRenderer(this, this.options);
+      return renderer.value();
+    }
+  }, {
+    key: "finalize",
+    value: function finalize() {
+      return true;
+    }
+  }]);
 
-
-  addSublanguage(emitter, name) {
-    /** @type DataNode */
-    const node = emitter.root;
-    node.kind = name;
-    node.sublanguage = true;
-    this.add(node);
-  }
-
-  toHTML() {
-    const renderer = new HTMLRenderer(this, this.options);
-    return renderer.value();
-  }
-
-  finalize() {
-    return true;
-  }
-
-}
+  return TokenTreeEmitter;
+}(TokenTree);
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -543,8 +2685,14 @@ function source(re) {
  */
 
 
-function concat(...args) {
-  const joined = args.map(x => source(x)).join("");
+function concat() {
+  for (var _len2 = arguments.length, args = new Array(_len2), _key4 = 0; _key4 < _len2; _key4++) {
+    args[_key4] = arguments[_key4];
+  }
+
+  var joined = args.map(function (x) {
+    return source(x);
+  }).join("");
   return joined;
 }
 /**
@@ -579,7 +2727,8 @@ function startsWith(re, lexeme) {
  */
 
 
-function join(regexps, separator = "|") {
+function join(regexps) {
+  var separator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "|";
   // backreferenceRe matches an open parenthesis or backreference. To avoid
   // an incorrect parse, it additionally matches the following:
   // - [...] elements, where the meaning of parentheses and escapes change
@@ -632,20 +2781,21 @@ function join(regexps, separator = "|") {
 } // Common regexps
 
 
-const IDENT_RE = '[a-zA-Z]\\w*';
-const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
-const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
-const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
+var IDENT_RE = '[a-zA-Z]\\w*';
+var UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
+var NUMBER_RE = '\\b\\d+(\\.\\d+)?';
+var C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
 
-const BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
+var BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
 
-const RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
+var RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
 /**
 * @param { Partial<Mode> & {binary?: string | RegExp} } opts
 */
 
-const SHEBANG = (opts = {}) => {
-  const beginShebang = /^#![ ]*\//;
+var SHEBANG = function SHEBANG() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var beginShebang = /^#![ ]*\//;
 
   if (opts.binary) {
     opts.begin = concat(beginShebang, /.*\b/, opts.binary, /\b.*/);
@@ -658,32 +2808,32 @@ const SHEBANG = (opts = {}) => {
     relevance: 0,
 
     /** @type {ModeCallback} */
-    "on:begin": (m, resp) => {
+    "on:begin": function onBegin(m, resp) {
       if (m.index !== 0) resp.ignoreMatch();
     }
   }, opts);
 }; // Common modes
 
 
-const BACKSLASH_ESCAPE = {
+var BACKSLASH_ESCAPE = {
   begin: '\\\\[\\s\\S]',
   relevance: 0
 };
-const APOS_STRING_MODE = {
+var APOS_STRING_MODE = {
   className: 'string',
   begin: '\'',
   end: '\'',
   illegal: '\\n',
   contains: [BACKSLASH_ESCAPE]
 };
-const QUOTE_STRING_MODE = {
+var QUOTE_STRING_MODE = {
   className: 'string',
   begin: '"',
   end: '"',
   illegal: '\\n',
   contains: [BACKSLASH_ESCAPE]
 };
-const PHRASAL_WORDS_MODE = {
+var PHRASAL_WORDS_MODE = {
   begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|they|like|more)\b/
 };
 /**
@@ -695,11 +2845,12 @@ const PHRASAL_WORDS_MODE = {
  * @returns {Partial<Mode>}
  */
 
-const COMMENT = function (begin, end, modeOptions = {}) {
+var COMMENT = function COMMENT(begin, end) {
+  var modeOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   var mode = inherit({
     className: 'comment',
-    begin,
-    end,
+    begin: begin,
+    end: end,
     contains: []
   }, modeOptions);
   mode.contains.push(PHRASAL_WORDS_MODE);
@@ -711,30 +2862,30 @@ const COMMENT = function (begin, end, modeOptions = {}) {
   return mode;
 };
 
-const C_LINE_COMMENT_MODE = COMMENT('//', '$');
-const C_BLOCK_COMMENT_MODE = COMMENT('/\\*', '\\*/');
-const HASH_COMMENT_MODE = COMMENT('#', '$');
-const NUMBER_MODE = {
+var C_LINE_COMMENT_MODE = COMMENT('//', '$');
+var C_BLOCK_COMMENT_MODE = COMMENT('/\\*', '\\*/');
+var HASH_COMMENT_MODE = COMMENT('#', '$');
+var NUMBER_MODE = {
   className: 'number',
   begin: NUMBER_RE,
   relevance: 0
 };
-const C_NUMBER_MODE = {
+var C_NUMBER_MODE = {
   className: 'number',
   begin: C_NUMBER_RE,
   relevance: 0
 };
-const BINARY_NUMBER_MODE = {
+var BINARY_NUMBER_MODE = {
   className: 'number',
   begin: BINARY_NUMBER_RE,
   relevance: 0
 };
-const CSS_NUMBER_MODE = {
+var CSS_NUMBER_MODE = {
   className: 'number',
   begin: NUMBER_RE + '(' + '%|em|ex|ch|rem' + '|vw|vh|vmin|vmax' + '|cm|mm|in|pt|pc|px' + '|deg|grad|rad|turn' + '|s|ms' + '|Hz|kHz' + '|dpi|dpcm|dppx' + ')?',
   relevance: 0
 };
-const REGEXP_MODE = {
+var REGEXP_MODE = {
   // this outer rule makes sure we actually have a WHOLE regex and not simply
   // an expression such as:
   //
@@ -755,17 +2906,17 @@ const REGEXP_MODE = {
     }]
   }]
 };
-const TITLE_MODE = {
+var TITLE_MODE = {
   className: 'title',
   begin: IDENT_RE,
   relevance: 0
 };
-const UNDERSCORE_TITLE_MODE = {
+var UNDERSCORE_TITLE_MODE = {
   className: 'title',
   begin: UNDERSCORE_IDENT_RE,
   relevance: 0
 };
-const METHOD_GUARD = {
+var METHOD_GUARD = {
   // excludes method names from keyword processing
   begin: '\\.\\s*' + UNDERSCORE_IDENT_RE,
   relevance: 0
@@ -778,21 +2929,23 @@ const METHOD_GUARD = {
  * @param {Partial<Mode>} mode
  */
 
-const END_SAME_AS_BEGIN = function (mode) {
+var END_SAME_AS_BEGIN = function END_SAME_AS_BEGIN(mode) {
   return Object.assign(mode, {
     /** @type {ModeCallback} */
-    'on:begin': (m, resp) => {
+    'on:begin': function onBegin(m, resp) {
       resp.data._beginMatch = m[1];
     },
 
     /** @type {ModeCallback} */
-    'on:end': (m, resp) => {
+    'on:end': function onEnd(m, resp) {
       if (resp.data._beginMatch !== m[1]) resp.ignoreMatch();
     }
   });
 };
 
-var MODES = /*#__PURE__*/Object.freeze({
+var MODES =
+/*#__PURE__*/
+Object.freeze({
   __proto__: null,
   IDENT_RE: IDENT_RE,
   UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
@@ -855,8 +3008,12 @@ function compileLanguage(language) {
   */
 
 
-  class MultiRegex {
-    constructor() {
+  var MultiRegex =
+  /*#__PURE__*/
+  function () {
+    function MultiRegex() {
+      _classCallCheck(this, MultiRegex);
+
       this.matchIndexes = {}; // @ts-ignore
 
       this.regexes = [];
@@ -865,47 +3022,59 @@ function compileLanguage(language) {
     } // @ts-ignore
 
 
-    addRule(re, opts) {
-      opts.position = this.position++; // @ts-ignore
+    _createClass(MultiRegex, [{
+      key: "addRule",
+      value: function addRule(re, opts) {
+        opts.position = this.position++; // @ts-ignore
 
-      this.matchIndexes[this.matchAt] = opts;
-      this.regexes.push([opts, re]);
-      this.matchAt += countMatchGroups(re) + 1;
-    }
-
-    compile() {
-      if (this.regexes.length === 0) {
-        // avoids the need to check length every time exec is called
-        // @ts-ignore
-        this.exec = () => null;
+        this.matchIndexes[this.matchAt] = opts;
+        this.regexes.push([opts, re]);
+        this.matchAt += countMatchGroups(re) + 1;
       }
+    }, {
+      key: "compile",
+      value: function compile() {
+        if (this.regexes.length === 0) {
+          // avoids the need to check length every time exec is called
+          // @ts-ignore
+          this.exec = function () {
+            return null;
+          };
+        }
 
-      const terminators = this.regexes.map(el => el[1]);
-      this.matcherRe = langRe(join(terminators), true);
-      this.lastIndex = 0;
-    }
-    /** @param {string} s */
+        var terminators = this.regexes.map(function (el) {
+          return el[1];
+        });
+        this.matcherRe = langRe(join(terminators), true);
+        this.lastIndex = 0;
+      }
+      /** @param {string} s */
+
+    }, {
+      key: "exec",
+      value: function exec(s) {
+        this.matcherRe.lastIndex = this.lastIndex;
+        var match = this.matcherRe.exec(s);
+
+        if (!match) {
+          return null;
+        } // eslint-disable-next-line no-undefined
 
 
-    exec(s) {
-      this.matcherRe.lastIndex = this.lastIndex;
-      const match = this.matcherRe.exec(s);
+        var i = match.findIndex(function (el, i) {
+          return i > 0 && el !== undefined;
+        }); // @ts-ignore
 
-      if (!match) {
-        return null;
-      } // eslint-disable-next-line no-undefined
+        var matchData = this.matchIndexes[i]; // trim off any earlier non-relevant match groups (ie, the other regex
+        // match groups that make up the multi-matcher)
 
+        match.splice(0, i);
+        return Object.assign(match, matchData);
+      }
+    }]);
 
-      const i = match.findIndex((el, i) => i > 0 && el !== undefined); // @ts-ignore
-
-      const matchData = this.matchIndexes[i]; // trim off any earlier non-relevant match groups (ie, the other regex
-      // match groups that make up the multi-matcher)
-
-      match.splice(0, i);
-      return Object.assign(match, matchData);
-    }
-
-  }
+    return MultiRegex;
+  }();
   /*
     Created to solve the key deficiently with MultiRegex - there is no way to
     test for multiple matches at a single location.  Why would we need to do
@@ -931,8 +3100,12 @@ function compileLanguage(language) {
   */
 
 
-  class ResumableMultiRegex {
-    constructor() {
+  var ResumableMultiRegex =
+  /*#__PURE__*/
+  function () {
+    function ResumableMultiRegex() {
+      _classCallCheck(this, ResumableMultiRegex);
+
       // @ts-ignore
       this.rules = []; // @ts-ignore
 
@@ -943,46 +3116,59 @@ function compileLanguage(language) {
     } // @ts-ignore
 
 
-    getMatcher(index) {
-      if (this.multiRegexes[index]) return this.multiRegexes[index];
-      const matcher = new MultiRegex();
-      this.rules.slice(index).forEach(([re, opts]) => matcher.addRule(re, opts));
-      matcher.compile();
-      this.multiRegexes[index] = matcher;
-      return matcher;
-    }
+    _createClass(ResumableMultiRegex, [{
+      key: "getMatcher",
+      value: function getMatcher(index) {
+        if (this.multiRegexes[index]) return this.multiRegexes[index];
+        var matcher = new MultiRegex();
+        this.rules.slice(index).forEach(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              re = _ref2[0],
+              opts = _ref2[1];
 
-    considerAll() {
-      this.regexIndex = 0;
-    } // @ts-ignore
+          return matcher.addRule(re, opts);
+        });
+        matcher.compile();
+        this.multiRegexes[index] = matcher;
+        return matcher;
+      }
+    }, {
+      key: "considerAll",
+      value: function considerAll() {
+        this.regexIndex = 0;
+      } // @ts-ignore
+
+    }, {
+      key: "addRule",
+      value: function addRule(re, opts) {
+        this.rules.push([re, opts]);
+        if (opts.type === "begin") this.count++;
+      }
+      /** @param {string} s */
+
+    }, {
+      key: "exec",
+      value: function exec(s) {
+        var m = this.getMatcher(this.regexIndex);
+        m.lastIndex = this.lastIndex;
+        var result = m.exec(s);
+
+        if (result) {
+          this.regexIndex += result.position + 1;
+
+          if (this.regexIndex === this.count) {
+            // wrap-around
+            this.regexIndex = 0;
+          }
+        } // this.regexIndex = 0;
 
 
-    addRule(re, opts) {
-      this.rules.push([re, opts]);
-      if (opts.type === "begin") this.count++;
-    }
-    /** @param {string} s */
+        return result;
+      }
+    }]);
 
-
-    exec(s) {
-      const m = this.getMatcher(this.regexIndex);
-      m.lastIndex = this.lastIndex;
-      const result = m.exec(s);
-
-      if (result) {
-        this.regexIndex += result.position + 1;
-
-        if (this.regexIndex === this.count) {
-          // wrap-around
-          this.regexIndex = 0;
-        }
-      } // this.regexIndex = 0;
-
-
-      return result;
-    }
-
-  }
+    return ResumableMultiRegex;
+  }();
   /**
    * Given a mode, builds a huge ResumableMultiRegex that can be used to walk
    * the content and find matches.
@@ -993,11 +3179,13 @@ function compileLanguage(language) {
 
 
   function buildModeRegex(mode) {
-    const mm = new ResumableMultiRegex();
-    mode.contains.forEach(term => mm.addRule(term.begin, {
-      rule: term,
-      type: "begin"
-    }));
+    var mm = new ResumableMultiRegex();
+    mode.contains.forEach(function (term) {
+      return mm.addRule(term.begin, {
+        rule: term,
+        type: "begin"
+      });
+    });
 
     if (mode.terminator_end) {
       mm.addRule(mode.terminator_end, {
@@ -1026,8 +3214,8 @@ function compileLanguage(language) {
 
 
   function skipIfhasPrecedingOrTrailingDot(match, response) {
-    const before = match.input[match.index - 1];
-    const after = match.input[match.index + match[0].length];
+    var before = match.input[match.index - 1];
+    var after = match.input[match.index + match[0].length];
 
     if (before === "." || after === ".") {
       response.ignoreMatch();
@@ -1075,7 +3263,9 @@ function compileLanguage(language) {
 
 
   function compileMode(mode, parent) {
-    const cmode =
+    var _ref3;
+
+    var cmode =
     /** @type CompiledMode */
     mode;
     if (mode.compiled) return cmode;
@@ -1083,9 +3273,9 @@ function compileLanguage(language) {
 
     mode.__beforeBegin = null;
     mode.keywords = mode.keywords || mode.beginKeywords;
-    let kw_pattern = null;
+    var kw_pattern = null;
 
-    if (typeof mode.keywords === "object") {
+    if (_typeof2(mode.keywords) === "object") {
       kw_pattern = mode.keywords.$pattern;
       delete mode.keywords.$pattern;
     }
@@ -1130,9 +3320,9 @@ function compileLanguage(language) {
 
     if (mode.relevance === undefined) mode.relevance = 1;
     if (!mode.contains) mode.contains = [];
-    mode.contains = [].concat(...mode.contains.map(function (c) {
+    mode.contains = (_ref3 = []).concat.apply(_ref3, _toConsumableArray(mode.contains.map(function (c) {
       return expand_or_clone_mode(c === 'self' ? mode : c);
-    }));
+    })));
     mode.contains.forEach(function (c) {
       compileMode(
       /** @type Mode */
@@ -1300,19 +3490,17 @@ Syntax highlighting with language autodetection.
 https://highlightjs.org/
 */
 
-const escape$1$1 = escapeHTML;
-const inherit$1 = inherit;
-const {
-  nodeStream: nodeStream$1,
-  mergeStreams: mergeStreams$1
-} = utils;
-const NO_MATCH = Symbol("nomatch");
+var escape$1$1 = escapeHTML;
+var inherit$1 = inherit;
+var nodeStream$1 = utils.nodeStream,
+    mergeStreams$1 = utils.mergeStreams;
+var NO_MATCH = Symbol("nomatch");
 /**
  * @param {any} hljs - object that is extended (legacy)
  * @returns {HLJSApi}
  */
 
-const HLJS = function (hljs) {
+var HLJS = function HLJS(hljs) {
   // Convenience variables for build-in objects
 
   /** @type {unknown[]} */
@@ -1334,7 +3522,7 @@ const HLJS = function (hljs) {
   var LANGUAGE_NOT_FOUND = "Could not find the language '{}', did you forget to load/include a language module?";
   /** @type {Language} */
 
-  const PLAINTEXT_LANGUAGE = {
+  var PLAINTEXT_LANGUAGE = {
     disableAutodetect: true,
     name: 'Plain text',
     contains: []
@@ -1373,7 +3561,7 @@ const HLJS = function (hljs) {
     var classes = block.className + ' ';
     classes += block.parentNode ? block.parentNode.className : ''; // language-* takes precedence over non-prefixed class names.
 
-    const match = options.languageDetectRe.exec(classes);
+    var match = options.languageDetectRe.exec(classes);
 
     if (match) {
       var language = getLanguage(match[1]);
@@ -1386,7 +3574,9 @@ const HLJS = function (hljs) {
       return language ? match[1] : 'no-highlight';
     }
 
-    return classes.split(/\s+/).find(_class => shouldNotHighlight(_class) || getLanguage(_class));
+    return classes.split(/\s+/).find(function (_class) {
+      return shouldNotHighlight(_class) || getLanguage(_class);
+    });
   }
   /**
    * Core highlighting function.
@@ -1409,7 +3599,7 @@ const HLJS = function (hljs) {
   function highlight(languageName, code, ignoreIllegals, continuation) {
     /** @type {{ code: string, language: string, result?: any }} */
     var context = {
-      code,
+      code: code,
       language: languageName
     }; // the plugin can change the desired language or the code to be highlighted
     // just be changing the object it was passed
@@ -1453,17 +3643,20 @@ const HLJS = function (hljs) {
         return;
       }
 
-      let last_index = 0;
+      var last_index = 0;
       top.keywordPatternRe.lastIndex = 0;
-      let match = top.keywordPatternRe.exec(mode_buffer);
-      let buf = "";
+      var match = top.keywordPatternRe.exec(mode_buffer);
+      var buf = "";
 
       while (match) {
         buf += mode_buffer.substring(last_index, match.index);
-        const data = keywordData(top, match);
+        var data = keywordData(top, match);
 
         if (data) {
-          const [kind, keywordRelevance] = data;
+          var _data = _slicedToArray(data, 2),
+              kind = _data[0],
+              keywordRelevance = _data[1];
+
           emitter.addText(buf);
           buf = "";
           relevance += keywordRelevance;
@@ -1544,11 +3737,11 @@ const HLJS = function (hljs) {
 
 
     function endOfMode(mode, match, matchPlusRemainder) {
-      let matched = startsWith(mode.endRe, matchPlusRemainder);
+      var matched = startsWith(mode.endRe, matchPlusRemainder);
 
       if (matched) {
         if (mode["on:end"]) {
-          const resp = new Response(mode);
+          var resp = new Response(mode);
           mode["on:end"](match, resp);
           if (resp.ignore) matched = false;
         }
@@ -1599,11 +3792,12 @@ const HLJS = function (hljs) {
     function doBeginMatch(match) {
       var lexeme = match[0];
       var new_mode = match.rule;
-      const resp = new Response(new_mode); // first internal before callbacks, then the public ones
+      var resp = new Response(new_mode); // first internal before callbacks, then the public ones
 
-      const beforeCallbacks = [new_mode.__beforeBegin, new_mode["on:begin"]];
+      var beforeCallbacks = [new_mode.__beforeBegin, new_mode["on:begin"]];
 
-      for (const cb of beforeCallbacks) {
+      for (var _i2 = 0, _beforeCallbacks = beforeCallbacks; _i2 < _beforeCallbacks.length; _i2++) {
+        var cb = _beforeCallbacks[_i2];
         if (!cb) continue;
         cb(match, resp);
         if (resp.ignore) return doIgnore(lexeme);
@@ -1698,7 +3892,9 @@ const HLJS = function (hljs) {
         }
       }
 
-      list.forEach(item => emitter.openNode(item));
+      list.forEach(function (item) {
+        return emitter.openNode(item);
+      });
     }
     /** @type {{type?: MatchType, index?: number, rule?: Mode}}} */
 
@@ -1731,7 +3927,7 @@ const HLJS = function (hljs) {
 
         if (!SAFE_MODE) {
           /** @type {AnnotatedError} */
-          const err = new Error('0 width match regex');
+          var err = new Error('0 width match regex');
           err.languageName = languageName;
           err.badRule = lastMatch.rule;
           throw err;
@@ -1748,9 +3944,10 @@ const HLJS = function (hljs) {
         // illegal match, we do not continue processing
 
         /** @type {AnnotatedError} */
-        const err = new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.className || '<unnamed>') + '"');
-        err.mode = top;
-        throw err;
+        var _err = new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.className || '<unnamed>') + '"');
+
+        _err.mode = top;
+        throw _err;
       } else if (match.type === "end") {
         var processed = doEndMatch(match);
 
@@ -1772,8 +3969,9 @@ const HLJS = function (hljs) {
 
 
       if (iterations > 100000 && iterations > match.index * 3) {
-        const err = new Error('potential infinite loop, way more iterations than matches');
-        throw err;
+        var _err2 = new Error('potential infinite loop, way more iterations than matches');
+
+        throw _err2;
       }
       /*
       Why might be find ourselves here?  Only one occasion now.  An end match that was
@@ -1830,11 +4028,11 @@ const HLJS = function (hljs) {
           top.matcher.considerAll();
         }
 
-        const match = top.matcher.exec(codeToHighlight); // console.log("match", match[0], match.rule && match.rule.begin)
+        var match = top.matcher.exec(codeToHighlight); // console.log("match", match[0], match.rule && match.rule.begin)
 
         if (!match) break;
-        const beforeMatch = codeToHighlight.substring(index, match.index);
-        const processedCount = processLexeme(beforeMatch, match);
+        var beforeMatch = codeToHighlight.substring(index, match.index);
+        var processedCount = processLexeme(beforeMatch, match);
         index = match.index + processedCount;
       }
 
@@ -1889,7 +4087,7 @@ const HLJS = function (hljs) {
 
 
   function justTextHighlightResult(code) {
-    const result = {
+    var result = {
       relevance: 0,
       emitter: new options.__emitter(options),
       value: escape$1$1(code),
@@ -1953,7 +4151,7 @@ const HLJS = function (hljs) {
       return html;
     }
 
-    return html.replace(fixMarkupRe, match => {
+    return html.replace(fixMarkupRe, function (match) {
       if (match === '\n') {
         return options.useBR ? '<br>' : match;
       } else if (options.tabReplace) {
@@ -1996,8 +4194,8 @@ const HLJS = function (hljs) {
 
   function highlightBlock(element) {
     /** @type HTMLElement */
-    let node = null;
-    const language = blockLanguage(element);
+    var node = null;
+    var language = blockLanguage(element);
     if (shouldNotHighlight(language)) return;
     fire("before:highlightBlock", {
       block: element,
@@ -2011,12 +4209,12 @@ const HLJS = function (hljs) {
       node = element;
     }
 
-    const text = node.textContent;
-    const result = language ? highlight(language, text, true) : highlightAuto(text);
-    const originalStream = nodeStream$1(node);
+    var text = node.textContent;
+    var result = language ? highlight(language, text, true) : highlightAuto(text);
+    var originalStream = nodeStream$1(node);
 
     if (originalStream.length) {
-      const resultNode = document.createElement('div');
+      var resultNode = document.createElement('div');
       resultNode.innerHTML = result.value;
       result.value = mergeStreams$1(originalStream, nodeStream$1(resultNode), text);
     }
@@ -2061,7 +4259,7 @@ const HLJS = function (hljs) {
    */
 
 
-  const initHighlighting = () => {
+  var initHighlighting = function initHighlighting() {
     if (initHighlighting.called) return;
     initHighlighting.called = true;
     var blocks = document.querySelectorAll('pre code');
@@ -2109,7 +4307,7 @@ const HLJS = function (hljs) {
 
     if (lang.aliases) {
       registerAliases(lang.aliases, {
-        languageName
+        languageName: languageName
       });
     }
   }
@@ -2157,14 +4355,14 @@ const HLJS = function (hljs) {
    */
 
 
-  function registerAliases(aliasList, {
-    languageName
-  }) {
+  function registerAliases(aliasList, _ref4) {
+    var languageName = _ref4.languageName;
+
     if (typeof aliasList === 'string') {
       aliasList = [aliasList];
     }
 
-    aliasList.forEach(alias => {
+    aliasList.forEach(function (alias) {
       aliases[alias] = languageName;
     });
   }
@@ -2205,21 +4403,21 @@ const HLJS = function (hljs) {
 
 
   Object.assign(hljs, {
-    highlight,
-    highlightAuto,
-    fixMarkup,
-    highlightBlock,
-    configure,
-    initHighlighting,
-    initHighlightingOnLoad,
-    registerLanguage,
-    listLanguages,
-    getLanguage,
-    registerAliases,
-    requireLanguage,
-    autoDetection,
+    highlight: highlight,
+    highlightAuto: highlightAuto,
+    fixMarkup: fixMarkup,
+    highlightBlock: highlightBlock,
+    configure: configure,
+    initHighlighting: initHighlighting,
+    initHighlightingOnLoad: initHighlightingOnLoad,
+    registerLanguage: registerLanguage,
+    listLanguages: listLanguages,
+    getLanguage: getLanguage,
+    registerAliases: registerAliases,
+    requireLanguage: requireLanguage,
+    autoDetection: autoDetection,
     inherit: inherit$1,
-    addPlugin
+    addPlugin: addPlugin
   });
 
   hljs.debugMode = function () {
@@ -2232,11 +4430,11 @@ const HLJS = function (hljs) {
 
   hljs.versionString = version$1;
 
-  for (const key in MODES) {
+  for (var _key5 in MODES) {
     // @ts-ignore
-    if (typeof MODES[key] === "object") {
+    if (_typeof2(MODES[_key5]) === "object") {
       // @ts-ignore
-      deepFreeze(MODES[key]);
+      deepFreeze(MODES[_key5]);
     }
   } // merge all the modes/regexs into our main object
 
@@ -2248,13 +4446,13 @@ const HLJS = function (hljs) {
 
 var highlight = HLJS({});
 var core = highlight;
-
 /*
 Language: 1C:Enterprise
 Author: Stanislav Belov <stbelov@gmail.com>
 Description: built-in language 1C:Enterprise (v7, v8)
 Category: enterprise
 */
+
 function _1c(hljs) {
   // общий паттерн для определения идентификаторов
   var UNDERSCORE_IDENT_RE = '[A-Za-zА-Яа-яёЁ_][A-Za-zА-Яа-яёЁ_0-9]+'; // v7 уникальные ключевые слова, отсутствующие в v8 ==> keyword
@@ -2426,7 +4624,6 @@ function _1c(hljs) {
 }
 
 var _1c_1 = _1c;
-
 /*
 Language: Augmented Backus-Naur Form
 Author: Alex McKibben <alex@nullscope.net>
@@ -2434,6 +4631,7 @@ Website: https://tools.ietf.org/html/rfc5234
 */
 
 /** @type LanguageFn */
+
 function abnf(hljs) {
   var regexes = {
     ruleDeclaration: "^[a-zA-Z][a-zA-Z0-9-]*",
@@ -2470,7 +4668,6 @@ function abnf(hljs) {
 }
 
 var abnf_1 = abnf;
-
 /*
  Language: Apache Access Log
  Author: Oleg Efimov <efimovov@gmail.com>
@@ -2479,6 +4676,7 @@ var abnf_1 = abnf;
  */
 
 /** @type LanguageFn */
+
 function accesslog(hljs) {
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
   var HTTP_VERBS = ["GET", "POST", "HEAD", "PUT", "DELETE", "CONNECT", "OPTIONS", "PATCH", "TRACE"];
@@ -2540,7 +4738,6 @@ function accesslog(hljs) {
 }
 
 var accesslog_1 = accesslog;
-
 /*
 Language: ActionScript
 Author: Alexander Myadzel <myadzel@gmail.com>
@@ -2548,6 +4745,7 @@ Category: scripting
 */
 
 /** @type LanguageFn */
+
 function actionscript(hljs) {
   var IDENT_RE = '[a-zA-Z_$][a-zA-Z0-9_$]*';
   var IDENT_FUNC_RETURN_TYPE_RE = '([*]|[a-zA-Z_$][a-zA-Z0-9_$]*)';
@@ -2604,7 +4802,6 @@ function actionscript(hljs) {
 }
 
 var actionscript_1 = actionscript;
-
 /*
 Language: Ada
 Author: Lars Schulna <kartoffelbrei.mit.muskatnuss@gmail.org>
@@ -2624,6 +4821,7 @@ Description: Ada is a general-purpose programming language that has great suppor
 // sql (ada default.txt has a lot of sql keywords)
 
 /** @type LanguageFn */
+
 function ada(hljs) {
   // Regular expression for Ada numeric literals.
   // stolen form the VHDL highlighter
@@ -2638,7 +4836,7 @@ function ada(hljs) {
 
   var ID_REGEX = '[A-Za-z](_?[A-Za-z0-9.])*'; // bad chars, only allowed in literals
 
-  var BAD_CHARS = `[]{}%#'"`; // Ada doesn't have block comments, only line comments
+  var BAD_CHARS = "[]{}%#'\""; // Ada doesn't have block comments, only line comments
 
   var COMMENTS = hljs.COMMENT('--', '$'); // variable declarations of the form
   // Foo : Bar := Baz;
@@ -2759,7 +4957,6 @@ function ada(hljs) {
 }
 
 var ada_1 = ada;
-
 /*
 Language: AngelScript
 Author: Melissa Geels <melissa@nimble.tools>
@@ -2768,6 +4965,7 @@ Website: https://www.angelcode.com/angelscript/
 */
 
 /** @type LanguageFn */
+
 function angelscript(hljs) {
   var builtInTypeMode = {
     className: 'built_in',
@@ -2856,7 +5054,6 @@ function angelscript(hljs) {
 }
 
 var angelscript_1 = angelscript;
-
 /*
 Language: Apache config
 Author: Ruslan Keba <rukeba@gmail.com>
@@ -2867,6 +5064,7 @@ Category: common, config
 */
 
 /** @type LanguageFn */
+
 function apache(hljs) {
   var NUMBER_REF = {
     className: 'number',
@@ -2929,7 +5127,6 @@ function apache(hljs) {
 }
 
 var apache_1 = apache;
-
 /*
 Language: AppleScript
 Authors: Nathan Grigg <nathan@nathanamy.org>, Dr. Drang <drdrang@gmail.com>
@@ -2938,6 +5135,7 @@ Website: https://developer.apple.com/library/archive/documentation/AppleScript/C
 */
 
 /** @type LanguageFn */
+
 function applescript(hljs) {
   var STRING = hljs.inherit(hljs.QUOTE_STRING_MODE, {
     illegal: ''
@@ -2981,7 +5179,6 @@ function applescript(hljs) {
 }
 
 var applescript_1 = applescript;
-
 /*
  Language: ArcGIS Arcade
  Category: scripting
@@ -2991,6 +5188,7 @@ var applescript_1 = applescript;
 */
 
 /** @type LanguageFn */
+
 function arcade(hljs) {
   var IDENT_RE = '[A-Za-z_][0-9A-Za-z_]*';
   var KEYWORDS = {
@@ -3097,7 +5295,6 @@ function arcade(hljs) {
 }
 
 var arcade_1 = arcade;
-
 /*
 Language: C-like foundation grammar for C/C++ grammars
 Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
@@ -3114,6 +5311,7 @@ See: https://github.com/highlightjs/highlight.js/issues/2146
 */
 
 /** @type LanguageFn */
+
 function cLike(hljs) {
   function optional(s) {
     return '(?:' + s + ')?';
@@ -3282,7 +5480,6 @@ function cLike(hljs) {
 }
 
 var cLike_1 = cLike;
-
 /*
 Language: C++
 Category: common, system
@@ -3291,6 +5488,7 @@ Requires: c-like.js
 */
 
 /** @type LanguageFn */
+
 function cpp(hljs) {
   var lang = hljs.getLanguage('c-like').rawDefinition(); // return auto-detection back on
 
@@ -3301,7 +5499,6 @@ function cpp(hljs) {
 }
 
 var cpp_1 = cpp;
-
 /*
 Language: Arduino
 Author: Stefania Mellai <s.mellai@arduino.cc>
@@ -3311,6 +5508,7 @@ Website: https://www.arduino.cc
 */
 
 /** @type LanguageFn */
+
 function arduino(hljs) {
   var ARDUINO_KW = {
     keyword: 'boolean byte word String',
@@ -3327,7 +5525,6 @@ function arduino(hljs) {
 }
 
 var arduino_1 = arduino;
-
 /*
 Language: ARM Assembly
 Author: Dan Panzarella <alsoelp@gmail.com>
@@ -3336,9 +5533,10 @@ Category: assembler
 */
 
 /** @type LanguageFn */
+
 function armasm(hljs) {
   //local labels: %?[FB]?[AT]?\d{1,2}\w+
-  const COMMENT = {
+  var COMMENT = {
     variants: [hljs.COMMENT('^[ \\t]*(?=#)', '$', {
       relevance: 0,
       excludeBegin: true
@@ -3417,12 +5615,12 @@ function armasm(hljs) {
 }
 
 var armasm_1 = armasm;
-
 /*
 Language: HTML, XML
 Website: https://www.w3.org/XML/
 Category: common
 */
+
 function xml(hljs) {
   var XML_IDENT_RE = '[A-Za-z0-9\\._:-]+';
   var XML_ENTITIES = {
@@ -3553,7 +5751,6 @@ function xml(hljs) {
 }
 
 var xml_1 = xml;
-
 /*
 Language: AsciiDoc
 Requires: xml.js
@@ -3564,6 +5761,7 @@ Category: markup
 */
 
 /** @type LanguageFn */
+
 function asciidoc(hljs) {
   return {
     name: 'AsciiDoc',
@@ -3718,7 +5916,6 @@ function asciidoc(hljs) {
 }
 
 var asciidoc_1 = asciidoc;
-
 /*
 Language: AspectJ
 Author: Hakan Ozler <ozler.hakan@gmail.com>
@@ -3727,6 +5924,7 @@ Description: Syntax Highlighting for the AspectJ Language which is a general-pur
  */
 
 /** @type LanguageFn */
+
 function aspectj(hljs) {
   var KEYWORDS = 'false synchronized int abstract float private char boolean static null if const ' + 'for true while long throw strictfp finally protected import native final return void ' + 'enum else extends implements break transient new catch instanceof byte super volatile case ' + 'assert short package default double public try this switch continue throws privileged ' + 'aspectOf adviceexecution proceed cflowbelow cflow initialization preinitialization ' + 'staticinitialization withincode target within execution getWithinTypeName handler ' + 'thisJoinPoint thisJoinPointStaticPart thisEnclosingJoinPointStaticPart declare parents ' + 'warning error soft precedence thisAspectInstance';
   var SHORTKEYS = 'get set args call';
@@ -3827,7 +6025,6 @@ function aspectj(hljs) {
 }
 
 var aspectj_1 = aspectj;
-
 /*
 Language: AutoHotkey
 Author: Seongwon Lee <dlimpid@gmail.com>
@@ -3836,6 +6033,7 @@ Category: scripting
 */
 
 /** @type LanguageFn */
+
 function autohotkey(hljs) {
   var BACKTICK_ESCAPE = {
     begin: '`[\\s\\S]'
@@ -3893,7 +6091,6 @@ function autohotkey(hljs) {
 }
 
 var autohotkey_1 = autohotkey;
-
 /*
 Language: AutoIt
 Author: Manh Tuan <junookyo@gmail.com>
@@ -3902,6 +6099,7 @@ Category: scripting
 */
 
 /** @type LanguageFn */
+
 function autoit(hljs) {
   var KEYWORDS = 'ByRef Case Const ContinueCase ContinueLoop ' + 'Default Dim Do Else ElseIf EndFunc EndIf EndSelect ' + 'EndSwitch EndWith Enum Exit ExitLoop For Func ' + 'Global If In Local Next ReDim Return Select Static ' + 'Step Switch Then To Until Volatile WEnd While With',
       LITERAL = 'True False And Null Not Or',
@@ -4008,7 +6206,6 @@ function autoit(hljs) {
 }
 
 var autoit_1 = autoit;
-
 /*
 Language: AVR Assembly
 Author: Vladimir Ermakov <vooon341@gmail.com>
@@ -4017,6 +6214,7 @@ Website: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_instructi
 */
 
 /** @type LanguageFn */
+
 function avrasm(hljs) {
   return {
     name: 'AVR Assembly',
@@ -4062,7 +6260,6 @@ function avrasm(hljs) {
 }
 
 var avrasm_1 = avrasm;
-
 /*
 Language: Awk
 Author: Matthew Daly <matthewbdaly@gmail.com>
@@ -4071,6 +6268,7 @@ Description: language definition for Awk scripts
 */
 
 /** @type LanguageFn */
+
 function awk(hljs) {
   var VARIABLE = {
     className: 'variable',
@@ -4118,7 +6316,6 @@ function awk(hljs) {
 }
 
 var awk_1 = awk;
-
 /*
 Language: Microsoft Axapta (now Dynamics 365)
 Author: Dmitri Roudakov <dmitri@roudakov.ru>
@@ -4127,6 +6324,7 @@ Category: enterprise
 */
 
 /** @type LanguageFn */
+
 function axapta(hljs) {
   return {
     name: 'Dynamics 365',
@@ -4149,7 +6347,6 @@ function axapta(hljs) {
 }
 
 var axapta_1 = axapta;
-
 /*
 Language: Bash
 Author: vah <vahtenberg@gmail.com>
@@ -4159,9 +6356,10 @@ Category: common
 */
 
 /** @type LanguageFn */
+
 function bash(hljs) {
-  const VAR = {};
-  const BRACED_VAR = {
+  var VAR = {};
+  var BRACED_VAR = {
     begin: /\$\{/,
     end: /\}/,
     contains: [{
@@ -4176,29 +6374,29 @@ function bash(hljs) {
       begin: /\$[\w\d#@][\w\d_]*/
     }, BRACED_VAR]
   });
-  const SUBST = {
+  var SUBST = {
     className: 'subst',
     begin: /\$\(/,
     end: /\)/,
     contains: [hljs.BACKSLASH_ESCAPE]
   };
-  const QUOTE_STRING = {
+  var QUOTE_STRING = {
     className: 'string',
     begin: /"/,
     end: /"/,
     contains: [hljs.BACKSLASH_ESCAPE, VAR, SUBST]
   };
   SUBST.contains.push(QUOTE_STRING);
-  const ESCAPED_QUOTE = {
+  var ESCAPED_QUOTE = {
     className: '',
     begin: /\\"/
   };
-  const APOS_STRING = {
+  var APOS_STRING = {
     className: 'string',
     begin: /'/,
     end: /'/
   };
-  const ARITHMETIC = {
+  var ARITHMETIC = {
     begin: /\$\(\(/,
     end: /\)\)/,
     contains: [{
@@ -4206,12 +6404,12 @@ function bash(hljs) {
       className: "number"
     }, hljs.NUMBER_MODE, VAR]
   };
-  const SH_LIKE_SHELLS = ["fish", "bash", "zsh", "sh", "csh", "ksh", "tcsh", "dash", "scsh"];
-  const KNOWN_SHEBANG = hljs.SHEBANG({
-    binary: `(${SH_LIKE_SHELLS.join("|")})`,
+  var SH_LIKE_SHELLS = ["fish", "bash", "zsh", "sh", "csh", "ksh", "tcsh", "dash", "scsh"];
+  var KNOWN_SHEBANG = hljs.SHEBANG({
+    binary: "(".concat(SH_LIKE_SHELLS.join("|"), ")"),
     relevance: 10
   });
-  const FUNCTION = {
+  var FUNCTION = {
     className: 'function',
     begin: /\w[\w\d_]*\s*\(\s*\)\s*\{/,
     returnBegin: true,
@@ -4243,7 +6441,6 @@ function bash(hljs) {
 }
 
 var bash_1 = bash;
-
 /*
 Language: BASIC
 Author: Raphaël Assénat <raph@raphnet.net>
@@ -4252,6 +6449,7 @@ Website: https://en.wikipedia.org/wiki/Tandy_1000
 */
 
 /** @type LanguageFn */
+
 function basic(hljs) {
   return {
     name: 'BASIC',
@@ -4289,7 +6487,6 @@ function basic(hljs) {
 }
 
 var basic_1 = basic;
-
 /*
 Language: Backus–Naur Form
 Website: https://en.wikipedia.org/wiki/Backus–Naur_form
@@ -4297,6 +6494,7 @@ Author: Oleg Efimov <efimovov@gmail.com>
 */
 
 /** @type LanguageFn */
+
 function bnf(hljs) {
   return {
     name: 'Backus–Naur Form',
@@ -4319,7 +6517,6 @@ function bnf(hljs) {
 }
 
 var bnf_1 = bnf;
-
 /*
 Language: Brainfuck
 Author: Evgeny Stepanischev <imbolk@gmail.com>
@@ -4327,6 +6524,7 @@ Website: https://esolangs.org/wiki/Brainfuck
 */
 
 /** @type LanguageFn */
+
 function brainfuck(hljs) {
   var LITERAL = {
     className: 'literal',
@@ -4356,7 +6554,6 @@ function brainfuck(hljs) {
 }
 
 var brainfuck_1 = brainfuck;
-
 /*
 Language: C
 Category: common, system
@@ -4365,6 +6562,7 @@ Requires: c-like.js
 */
 
 /** @type LanguageFn */
+
 function c(hljs) {
   var lang = hljs.getLanguage('c-like').rawDefinition(); // Until C is actually different than C++ there is no reason to auto-detect C
   // as it's own language since it would just fail auto-detect testing or
@@ -4379,7 +6577,6 @@ function c(hljs) {
 }
 
 var c_1 = c;
-
 /*
 Language: C/AL
 Author: Kenneth Fuglsang Christensen <kfuglsang@gmail.com>
@@ -4388,6 +6585,7 @@ Website: https://docs.microsoft.com/en-us/dynamics-nav/programming-in-c-al
 */
 
 /** @type LanguageFn */
+
 function cal(hljs) {
   var KEYWORDS = 'div mod in and or not xor asserterror begin case do downto else end exit for if of repeat then to ' + 'until while with var';
   var LITERALS = 'false true';
@@ -4451,7 +6649,6 @@ function cal(hljs) {
 }
 
 var cal_1 = cal;
-
 /*
 Language: Cap’n Proto
 Author: Oleg Efimov <efimovov@gmail.com>
@@ -4461,6 +6658,7 @@ Category: protocols
 */
 
 /** @type LanguageFn */
+
 function capnproto(hljs) {
   return {
     name: 'Cap’n Proto',
@@ -4506,7 +6704,6 @@ function capnproto(hljs) {
 }
 
 var capnproto_1 = capnproto;
-
 /*
 Language: Ceylon
 Author: Lucas Werkmeister <mail@lucaswerkmeister.de>
@@ -4514,6 +6711,7 @@ Website: https://ceylon-lang.org
 */
 
 /** @type LanguageFn */
+
 function ceylon(hljs) {
   // 2.3. Identifiers and keywords
   var KEYWORDS = 'assembly module package import alias class interface object given value ' + 'assign void function new of extends satisfies abstracts in out return ' + 'break continue throw assert dynamic if else switch case for while try ' + 'catch finally then let this outer super is exists nonempty'; // 7.4.1 Declaration Modifiers
@@ -4572,7 +6770,6 @@ function ceylon(hljs) {
 }
 
 var ceylon_1 = ceylon;
-
 /*
 Language: Clean
 Author: Camil Staps <info@camilstaps.nl>
@@ -4581,6 +6778,7 @@ Website: http://clean.cs.ru.nl
 */
 
 /** @type LanguageFn */
+
 function clean(hljs) {
   return {
     name: 'Clean',
@@ -4598,7 +6796,6 @@ function clean(hljs) {
 }
 
 var clean_1 = clean;
-
 /*
 Language: Clojure
 Description: Clojure syntax (based on lisp.js)
@@ -4608,6 +6805,7 @@ Category: lisp
 */
 
 /** @type LanguageFn */
+
 function clojure(hljs) {
   var SYMBOLSTART = 'a-zA-Z_\\-!.?+*=<>&#\'';
   var SYMBOL_RE = '[' + SYMBOLSTART + '][' + SYMBOLSTART + '0-9/;:]*';
@@ -4691,7 +6889,6 @@ function clojure(hljs) {
 }
 
 var clojure_1 = clojure;
-
 /*
 Language: Clojure REPL
 Description: Clojure REPL sessions
@@ -4702,6 +6899,7 @@ Category: lisp
 */
 
 /** @type LanguageFn */
+
 function clojureRepl(hljs) {
   return {
     name: 'Clojure REPL',
@@ -4717,7 +6915,6 @@ function clojureRepl(hljs) {
 }
 
 var clojureRepl_1 = clojureRepl;
-
 /*
 Language: CMake
 Description: CMake is an open-source cross-platform system for build automation.
@@ -4726,6 +6923,7 @@ Website: https://cmake.org
 */
 
 /** @type LanguageFn */
+
 function cmake(hljs) {
   return {
     name: 'CMake',
@@ -4748,19 +6946,18 @@ function cmake(hljs) {
 }
 
 var cmake_1 = cmake;
-
-const KEYWORDS = ["as", // for exports
+var KEYWORDS = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+var LITERALS = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+var TYPES = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+var ERROR_TYPES = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+var BUILT_IN_GLOBALS = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+var BUILT_IN_VARIABLES = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS = [].concat(BUILT_IN_GLOBALS, BUILT_IN_VARIABLES, TYPES, ERROR_TYPES);
+var BUILT_INS = [].concat(BUILT_IN_GLOBALS, BUILT_IN_VARIABLES, TYPES, ERROR_TYPES);
 /*
 Language: CoffeeScript
 Author: Dmytrii Nagirniak <dnagir@gmail.com>
@@ -4778,7 +6975,11 @@ function coffeescript(hljs) {
   var COFFEE_KEYWORDS = ['then', 'unless', 'until', 'loop', 'by', 'when', 'and', 'or', 'is', 'isnt', 'not'];
   var NOT_VALID_KEYWORDS = ["var", "const", "let", "function", "static"];
 
-  var excluding = list => kw => !list.includes(kw);
+  var excluding = function excluding(list) {
+    return function (kw) {
+      return !list.includes(kw);
+    };
+  };
 
   var KEYWORDS$1 = {
     keyword: KEYWORDS.concat(COFFEE_KEYWORDS).filter(excluding(NOT_VALID_KEYWORDS)).join(" "),
@@ -4909,7 +7110,6 @@ function coffeescript(hljs) {
 }
 
 var coffeescript_1 = coffeescript;
-
 /*
 Language: Coq
 Author: Stephan Boyer <stephan@stephanboyer.com>
@@ -4918,6 +7118,7 @@ Website: https://coq.inria.fr
 */
 
 /** @type LanguageFn */
+
 function coq(hljs) {
   return {
     name: 'Coq',
@@ -4938,7 +7139,6 @@ function coq(hljs) {
 }
 
 var coq_1 = coq;
-
 /*
 Language: Caché Object Script
 Author: Nikita Savchenko <zitros.lab@gmail.com>
@@ -4947,6 +7147,7 @@ Website: https://cedocs.intersystems.com/latest/csp/docbook/DocBook.UI.Page.cls
 */
 
 /** @type LanguageFn */
+
 function cos(hljs) {
   var STRINGS = {
     className: 'string',
@@ -5055,7 +7256,6 @@ function cos(hljs) {
 }
 
 var cos_1 = cos;
-
 /*
 Language: crmsh
 Author: Kristoffer Gronlund <kgronlund@suse.com>
@@ -5065,6 +7265,7 @@ Category: config
 */
 
 /** @type LanguageFn */
+
 function crmsh(hljs) {
   var RESOURCES = 'primitive rsc_template';
   var COMMANDS = 'group clone ms master location colocation order fencing_topology ' + 'rsc_ticket acl_target acl_group user role ' + 'tag xml';
@@ -5138,7 +7339,6 @@ function crmsh(hljs) {
 }
 
 var crmsh_1 = crmsh;
-
 /*
 Language: Crystal
 Author: TSUYUSATO Kitsune <make.just.on@gmail.com>
@@ -5146,6 +7346,7 @@ Website: https://crystal-lang.org
 */
 
 /** @type LanguageFn */
+
 function crystal(hljs) {
   var INT_SUFFIX = '(_*[ui](8|16|32|64|128))?';
   var FLOAT_SUFFIX = '(_*f(32|64))?';
@@ -5380,7 +7581,6 @@ function crystal(hljs) {
 }
 
 var crystal_1 = crystal;
-
 /*
 Language: C#
 Author: Jason Diamond <jason@diamond.name>
@@ -5390,6 +7590,7 @@ Category: common
 */
 
 /** @type LanguageFn */
+
 function csharp(hljs) {
   var KEYWORDS = {
     keyword: // Normal keywords.
@@ -5567,7 +7768,6 @@ function csharp(hljs) {
 }
 
 var csharp_1 = csharp;
-
 /*
 Language: CSP
 Description: Content Security Policy definition highlighting
@@ -5578,6 +7778,7 @@ vim: ts=2 sw=2 st=2
 */
 
 /** @type LanguageFn */
+
 function csp(hljs) {
   return {
     name: 'CSP',
@@ -5600,7 +7801,6 @@ function csp(hljs) {
 }
 
 var csp_1 = csp;
-
 /*
 Language: CSS
 Category: common, css
@@ -5608,6 +7808,7 @@ Website: https://developer.mozilla.org/en-US/docs/Web/CSS
 */
 
 /** @type LanguageFn */
+
 function css(hljs) {
   var FUNCTION_LIKE = {
     begin: /[\w-]+\(/,
@@ -5715,7 +7916,6 @@ function css(hljs) {
 }
 
 var css_1 = css;
-
 /*
 Language: D
 Author: Aleksandar Ruzicic <aleksandar@ruzicic.info>
@@ -5742,6 +7942,7 @@ Date: 2012-04-08
  */
 
 /** @type LanguageFn */
+
 function d(hljs) {
   /**
    * Language keywords
@@ -5935,7 +8136,6 @@ function d(hljs) {
 }
 
 var d_1 = d;
-
 /*
 Language: Markdown
 Requires: xml.js
@@ -5943,18 +8143,19 @@ Author: John Crepezzi <john.crepezzi@gmail.com>
 Website: https://daringfireball.net/projects/markdown/
 Category: common, markup
 */
+
 function markdown(hljs) {
-  const INLINE_HTML = {
+  var INLINE_HTML = {
     begin: '<',
     end: '>',
     subLanguage: 'xml',
     relevance: 0
   };
-  const HORIZONTAL_RULE = {
+  var HORIZONTAL_RULE = {
     begin: '^[-\\*]{3,}',
     end: '$'
   };
-  const CODE = {
+  var CODE = {
     className: 'code',
     variants: [// TODO: fix to allow these to work with sublanguage also
     {
@@ -5981,13 +8182,13 @@ function markdown(hljs) {
       relevance: 0
     }]
   };
-  const LIST = {
+  var LIST = {
     className: 'bullet',
     begin: '^[ \t]*([*+-]|(\\d+\\.))(?=\\s+)',
     end: '\\s+',
     excludeEnd: true
   };
-  const LINK_REFERENCE = {
+  var LINK_REFERENCE = {
     begin: /^\[[^\n]+\]:/,
     returnBegin: true,
     contains: [{
@@ -6003,7 +8204,7 @@ function markdown(hljs) {
       excludeBegin: true
     }]
   };
-  const LINK = {
+  var LINK = {
     begin: '\\[.+?\\][\\(\\[].*?[\\)\\]]',
     returnBegin: true,
     contains: [{
@@ -6028,7 +8229,7 @@ function markdown(hljs) {
     }],
     relevance: 10
   };
-  const BOLD = {
+  var BOLD = {
     className: 'strong',
     contains: [],
     variants: [{
@@ -6039,7 +8240,7 @@ function markdown(hljs) {
       end: /\*{2}/
     }]
   };
-  const ITALIC = {
+  var ITALIC = {
     className: 'emphasis',
     contains: [],
     variants: [{
@@ -6057,7 +8258,7 @@ function markdown(hljs) {
   BOLD.contains = BOLD.contains.concat(CONTAINABLE);
   ITALIC.contains = ITALIC.contains.concat(CONTAINABLE);
   CONTAINABLE = CONTAINABLE.concat(BOLD, ITALIC);
-  const HEADER = {
+  var HEADER = {
     className: 'section',
     variants: [{
       begin: '^#{1,6}',
@@ -6074,7 +8275,7 @@ function markdown(hljs) {
       }]
     }]
   };
-  const BLOCKQUOTE = {
+  var BLOCKQUOTE = {
     className: 'quote',
     begin: '^>\\s+',
     contains: CONTAINABLE,
@@ -6088,7 +8289,6 @@ function markdown(hljs) {
 }
 
 var markdown_1 = markdown;
-
 /*
 Language: Dart
 Requires: markdown.js
@@ -6097,14 +8297,15 @@ Description: Dart a modern, object-oriented language developed by Google. For mo
 Website: https://dart.dev
 Category: scripting
 */
+
 function dart(hljs) {
-  const SUBST = {
+  var SUBST = {
     className: 'subst',
     variants: [{
       begin: '\\$[A-Za-z0-9_]+'
     }]
   };
-  const BRACED_SUBST = {
+  var BRACED_SUBST = {
     className: 'subst',
     variants: [{
       begin: '\\${',
@@ -6112,7 +8313,7 @@ function dart(hljs) {
     }],
     keywords: 'true false null this is new super'
   };
-  const STRING = {
+  var STRING = {
     className: 'string',
     variants: [{
       begin: 'r\'\'\'',
@@ -6149,11 +8350,13 @@ function dart(hljs) {
     }]
   };
   BRACED_SUBST.contains = [hljs.C_NUMBER_MODE, STRING];
-  const BUILT_IN_TYPES = [// dart:core
+  var BUILT_IN_TYPES = [// dart:core
   'Comparable', 'DateTime', 'Duration', 'Function', 'Iterable', 'Iterator', 'List', 'Map', 'Match', 'Object', 'Pattern', 'RegExp', 'Set', 'Stopwatch', 'String', 'StringBuffer', 'StringSink', 'Symbol', 'Type', 'Uri', 'bool', 'double', 'int', 'num', // dart:html
   'Element', 'ElementList'];
-  const NULLABLE_BUILT_IN_TYPES = BUILT_IN_TYPES.map(e => `${e}?`);
-  const KEYWORDS = {
+  var NULLABLE_BUILT_IN_TYPES = BUILT_IN_TYPES.map(function (e) {
+    return "".concat(e, "?");
+  });
+  var KEYWORDS = {
     keyword: 'abstract as assert async await break case catch class const continue covariant default deferred do ' + 'dynamic else enum export extends extension external factory false final finally for Function get hide if ' + 'implements import in inferface is late library mixin new null on operator part required rethrow return set ' + 'show static super switch sync this throw true try typedef var void while with yield',
     built_in: BUILT_IN_TYPES.concat(NULLABLE_BUILT_IN_TYPES).concat([// dart:core
     'Never', 'Null', 'dynamic', 'print', // dart:html
@@ -6192,13 +8395,13 @@ function dart(hljs) {
 }
 
 var dart_1 = dart;
-
 /*
 Language: Delphi
 Website: https://www.embarcadero.com/products/delphi
 */
 
 /** @type LanguageFn */
+
 function delphi(hljs) {
   var KEYWORDS = 'exports register file shl array record property for mod while set ally label uses raise not ' + 'stored class safecall var interface or private static exit index inherited to else stdcall ' + 'override shr asm far resourcestring finalization packed virtual out and protected library do ' + 'xorwrite goto near function end div overload object unit begin string on inline repeat until ' + 'destructor write message program with read initialization except default nil if case cdecl in ' + 'downto threadvar of try pascal const external constructor type public then implementation ' + 'finally published procedure absolute reintroduce operator as is abstract alias assembler ' + 'bitpacked break continue cppdecl cvar enumerator experimental platform deprecated ' + 'unimplemented dynamic export far16 forward generic helper implements interrupt iochecks ' + 'local name nodefault noreturn nostackframe oldfpccall otherwise saveregisters softfloat ' + 'specialize strict unaligned varargs ';
   var COMMENT_MODES = [hljs.C_LINE_COMMENT_MODE, hljs.COMMENT(/\{/, /\}/, {
@@ -6272,7 +8475,6 @@ function delphi(hljs) {
 }
 
 var delphi_1 = delphi;
-
 /*
 Language: Diff
 Description: Unified and context diff
@@ -6282,6 +8484,7 @@ Category: common
 */
 
 /** @type LanguageFn */
+
 function diff(hljs) {
   return {
     name: 'Diff',
@@ -6333,7 +8536,6 @@ function diff(hljs) {
 }
 
 var diff_1 = diff;
-
 /*
 Language: Django
 Description: Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.
@@ -6343,6 +8545,7 @@ Contributors: Ilya Baryshev <baryshev@gmail.com>
 Website: https://www.djangoproject.com
 Category: template
 */
+
 function django(hljs) {
   var FILTER = {
     begin: /\|[A-Za-z]+:?/,
@@ -6383,7 +8586,6 @@ function django(hljs) {
 }
 
 var django_1 = django;
-
 /*
 Language: DNS Zone
 Author: Tim Schumacher <tim@datenknoten.me>
@@ -6392,6 +8594,7 @@ Website: https://en.wikipedia.org/wiki/Zone_file
 */
 
 /** @type LanguageFn */
+
 function dns(hljs) {
   return {
     name: 'DNS Zone',
@@ -6419,7 +8622,6 @@ function dns(hljs) {
 }
 
 var dns_1 = dns;
-
 /*
 Language: Dockerfile
 Requires: bash.js
@@ -6428,6 +8630,7 @@ Description: language definition for Dockerfile files
 Website: https://docs.docker.com/engine/reference/builder/
 Category: config
 */
+
 function dockerfile(hljs) {
   return {
     name: 'Dockerfile',
@@ -6446,13 +8649,13 @@ function dockerfile(hljs) {
 }
 
 var dockerfile_1 = dockerfile;
-
 /*
 Language: Batch file (DOS)
 Author: Alexander Makarov <sam@rmcreative.ru>
 Contributors: Anton Kochkov <anton.kochkov@gmail.com>
 Website: https://en.wikipedia.org/wiki/Batch_file
 */
+
 function dos(hljs) {
   var COMMENT = hljs.COMMENT(/^\s*@?rem\b/, /$/, {
     relevance: 10
@@ -6491,13 +8694,13 @@ function dos(hljs) {
 }
 
 var dos_1 = dos;
-
 /*
  Language: dsconfig
  Description: dsconfig batch configuration language for LDAP directory servers
  Contributors: Jacob Childress <jacobc@gmail.com>
  Category: enterprise, config
  */
+
 function dsconfig(hljs) {
   var QUOTED_PROPERTY = {
     className: 'string',
@@ -6546,7 +8749,6 @@ function dsconfig(hljs) {
 }
 
 var dsconfig_1 = dsconfig;
-
 /*
 Language: Device Tree
 Description: *.dts files used in the Linux kernel
@@ -6554,6 +8756,7 @@ Author: Martin Braun <martin.braun@ettus.com>, Moritz Fischer <moritz.fischer@et
 Website: https://elinux.org/Device_Tree_Reference
 Category: config
 */
+
 function dts(hljs) {
   var STRINGS = {
     className: 'string',
@@ -6647,7 +8850,6 @@ function dts(hljs) {
 }
 
 var dts_1 = dts;
-
 /*
 Language: Dust
 Requires: xml.js
@@ -6656,6 +8858,7 @@ Description: Matcher for dust.js templates.
 Website: https://www.dustjs.com
 Category: template
 */
+
 function dust(hljs) {
   var EXPRESSION_KEYWORDS = 'if eq ne lt lte gt gte select default math sep';
   return {
@@ -6688,12 +8891,12 @@ function dust(hljs) {
 }
 
 var dust_1 = dust;
-
 /*
 Language: Extended Backus-Naur Form
 Author: Alex McKibben <alex@nullscope.net>
 Website: https://en.wikipedia.org/wiki/Extended_Backus–Naur_form
 */
+
 function ebnf(hljs) {
   var commentMode = hljs.COMMENT(/\(\*/, /\*\)/);
   var nonTerminalMode = {
@@ -6724,7 +8927,6 @@ function ebnf(hljs) {
 }
 
 var ebnf_1 = ebnf;
-
 /*
 Language: Elixir
 Author: Josh Adams <josh@isotope11.com>
@@ -6732,6 +8934,7 @@ Description: language definition for Elixir source code files (.ex and .exs).  B
 Category: functional
 Website: https://elixir-lang.org
 */
+
 function elixir(hljs) {
   var ELIXIR_IDENT_RE = '[a-zA-Z_][a-zA-Z0-9_.]*(\\!|\\?)?';
   var ELIXIR_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
@@ -6913,13 +9116,13 @@ function elixir(hljs) {
 }
 
 var elixir_1 = elixir;
-
 /*
 Language: Elm
 Author: Janis Voigtlaender <janis.voigtlaender@gmail.com>
 Website: https://elm-lang.org
 Category: functional
 */
+
 function elm(hljs) {
   var COMMENT = {
     variants: [hljs.COMMENT('--', '$'), hljs.COMMENT('{-', '-}', {
@@ -6994,7 +9197,6 @@ function elm(hljs) {
 }
 
 var elm_1 = elm;
-
 /*
 Language: Ruby
 Description: Ruby is a dynamic, open source programming language with a focus on simplicity and productivity.
@@ -7003,6 +9205,7 @@ Author: Anton Kovalyov <anton@kovalyov.net>
 Contributors: Peter Leonov <gojpeg@yandex.ru>, Vasily Polovnyov <vast@whiteants.net>, Loren Segal <lsegal@soen.ca>, Pascal Hurni <phi@ruby-reactive.org>, Cedric Sohrauer <sohrauer@googlemail.com>
 Category: common
 */
+
 function ruby(hljs) {
   var RUBY_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
   var RUBY_KEYWORDS = {
@@ -7191,7 +9394,6 @@ function ruby(hljs) {
 }
 
 var ruby_1 = ruby;
-
 /*
 Language: ERB (Embedded Ruby)
 Requires: xml.js, ruby.js
@@ -7201,6 +9403,7 @@ Description: "Bridge" language defining fragments of Ruby in HTML within <% .. %
 Website: https://ruby-doc.org/stdlib-2.6.5/libdoc/erb/rdoc/ERB.html
 Category: template
 */
+
 function erb(hljs) {
   return {
     name: 'ERB',
@@ -7216,13 +9419,13 @@ function erb(hljs) {
 }
 
 var erb_1 = erb;
-
 /*
 Language: Erlang REPL
 Author: Sergey Ignatov <sergey@ignatov.spb.su>
 Website: https://www.erlang.org
 Category: functional
 */
+
 function erlangRepl(hljs) {
   return {
     name: 'Erlang REPL',
@@ -7257,7 +9460,6 @@ function erlangRepl(hljs) {
 }
 
 var erlangRepl_1 = erlangRepl;
-
 /*
 Language: Erlang
 Description: Erlang is a general-purpose functional language, with strict evaluation, single assignment, and dynamic typing.
@@ -7265,6 +9467,7 @@ Author: Nikolay Zakharov <nikolay.desh@gmail.com>, Dmitry Kovega <arhibot@gmail.
 Website: https://www.erlang.org
 Category: functional
 */
+
 function erlang(hljs) {
   var BASIC_ATOM_RE = '[a-z\'][a-zA-Z0-9_\']*';
   var FUNCTION_NAME_RE = '(' + BASIC_ATOM_RE + ':' + BASIC_ATOM_RE + '|' + BASIC_ATOM_RE + ')';
@@ -7382,13 +9585,13 @@ function erlang(hljs) {
 }
 
 var erlang_1 = erlang;
-
 /*
 Language: Excel formulae
 Author: Victor Zhou <OiCMudkips@users.noreply.github.com>
 Description: Excel formulae
 Website: https://products.office.com/en-us/excel/
 */
+
 function excel(hljs) {
   return {
     name: 'Excel formulae',
@@ -7437,11 +9640,11 @@ function excel(hljs) {
 }
 
 var excel_1 = excel;
-
 /*
 Language: FIX
 Author: Brent Bradbury <brent@brentium.com>
 */
+
 function fix(hljs) {
   return {
     name: 'FIX',
@@ -7470,13 +9673,13 @@ function fix(hljs) {
 }
 
 var fix_1 = fix;
-
 /*
  Language: Flix
  Category: functional
  Author: Magnus Madsen <mmadsen@uwaterloo.ca>
  Website: https://flix.dev/
  */
+
 function flix(hljs) {
   var CHAR = {
     className: 'string',
@@ -7511,20 +9714,20 @@ function flix(hljs) {
 }
 
 var flix_1 = flix;
-
 /*
 Language: Fortran
 Author: Anthony Scemama <scemama@irsamc.ups-tlse.fr>
 Website: https://en.wikipedia.org/wiki/Fortran
 Category: scientific
 */
+
 function fortran(hljs) {
-  const PARAMS = {
+  var PARAMS = {
     className: 'params',
     begin: '\\(',
     end: '\\)'
   };
-  const COMMENT = {
+  var COMMENT = {
     variants: [hljs.COMMENT('!', '$', {
       relevance: 0
     }), // allow Fortran 77 style comments
@@ -7532,24 +9735,24 @@ function fortran(hljs) {
       relevance: 0
     })]
   };
-  const NUMBER = {
+  var NUMBER = {
     className: 'number',
     // regex in both fortran and irpf90 should match
     begin: '(?=\\b|\\+|\\-|\\.)(?:\\.|\\d+\\.?)\\d*([de][+-]?\\d+)?(_[a-z_\\d]+)?',
     relevance: 0
   };
-  const FUNCTION_DEF = {
+  var FUNCTION_DEF = {
     className: 'function',
     beginKeywords: 'subroutine function program',
     illegal: '[${=\\n]',
     contains: [hljs.UNDERSCORE_TITLE_MODE, PARAMS]
   };
-  const STRING = {
+  var STRING = {
     className: 'string',
     relevance: 0,
     variants: [hljs.APOS_STRING_MODE, hljs.QUOTE_STRING_MODE]
   };
-  const KEYWORDS = {
+  var KEYWORDS = {
     literal: '.False. .True.',
     keyword: 'kind do concurrent local shared while private call intrinsic where elsewhere ' + 'type endtype endmodule endselect endinterface end enddo endif if forall endforall only contains default return stop then block endblock endassociate ' + 'public subroutine|10 function program .and. .or. .not. .le. .eq. .ge. .gt. .lt. ' + 'goto save else use module select case ' + 'access blank direct exist file fmt form formatted iostat name named nextrec number opened rec recl sequential status unformatted unit ' + 'continue format pause cycle exit ' + 'c_null_char c_alert c_backspace c_form_feed flush wait decimal round iomsg ' + 'synchronous nopass non_overridable pass protected volatile abstract extends import ' + 'non_intrinsic value deferred generic final enumerator class associate bind enum ' + 'c_int c_short c_long c_long_long c_signed_char c_size_t c_int8_t c_int16_t c_int32_t c_int64_t c_int_least8_t c_int_least16_t ' + 'c_int_least32_t c_int_least64_t c_int_fast8_t c_int_fast16_t c_int_fast32_t c_int_fast64_t c_intmax_t C_intptr_t c_float c_double ' + 'c_long_double c_float_complex c_double_complex c_long_double_complex c_bool c_char c_null_ptr c_null_funptr ' + 'c_new_line c_carriage_return c_horizontal_tab c_vertical_tab iso_c_binding c_loc c_funloc c_associated  c_f_pointer ' + 'c_ptr c_funptr iso_fortran_env character_storage_size error_unit file_storage_size input_unit iostat_end iostat_eor ' + 'numeric_storage_size output_unit c_f_procpointer ieee_arithmetic ieee_support_underflow_control ' + 'ieee_get_underflow_mode ieee_set_underflow_mode newunit contiguous recursive ' + 'pad position action delim readwrite eor advance nml interface procedure namelist include sequence elemental pure impure ' + 'integer real character complex logical codimension dimension allocatable|10 parameter ' + 'external implicit|10 none double precision assign intent optional pointer ' + 'target in out common equivalence data',
     built_in: 'alog alog10 amax0 amax1 amin0 amin1 amod cabs ccos cexp clog csin csqrt dabs dacos dasin datan datan2 dcos dcosh ddim dexp dint ' + 'dlog dlog10 dmax1 dmin1 dmod dnint dsign dsin dsinh dsqrt dtan dtanh float iabs idim idint idnint ifix isign max0 max1 min0 min1 sngl ' + 'algama cdabs cdcos cdexp cdlog cdsin cdsqrt cqabs cqcos cqexp cqlog cqsin cqsqrt dcmplx dconjg derf derfc dfloat dgamma dimag dlgama ' + 'iqint qabs qacos qasin qatan qatan2 qcmplx qconjg qcos qcosh qdim qerf qerfc qexp qgamma qimag qlgama qlog qlog10 qmax1 qmin1 qmod ' + 'qnint qsign qsin qsinh qsqrt qtan qtanh abs acos aimag aint anint asin atan atan2 char cmplx conjg cos cosh exp ichar index int log ' + 'log10 max min nint sign sin sinh sqrt tan tanh print write dim lge lgt lle llt mod nullify allocate deallocate ' + 'adjustl adjustr all allocated any associated bit_size btest ceiling count cshift date_and_time digits dot_product ' + 'eoshift epsilon exponent floor fraction huge iand ibclr ibits ibset ieor ior ishft ishftc lbound len_trim matmul ' + 'maxexponent maxloc maxval merge minexponent minloc minval modulo mvbits nearest pack present product ' + 'radix random_number random_seed range repeat reshape rrspacing scale scan selected_int_kind selected_real_kind ' + 'set_exponent shape size spacing spread sum system_clock tiny transpose trim ubound unpack verify achar iachar transfer ' + 'dble entry dprod cpu_time command_argument_count get_command get_command_argument get_environment_variable is_iostat_end ' + 'ieee_arithmetic ieee_support_underflow_control ieee_get_underflow_mode ieee_set_underflow_mode ' + 'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of ' + 'acosh asinh atanh bessel_j0 bessel_j1 bessel_jn bessel_y0 bessel_y1 bessel_yn erf erfc erfc_scaled gamma log_gamma hypot norm2 ' + 'atomic_define atomic_ref execute_command_line leadz trailz storage_size merge_bits ' + 'bge bgt ble blt dshiftl dshiftr findloc iall iany iparity image_index lcobound ucobound maskl maskr ' + 'num_images parity popcnt poppar shifta shiftl shiftr this_image sync change team co_broadcast co_max co_min co_sum co_reduce'
@@ -7570,7 +9773,6 @@ function fortran(hljs) {
 }
 
 var fortran_1 = fortran;
-
 /*
 Language: F#
 Author: Jonas Follesø <jonas@follesoe.no>
@@ -7578,6 +9780,7 @@ Contributors: Troy Kershaw <hello@troykershaw.com>, Henrik Feldt <henrik@haf.se>
 Website: https://docs.microsoft.com/en-us/dotnet/fsharp/
 Category: functional
 */
+
 function fsharp(hljs) {
   var TYPEPARAM = {
     begin: '<',
@@ -7628,7 +9831,6 @@ function fsharp(hljs) {
 }
 
 var fsharp_1 = fsharp;
-
 /*
  Language: GAMS
  Author: Stefan Bechert <stefan.bechert@gmx.net>
@@ -7637,6 +9839,7 @@ var fsharp_1 = fsharp;
  Website: https://www.gams.com
  Category: scientific
  */
+
 function gams(hljs) {
   var KEYWORDS = {
     keyword: 'abort acronym acronyms alias all and assign binary card diag display ' + 'else eq file files for free ge gt if integer le loop lt maximizing ' + 'minimizing model models ne negative no not option options or ord ' + 'positive prod put putpage puttl repeat sameas semicont semiint smax ' + 'smin solve sos1 sos2 sum system table then until using while xor yes',
@@ -7735,7 +9938,6 @@ function gams(hljs) {
 }
 
 var gams_1 = gams;
-
 /*
 Language: GAUSS
 Author: Matt Evans <matt@aptech.com>
@@ -7743,6 +9945,7 @@ Description: GAUSS Mathematical and Statistical language
 Website: https://www.aptech.com
 Category: scientific
 */
+
 function gauss(hljs) {
   var KEYWORDS = {
     keyword: 'bool break call callexe checkinterrupt clear clearg closeall cls comlog compile ' + 'continue create debug declare delete disable dlibrary dllcall do dos ed edit else ' + 'elseif enable end endfor endif endp endo errorlog errorlogat expr external fn ' + 'for format goto gosub graph if keyword let lib library line load loadarray loadexe ' + 'loadf loadk loadm loadp loads loadx local locate loopnextindex lprint lpwidth lshow ' + 'matrix msym ndpclex new open output outwidth plot plotsym pop prcsn print ' + 'printdos proc push retp return rndcon rndmod rndmult rndseed run save saveall screen ' + 'scroll setarray show sparse stop string struct system trace trap threadfor ' + 'threadendfor threadbegin threadjoin threadstat threadend until use while winprint ' + 'ne ge le gt lt and xor or not eq eqv',
@@ -7805,7 +10008,7 @@ function gauss(hljs) {
     relevance: 0
   };
 
-  var DEFINITION = function (beginKeywords, end, inherits) {
+  var DEFINITION = function DEFINITION(beginKeywords, end, inherits) {
     var mode = hljs.inherit({
       className: "function",
       beginKeywords: beginKeywords,
@@ -7889,13 +10092,13 @@ function gauss(hljs) {
 }
 
 var gauss_1 = gauss;
-
 /*
  Language: G-code (ISO 6983)
  Contributors: Adam Joseph Cook <adam.joseph.cook@gmail.com>
  Description: G-code syntax highlighter for Fanuc and other common CNC machine tool controls.
  Website: https://www.sis.se/api/document/preview/911952/
  */
+
 function gcode(hljs) {
   var GCODE_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
   var GCODE_CLOSE_RE = '\\%';
@@ -7953,13 +10156,13 @@ function gcode(hljs) {
 }
 
 var gcode_1 = gcode;
-
 /*
  Language: Gherkin
  Author: Sam Pikesley (@pikesley) <sam.pikesley@theodi.org>
  Description: Gherkin is the format for cucumber specifications. It is a domain specific language which helps you to describe business behavior without the need to go into detail of implementation.
  Website: https://cucumber.io/docs/gherkin/
  */
+
 function gherkin(hljs) {
   return {
     name: 'Gherkin',
@@ -7992,7 +10195,6 @@ function gherkin(hljs) {
 }
 
 var gherkin_1 = gherkin;
-
 /*
 Language: GLSL
 Description: OpenGL Shading Language
@@ -8000,6 +10202,7 @@ Author: Sergey Tikhomirov <sergey@tikhomirov.io>
 Website: https://en.wikipedia.org/wiki/OpenGL_Shading_Language
 Category: graphics
 */
+
 function glsl(hljs) {
   return {
     name: 'GLSL',
@@ -8024,7 +10227,6 @@ function glsl(hljs) {
 }
 
 var glsl_1 = glsl;
-
 /*
 Language: GML
 Author: Meseta <meseta@gmail.com>
@@ -8032,6 +10234,7 @@ Description: Game Maker Language for GameMaker Studio 2
 Website: https://docs2.yoyogames.com
 Category: scripting
 */
+
 function gml(hljs) {
   var GML_KEYWORDS = {
     keyword: 'begin end if then else while do for break continue with until ' + 'repeat exit and or xor not return mod div switch case default var ' + 'globalvar enum #macro #region #endregion',
@@ -8050,7 +10253,6 @@ function gml(hljs) {
 }
 
 var gml_1 = gml;
-
 /*
 Language: Go
 Author: Stephan Kountso aka StepLg <steplg@gmail.com>
@@ -8059,6 +10261,7 @@ Description: Google go language (golang). For info about language
 Website: http://golang.org/
 Category: common, system
 */
+
 function go(hljs) {
   var GO_KEYWORDS = {
     keyword: 'break default func interface select case map struct chan else goto package switch ' + 'const fallthrough if range type continue for import return var go defer ' + 'bool byte complex64 complex128 float32 float64 int8 int16 int32 int64 string uint8 ' + 'uint16 uint32 uint64 int uint uintptr rune',
@@ -8102,13 +10305,13 @@ function go(hljs) {
 }
 
 var go_1 = go;
-
 /*
 Language: Golo
 Author: Philippe Charriere <ph.charriere@gmail.com>
 Description: a lightweight dynamic language for the JVM
 Website: http://golo-lang.org/
 */
+
 function golo(hljs) {
   return {
     name: 'Golo',
@@ -8124,13 +10327,13 @@ function golo(hljs) {
 }
 
 var golo_1 = golo;
-
 /*
 Language: Gradle
 Description: Gradle is an open-source build automation tool focused on flexibility and performance.
 Website: https://gradle.org
 Author: Damian Mee <mee.damian@gmail.com>
 */
+
 function gradle(hljs) {
   return {
     name: 'Gradle',
@@ -8143,7 +10346,6 @@ function gradle(hljs) {
 }
 
 var gradle_1 = gradle;
-
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -8153,6 +10355,7 @@ var gradle_1 = gradle;
  * @param {RegExp | string } re
  * @returns {string}
  */
+
 function source$1(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
@@ -8173,8 +10376,14 @@ function lookahead(re) {
  */
 
 
-function concat$1(...args) {
-  const joined = args.map(x => source$1(x)).join("");
+function concat$1() {
+  for (var _len3 = arguments.length, args = new Array(_len3), _key6 = 0; _key6 < _len3; _key6++) {
+    args[_key6] = arguments[_key6];
+  }
+
+  var joined = args.map(function (x) {
+    return source$1(x);
+  }).join("");
   return joined;
 }
 /*
@@ -8185,14 +10394,15 @@ function concat$1(...args) {
  */
 
 
-function variants(variants, obj = {}) {
+function variants(variants) {
+  var obj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   obj.variants = variants;
   return obj;
 }
 
 function groovy(hljs) {
-  const IDENT_RE = '[A-Za-z0-9_$]+';
-  const COMMENT = variants([hljs.C_LINE_COMMENT_MODE, hljs.C_BLOCK_COMMENT_MODE, hljs.COMMENT('/\\*\\*', '\\*/', {
+  var IDENT_RE = '[A-Za-z0-9_$]+';
+  var COMMENT = variants([hljs.C_LINE_COMMENT_MODE, hljs.C_BLOCK_COMMENT_MODE, hljs.COMMENT('/\\*\\*', '\\*/', {
     relevance: 0,
     contains: [{
       // eat up @'s in emails to prevent them to be recognized as doctags
@@ -8203,13 +10413,13 @@ function groovy(hljs) {
       begin: '@[A-Za-z]+'
     }]
   })]);
-  const REGEXP = {
+  var REGEXP = {
     className: 'regexp',
     begin: /~?\/[^\/\n]+\//,
     contains: [hljs.BACKSLASH_ESCAPE]
   };
-  const NUMBER = variants([hljs.BINARY_NUMBER_MODE, hljs.C_NUMBER_MODE]);
-  const STRING = variants([{
+  var NUMBER = variants([hljs.BINARY_NUMBER_MODE, hljs.C_NUMBER_MODE]);
+  var STRING = variants([{
     begin: /"""/,
     end: /"""/
   }, {
@@ -8265,7 +10475,6 @@ function groovy(hljs) {
 }
 
 var groovy_1 = groovy;
-
 /*
 Language: HAML
 Requires: ruby.js
@@ -8274,6 +10483,7 @@ Website: http://haml.info
 Category: template
 */
 // TODO support filter tags like :javascript, support inline HTML
+
 function haml(hljs) {
   return {
     name: 'HAML',
@@ -8351,7 +10561,6 @@ function haml(hljs) {
 }
 
 var haml_1 = haml;
-
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -8361,6 +10570,7 @@ var haml_1 = haml;
  * @param {RegExp | string } re
  * @returns {string}
  */
+
 function source$2(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
@@ -8372,8 +10582,14 @@ function source$2(re) {
  */
 
 
-function concat$2(...args) {
-  const joined = args.map(x => source$2(x)).join("");
+function concat$2() {
+  for (var _len4 = arguments.length, args = new Array(_len4), _key7 = 0; _key7 < _len4; _key7++) {
+    args[_key7] = arguments[_key7];
+  }
+
+  var joined = args.map(function (x) {
+    return source$2(x);
+  }).join("");
   return joined;
 }
 /*
@@ -8387,36 +10603,36 @@ Category: template
 
 
 function handlebars(hljs) {
-  const BUILT_INS = {
+  var BUILT_INS = {
     'builtin-name': ['action', 'bindattr', 'collection', 'component', 'concat', 'debugger', 'each', 'each-in', 'get', 'hash', 'if', 'in', 'input', 'link-to', 'loc', 'log', 'lookup', 'mut', 'outlet', 'partial', 'query-params', 'render', 'template', 'textarea', 'unbound', 'unless', 'view', 'with', 'yield'].join(" ")
   };
-  const LITERALS = {
+  var LITERALS = {
     literal: ['true', 'false', 'undefined', 'null'].join(" ")
   }; // as defined in https://handlebarsjs.com/guide/expressions.html#literal-segments
   // this regex matches literal segments like ' abc ' or [ abc ] as well as helpers and paths
   // like a/b, ./abc/cde, and abc.bcd
 
-  const DOUBLE_QUOTED_ID_REGEX = /".*?"/;
-  const SINGLE_QUOTED_ID_REGEX = /'.*?'/;
-  const BRACKET_QUOTED_ID_REGEX = /\[.*?\]/;
-  const PLAIN_ID_REGEX = /[^\s!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]+/;
-  const PATH_DELIMITER_REGEX = /\.|\//;
-  const IDENTIFIER_REGEX = concat$2('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
+  var DOUBLE_QUOTED_ID_REGEX = /".*?"/;
+  var SINGLE_QUOTED_ID_REGEX = /'.*?'/;
+  var BRACKET_QUOTED_ID_REGEX = /\[.*?\]/;
+  var PLAIN_ID_REGEX = /[^\s!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]+/;
+  var PATH_DELIMITER_REGEX = /\.|\//;
+  var IDENTIFIER_REGEX = concat$2('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
 
-  const HASH_PARAM_REGEX = concat$2('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
-  const HELPER_NAME_OR_PATH_EXPRESSION = {
+  var HASH_PARAM_REGEX = concat$2('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
+  var HELPER_NAME_OR_PATH_EXPRESSION = {
     begin: IDENTIFIER_REGEX,
     lexemes: /[\w.\/]+/
   };
-  const HELPER_PARAMETER = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var HELPER_PARAMETER = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: LITERALS
   });
-  const SUB_EXPRESSION = {
+  var SUB_EXPRESSION = {
     begin: /\(/,
     end: /\)/ // the "contains" is added below when all necessary sub-modes are defined
 
   };
-  const HASH = {
+  var HASH = {
     // fka "attribute-assignment", parameters of the form 'key=value'
     className: 'attr',
     begin: HASH_PARAM_REGEX,
@@ -8429,7 +10645,7 @@ function handlebars(hljs) {
       }
     }
   };
-  const BLOCK_PARAMS = {
+  var BLOCK_PARAMS = {
     // parameters of the form '{{#with x as | y |}}...{{/with}}'
     begin: /as\s+\|/,
     keywords: {
@@ -8441,14 +10657,14 @@ function handlebars(hljs) {
       begin: /\w+/
     }]
   };
-  const HELPER_PARAMETERS = {
+  var HELPER_PARAMETERS = {
     contains: [hljs.NUMBER_MODE, hljs.QUOTE_STRING_MODE, hljs.APOS_STRING_MODE, BLOCK_PARAMS, HASH, HELPER_PARAMETER, SUB_EXPRESSION],
     returnEnd: true // the property "end" is defined through inheritance when the mode is used. If depends
     // on the surrounding mode, but "endsWithParent" does not work here (i.e. it includes the
     // end-token of the surrounding mode)
 
   };
-  const SUB_EXPRESSION_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var SUB_EXPRESSION_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     className: 'name',
     keywords: BUILT_INS,
     starts: hljs.inherit(HELPER_PARAMETERS, {
@@ -8456,29 +10672,29 @@ function handlebars(hljs) {
     })
   });
   SUB_EXPRESSION.contains = [SUB_EXPRESSION_CONTENTS];
-  const OPENING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var OPENING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: BUILT_INS,
     className: 'name',
     starts: hljs.inherit(HELPER_PARAMETERS, {
       end: /}}/
     })
   });
-  const CLOSING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var CLOSING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: BUILT_INS,
     className: 'name'
   });
-  const BASIC_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var BASIC_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     className: 'name',
     keywords: BUILT_INS,
     starts: hljs.inherit(HELPER_PARAMETERS, {
       end: /}}/
     })
   });
-  const ESCAPE_MUSTACHE_WITH_PRECEEDING_BACKSLASH = {
+  var ESCAPE_MUSTACHE_WITH_PRECEEDING_BACKSLASH = {
     begin: /\\\{\{/,
     skip: true
   };
-  const PREVENT_ESCAPE_WITH_ANOTHER_PRECEEDING_BACKSLASH = {
+  var PREVENT_ESCAPE_WITH_ANOTHER_PRECEEDING_BACKSLASH = {
     begin: /\\\\(?=\{\{)/,
     skip: true
   };
@@ -8538,7 +10754,6 @@ function handlebars(hljs) {
 }
 
 var handlebars_1 = handlebars;
-
 /*
 Language: Haskell
 Author: Jeremy Hull <sourdrums@gmail.com>
@@ -8546,6 +10761,7 @@ Contributors: Zena Treep <zena.treep@gmail.com>
 Website: https://www.haskell.org
 Category: functional
 */
+
 function haskell(hljs) {
   var COMMENT = {
     variants: [hljs.COMMENT('--', '$'), hljs.COMMENT('{-', '-}', {
@@ -8643,7 +10859,6 @@ function haskell(hljs) {
 }
 
 var haskell_1 = haskell;
-
 /*
 Language: Haxe
 Description: Haxe is an open source toolkit based on a modern, high level, strictly typed programming language.
@@ -8651,6 +10866,7 @@ Author: Christopher Kaster <ikasoki@gmail.com> (Based on the actionscript.js lan
 Contributors: Kenton Hamaluik <kentonh@gmail.com>
 Website: https://haxe.org
 */
+
 function haxe(hljs) {
   var HAXE_BASIC_TYPES = 'Int Float String Bool Dynamic Void Array ';
   return {
@@ -8775,13 +10991,13 @@ function haxe(hljs) {
 }
 
 var haxe_1 = haxe;
-
 /*
 Language: HSP
 Author: prince <MC.prince.0203@gmail.com>
 Website: https://en.wikipedia.org/wiki/Hot_Soup_Processor
 Category: scripting
 */
+
 function hsp(hljs) {
   return {
     name: 'HSP',
@@ -8818,7 +11034,6 @@ function hsp(hljs) {
 }
 
 var hsp_1 = hsp;
-
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -8828,6 +11043,7 @@ var hsp_1 = hsp;
  * @param {RegExp | string } re
  * @returns {string}
  */
+
 function source$3(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
@@ -8839,8 +11055,14 @@ function source$3(re) {
  */
 
 
-function concat$3(...args) {
-  const joined = args.map(x => source$3(x)).join("");
+function concat$3() {
+  for (var _len5 = arguments.length, args = new Array(_len5), _key8 = 0; _key8 < _len5; _key8++) {
+    args[_key8] = arguments[_key8];
+  }
+
+  var joined = args.map(function (x) {
+    return source$3(x);
+  }).join("");
   return joined;
 }
 /*
@@ -8854,36 +11076,36 @@ Category: template
 
 
 function handlebars$1(hljs) {
-  const BUILT_INS = {
+  var BUILT_INS = {
     'builtin-name': ['action', 'bindattr', 'collection', 'component', 'concat', 'debugger', 'each', 'each-in', 'get', 'hash', 'if', 'in', 'input', 'link-to', 'loc', 'log', 'lookup', 'mut', 'outlet', 'partial', 'query-params', 'render', 'template', 'textarea', 'unbound', 'unless', 'view', 'with', 'yield'].join(" ")
   };
-  const LITERALS = {
+  var LITERALS = {
     literal: ['true', 'false', 'undefined', 'null'].join(" ")
   }; // as defined in https://handlebarsjs.com/guide/expressions.html#literal-segments
   // this regex matches literal segments like ' abc ' or [ abc ] as well as helpers and paths
   // like a/b, ./abc/cde, and abc.bcd
 
-  const DOUBLE_QUOTED_ID_REGEX = /".*?"/;
-  const SINGLE_QUOTED_ID_REGEX = /'.*?'/;
-  const BRACKET_QUOTED_ID_REGEX = /\[.*?\]/;
-  const PLAIN_ID_REGEX = /[^\s!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]+/;
-  const PATH_DELIMITER_REGEX = /\.|\//;
-  const IDENTIFIER_REGEX = concat$3('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
+  var DOUBLE_QUOTED_ID_REGEX = /".*?"/;
+  var SINGLE_QUOTED_ID_REGEX = /'.*?'/;
+  var BRACKET_QUOTED_ID_REGEX = /\[.*?\]/;
+  var PLAIN_ID_REGEX = /[^\s!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]+/;
+  var PATH_DELIMITER_REGEX = /\.|\//;
+  var IDENTIFIER_REGEX = concat$3('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
 
-  const HASH_PARAM_REGEX = concat$3('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
-  const HELPER_NAME_OR_PATH_EXPRESSION = {
+  var HASH_PARAM_REGEX = concat$3('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
+  var HELPER_NAME_OR_PATH_EXPRESSION = {
     begin: IDENTIFIER_REGEX,
     lexemes: /[\w.\/]+/
   };
-  const HELPER_PARAMETER = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var HELPER_PARAMETER = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: LITERALS
   });
-  const SUB_EXPRESSION = {
+  var SUB_EXPRESSION = {
     begin: /\(/,
     end: /\)/ // the "contains" is added below when all necessary sub-modes are defined
 
   };
-  const HASH = {
+  var HASH = {
     // fka "attribute-assignment", parameters of the form 'key=value'
     className: 'attr',
     begin: HASH_PARAM_REGEX,
@@ -8896,7 +11118,7 @@ function handlebars$1(hljs) {
       }
     }
   };
-  const BLOCK_PARAMS = {
+  var BLOCK_PARAMS = {
     // parameters of the form '{{#with x as | y |}}...{{/with}}'
     begin: /as\s+\|/,
     keywords: {
@@ -8908,14 +11130,14 @@ function handlebars$1(hljs) {
       begin: /\w+/
     }]
   };
-  const HELPER_PARAMETERS = {
+  var HELPER_PARAMETERS = {
     contains: [hljs.NUMBER_MODE, hljs.QUOTE_STRING_MODE, hljs.APOS_STRING_MODE, BLOCK_PARAMS, HASH, HELPER_PARAMETER, SUB_EXPRESSION],
     returnEnd: true // the property "end" is defined through inheritance when the mode is used. If depends
     // on the surrounding mode, but "endsWithParent" does not work here (i.e. it includes the
     // end-token of the surrounding mode)
 
   };
-  const SUB_EXPRESSION_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var SUB_EXPRESSION_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     className: 'name',
     keywords: BUILT_INS,
     starts: hljs.inherit(HELPER_PARAMETERS, {
@@ -8923,29 +11145,29 @@ function handlebars$1(hljs) {
     })
   });
   SUB_EXPRESSION.contains = [SUB_EXPRESSION_CONTENTS];
-  const OPENING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var OPENING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: BUILT_INS,
     className: 'name',
     starts: hljs.inherit(HELPER_PARAMETERS, {
       end: /}}/
     })
   });
-  const CLOSING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var CLOSING_BLOCK_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     keywords: BUILT_INS,
     className: 'name'
   });
-  const BASIC_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
+  var BASIC_MUSTACHE_CONTENTS = hljs.inherit(HELPER_NAME_OR_PATH_EXPRESSION, {
     className: 'name',
     keywords: BUILT_INS,
     starts: hljs.inherit(HELPER_PARAMETERS, {
       end: /}}/
     })
   });
-  const ESCAPE_MUSTACHE_WITH_PRECEEDING_BACKSLASH = {
+  var ESCAPE_MUSTACHE_WITH_PRECEEDING_BACKSLASH = {
     begin: /\\\{\{/,
     skip: true
   };
-  const PREVENT_ESCAPE_WITH_ANOTHER_PRECEEDING_BACKSLASH = {
+  var PREVENT_ESCAPE_WITH_ANOTHER_PRECEEDING_BACKSLASH = {
     begin: /\\\\(?=\{\{)/,
     skip: true
   };
@@ -9013,7 +11235,7 @@ function handlebars$1(hljs) {
 
 
 function htmlbars(hljs) {
-  const definition = handlebars$1(hljs);
+  var definition = handlebars$1(hljs);
   definition.name = "HTMLbars"; // HACK: This lets handlebars do the auto-detection if it's been loaded (by
   // default the build script will load in alphabetical order) and if not (perhaps
   // an install is only using `htmlbars`, not `handlebars`) then this will still
@@ -9030,7 +11252,6 @@ function htmlbars(hljs) {
 }
 
 var htmlbars_1 = htmlbars;
-
 /*
 Language: HTTP
 Description: HTTP request and response headers with automatic body highlighting
@@ -9038,6 +11259,7 @@ Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
 Category: common, protocols
 Website: https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview
 */
+
 function http(hljs) {
   var VERSION = 'HTTP/[0-9\\.]+';
   return {
@@ -9088,7 +11310,6 @@ function http(hljs) {
 }
 
 var http_1 = http;
-
 /*
 Language: Hy
 Description: Hy is a wonderful dialect of Lisp that’s embedded in Python.
@@ -9096,6 +11317,7 @@ Author: Sergey Sobko <s.sobko@profitware.ru>
 Website: http://docs.hylang.org/en/stable/
 Category: lisp
 */
+
 function hy(hljs) {
   var SYMBOLSTART = 'a-zA-Z_\\-!.?+*=<>&#\'';
   var SYMBOL_RE = '[' + SYMBOLSTART + '][' + SYMBOLSTART + '0-9/;:]*';
@@ -9164,13 +11386,13 @@ function hy(hljs) {
 }
 
 var hy_1 = hy;
-
 /*
 Language: Inform 7
 Author: Bruno Dias <bruno.r.dias@gmail.com>
 Description: Language definition for Inform 7, a DSL for writing parser interactive fiction.
 Website: http://inform7.com
 */
+
 function inform7(hljs) {
   var START_BRACKET = '\\[';
   var END_BRACKET = '\\]';
@@ -9220,7 +11442,6 @@ function inform7(hljs) {
 }
 
 var inform7_1 = inform7;
-
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -9230,6 +11451,7 @@ var inform7_1 = inform7;
  * @param {RegExp | string } re
  * @returns {string}
  */
+
 function source$4(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
@@ -9250,8 +11472,14 @@ function lookahead$1(re) {
  */
 
 
-function concat$4(...args) {
-  const joined = args.map(x => source$4(x)).join("");
+function concat$4() {
+  for (var _len6 = arguments.length, args = new Array(_len6), _key9 = 0; _key9 < _len6; _key9++) {
+    args[_key9] = arguments[_key9];
+  }
+
+  var joined = args.map(function (x) {
+    return source$4(x);
+  }).join("");
   return joined;
 }
 /**
@@ -9263,8 +11491,14 @@ function concat$4(...args) {
  */
 
 
-function either(...args) {
-  const joined = '(' + args.map(x => source$4(x)).join("|") + ")";
+function either() {
+  for (var _len7 = arguments.length, args = new Array(_len7), _key10 = 0; _key10 < _len7; _key10++) {
+    args[_key10] = arguments[_key10];
+  }
+
+  var joined = '(' + args.map(function (x) {
+    return source$4(x);
+  }).join("|") + ")";
   return joined;
 }
 /*
@@ -9357,7 +11591,6 @@ function ini(hljs) {
 }
 
 var ini_1 = ini;
-
 /*
 Language: IRPF90
 Author: Anthony Scemama <scemama@irsamc.ups-tlse.fr>
@@ -9365,6 +11598,7 @@ Description: IRPF90 is an open-source Fortran code generator
 Website: http://irpf90.ups-tlse.fr
 Category: scientific
 */
+
 function irpf90(hljs) {
   var PARAMS = {
     className: 'params',
@@ -9408,13 +11642,13 @@ function irpf90(hljs) {
 }
 
 var irpf90_1 = irpf90;
-
 /*
 Language: ISBL
 Author: Dmitriy Tarasov <dimatar@gmail.com>
 Description: built-in language DIRECTUM
 Category: enterprise
 */
+
 function isbl(hljs) {
   // Определение идентификаторов
   var UNDERSCORE_IDENT_RE = "[A-Za-zА-Яа-яёЁ_!][A-Za-zА-Яа-яёЁ_0-9]*"; // Определение имен функций
@@ -9792,7 +12026,6 @@ function isbl(hljs) {
 }
 
 var isbl_1 = isbl;
-
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -9802,6 +12035,7 @@ var isbl_1 = isbl;
  * @param {RegExp | string } re
  * @returns {string}
  */
+
 function source$5(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
@@ -9822,8 +12056,14 @@ function optional(re) {
  */
 
 
-function concat$5(...args) {
-  const joined = args.map(x => source$5(x)).join("");
+function concat$5() {
+  for (var _len8 = arguments.length, args = new Array(_len8), _key11 = 0; _key11 < _len8; _key11++) {
+    args[_key11] = arguments[_key11];
+  }
+
+  var joined = args.map(function (x) {
+    return source$5(x);
+  }).join("");
   return joined;
 }
 /**
@@ -9835,8 +12075,14 @@ function concat$5(...args) {
  */
 
 
-function either$1(...args) {
-  const joined = '(' + args.map(x => source$5(x)).join("|") + ")";
+function either$1() {
+  for (var _len9 = arguments.length, args = new Array(_len9), _key12 = 0; _key12 < _len9; _key12++) {
+    args[_key12] = arguments[_key12];
+  }
+
+  var joined = '(' + args.map(function (x) {
+    return source$5(x);
+  }).join("|") + ")";
   return joined;
 }
 /*
@@ -9848,7 +12094,7 @@ Website: https://www.java.com/
 
 
 function java(hljs) {
-  var JAVA_IDENT_RE = '[\u00C0-\u02B8a-zA-Z_$][\u00C0-\u02B8a-zA-Z_$0-9]*';
+  var JAVA_IDENT_RE = "[\xC0-\u02B8a-zA-Z_$][\xC0-\u02B8a-zA-Z_$0-9]*";
   var GENERIC_IDENT_RE = JAVA_IDENT_RE + '(<' + JAVA_IDENT_RE + '(\\s*,\\s*' + JAVA_IDENT_RE + ')*>)?';
   var KEYWORDS = 'false synchronized int abstract float private char boolean var static null if const ' + 'for true while long strictfp finally protected import native final void ' + 'enum else break transient catch instanceof byte super volatile case assert short ' + 'package default double public try this switch continue throws protected public private ' + 'module requires exports do';
   var ANNOTATION = {
@@ -9865,15 +12111,17 @@ function java(hljs) {
    * A given sequence, possibly with underscores
    * @type {(s: string | RegExp) => string}  */
 
-  var SEQUENCE_ALLOWING_UNDERSCORES = seq => concat$5('[', seq, ']+([', seq, '_]*[', seq, ']+)?');
+  var SEQUENCE_ALLOWING_UNDERSCORES = function SEQUENCE_ALLOWING_UNDERSCORES(seq) {
+    return concat$5('[', seq, ']+([', seq, '_]*[', seq, ']+)?');
+  };
 
   var JAVA_NUMBER_MODE = {
     className: 'number',
     variants: [{
-      begin: `\\b(0[bB]${SEQUENCE_ALLOWING_UNDERSCORES('01')})[lL]?`
+      begin: "\\b(0[bB]".concat(SEQUENCE_ALLOWING_UNDERSCORES('01'), ")[lL]?")
     }, // binary
     {
-      begin: `\\b(0${SEQUENCE_ALLOWING_UNDERSCORES('0-7')})[dDfFlL]?`
+      begin: "\\b(0".concat(SEQUENCE_ALLOWING_UNDERSCORES('0-7'), ")[dDfFlL]?")
     }, // octal
     {
       begin: concat$5(/\b0[xX]/, either$1(concat$5(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9')), concat$5(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\.?/), concat$5(/\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'))), /([pP][+-]?(\d+))?/, /[fFdDlL]?/ // decimal & fp mixed for simplicity
@@ -9944,20 +12192,19 @@ function java(hljs) {
 }
 
 var java_1 = java;
-
-const IDENT_RE$1 = '[A-Za-z$_][0-9A-Za-z$_]*';
-const KEYWORDS$1 = ["as", // for exports
+var IDENT_RE$1 = '[A-Za-z$_][0-9A-Za-z$_]*';
+var KEYWORDS$1 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$1 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$1 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$1 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$1 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$1 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+var LITERALS$1 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+var TYPES$1 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+var ERROR_TYPES$1 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+var BUILT_IN_GLOBALS$1 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+var BUILT_IN_VARIABLES$1 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$1 = [].concat(BUILT_IN_GLOBALS$1, BUILT_IN_VARIABLES$1, TYPES$1, ERROR_TYPES$1);
+var BUILT_INS$1 = [].concat(BUILT_IN_GLOBALS$1, BUILT_IN_VARIABLES$1, TYPES$1, ERROR_TYPES$1);
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -9988,8 +12235,14 @@ function lookahead$2(re) {
  */
 
 
-function concat$6(...args) {
-  const joined = args.map(x => source$6(x)).join("");
+function concat$6() {
+  for (var _len10 = arguments.length, args = new Array(_len10), _key13 = 0; _key13 < _len10; _key13++) {
+    args[_key13] = arguments[_key13];
+  }
+
+  var joined = args.map(function (x) {
+    return source$6(x);
+  }).join("");
   return joined;
 }
 /*
@@ -10228,7 +12481,6 @@ function javascript(hljs) {
 }
 
 var javascript_1 = javascript;
-
 /*
  Language: JBoss CLI
  Author: Raphaël Parrëe <rparree@edc4it.com>
@@ -10236,6 +12488,7 @@ var javascript_1 = javascript;
  Website: https://docs.jboss.org/author/display/WFLY/Command+Line+Interface
  Category: config
  */
+
 function jbossCli(hljs) {
   var PARAM = {
     begin: /[\w-]+ *=/,
@@ -10280,7 +12533,6 @@ function jbossCli(hljs) {
 }
 
 var jbossCli_1 = jbossCli;
-
 /*
 Language: JSON
 Description: JSON (JavaScript Object Notation) is a lightweight data-interchange format.
@@ -10288,6 +12540,7 @@ Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
 Website: http://www.json.org
 Category: common, protocols
 */
+
 function json(hljs) {
   var LITERALS = {
     literal: 'true false null'
@@ -10335,7 +12588,6 @@ function json(hljs) {
 }
 
 var json_1 = json;
-
 /*
 Language: Julia
 Description: Julia is a high-level, high-performance, dynamic programming language.
@@ -10343,13 +12595,14 @@ Author: Kenta Sato <bicycle1885@gmail.com>
 Contributors: Alex Arslan <ararslan@comcast.net>
 Website: https://julialang.org
 */
+
 function julia(hljs) {
   // Since there are numerous special names in Julia, it is too much trouble
   // to maintain them by hand. Hence these names (i.e. keywords, literals and
   // built-ins) are automatically generated from Julia v0.6 itself through
   // the following scripts for each.
   // ref: http://julia.readthedocs.org/en/latest/manual/variables/#allowed-variable-names
-  var VARIABLE_NAME_RE = '[A-Za-z_\\u00A1-\\uFFFF][A-Za-z_0-9\\u00A1-\\uFFFF]*';
+  var VARIABLE_NAME_RE = "[A-Za-z_\\u00A1-\\uFFFF][A-Za-z_0-9\\u00A1-\\uFFFF]*";
   var KEYWORDS = {
     $pattern: VARIABLE_NAME_RE,
     // # keyword generator, multi-word keywords handled manually below
@@ -10463,7 +12716,6 @@ function julia(hljs) {
 }
 
 var julia_1 = julia;
-
 /*
 Language: Julia REPL
 Description: Julia REPL sessions
@@ -10487,6 +12739,7 @@ left un-highlighted.
 Using simply spaces to identify line continuations may get a false-positive if the output
 also prints out six spaces, but such cases should be rare.
 */
+
 function juliaRepl(hljs) {
   return {
     name: 'Julia REPL',
@@ -10511,7 +12764,6 @@ function juliaRepl(hljs) {
 }
 
 var juliaRepl_1 = juliaRepl;
-
 /*
  Language: Kotlin
  Description: Kotlin is an OSS statically typed programming language that targets the JVM, Android, JavaScript and Native.
@@ -10519,6 +12771,7 @@ var juliaRepl_1 = juliaRepl;
  Website: https://kotlinlang.org
  Category: common
  */
+
 function kotlin(hljs) {
   var KEYWORDS = {
     keyword: 'abstract as val var vararg get set class object open private protected public noinline ' + 'crossinline dynamic final enum if else do while for when throw try catch finally ' + 'import package is in fun override companion reified inline lateinit init ' + 'interface annotation data sealed internal infix operator out by constructor super ' + 'tailrec where const inner suspend typealias external expect actual ' + // to be deleted soon
@@ -10695,13 +12948,13 @@ function kotlin(hljs) {
 }
 
 var kotlin_1 = kotlin;
-
 /*
 Language: Lasso
 Author: Eric Knibbe <eric@lassosoft.com>
 Description: Lasso is a language and server platform for database-driven web applications. This definition handles Lasso 9 syntax and LassoScript for Lasso 8.6 and earlier.
 Website: http://www.lassosoft.com/What-Is-Lasso
 */
+
 function lasso(hljs) {
   var LASSO_IDENT_RE = '[a-zA-Z_][\\w.]*';
   var LASSO_ANGLE_RE = '<\\?(lasso(script)?|=)';
@@ -10825,13 +13078,13 @@ function lasso(hljs) {
 }
 
 var lasso_1 = lasso;
-
 /*
 Language: LaTeX
 Author: Vladimir Moskva <vladmos@gmail.com>
 Website: https://www.latex-project.org
 Category: markup
 */
+
 function latex(hljs) {
   var COMMAND = {
     className: 'tag',
@@ -10890,13 +13143,13 @@ function latex(hljs) {
 }
 
 var latex_1 = latex;
-
 /*
 Language: LDIF
 Contributors: Jacob Childress <jacobc@gmail.com>
 Category: enterprise, config
 Website: https://en.wikipedia.org/wiki/LDAP_Data_Interchange_Format
 */
+
 function ldif(hljs) {
   return {
     name: 'LDIF',
@@ -10928,12 +13181,12 @@ function ldif(hljs) {
 }
 
 var ldif_1 = ldif;
-
 /*
 Language: Leaf
 Author: Hale Chan <halechan@qq.com>
 Description: Based on the Leaf reference from https://vapor.github.io/documentation/guide/leaf.html.
 */
+
 function leaf(hljs) {
   return {
     name: 'Leaf',
@@ -10968,7 +13221,6 @@ function leaf(hljs) {
 }
 
 var leaf_1 = leaf;
-
 /*
 Language: Less
 Description: It's CSS, with just a little more.
@@ -10976,6 +13228,7 @@ Author:   Max Mikhailov <seven.phases.max@gmail.com>
 Website: http://lesscss.org
 Category: common, css
 */
+
 function less(hljs) {
   var IDENT_RE = '[\\w-]+'; // yes, Less identifiers may begin with a digit
 
@@ -10985,7 +13238,7 @@ function less(hljs) {
   var RULES = [],
       VALUE = []; // forward def. for recursive modes
 
-  var STRING_MODE = function (c) {
+  var STRING_MODE = function STRING_MODE(c) {
     return {
       // Less strings are not multiline (also include '~' for more consistent coloring of "escaped" strings)
       className: 'string',
@@ -10993,7 +13246,7 @@ function less(hljs) {
     };
   };
 
-  var IDENT_MODE = function (name, begin, relevance) {
+  var IDENT_MODE = function IDENT_MODE(name, begin, relevance) {
     return {
       className: name,
       begin: begin,
@@ -11136,13 +13389,13 @@ function less(hljs) {
 }
 
 var less_1 = less;
-
 /*
 Language: Lisp
 Description: Generic lisp syntax
 Author: Vasily Polovnyov <vast@whiteants.net>
 Category: lisp
 */
+
 function lisp(hljs) {
   var LISP_IDENT_RE = '[a-zA-Z_\\-\\+\\*\\/\\<\\=\\>\\&\\#][a-zA-Z0-9_\\-\\+\\*\\/\\<\\=\\>\\&\\#!]*';
   var MEC_RE = '\\|[^]*?\\|';
@@ -11240,7 +13493,6 @@ function lisp(hljs) {
 }
 
 var lisp_1 = lisp;
-
 /*
 Language: LiveCode
 Author: Ralf Bitter <rabit@revigniter.com>
@@ -11249,6 +13501,7 @@ Version: 1.1
 Date: 2019-04-17
 Category: enterprise
 */
+
 function livecodeserver(hljs) {
   var VARIABLE = {
     className: 'variable',
@@ -11313,19 +13566,18 @@ function livecodeserver(hljs) {
 }
 
 var livecodeserver_1 = livecodeserver;
-
-const KEYWORDS$2 = ["as", // for exports
+var KEYWORDS$2 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$2 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$2 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$2 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$2 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$2 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+var LITERALS$2 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+var TYPES$2 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+var ERROR_TYPES$2 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+var BUILT_IN_GLOBALS$2 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+var BUILT_IN_VARIABLES$2 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$2 = [].concat(BUILT_IN_GLOBALS$2, BUILT_IN_VARIABLES$2, TYPES$2, ERROR_TYPES$2);
+var BUILT_INS$2 = [].concat(BUILT_IN_GLOBALS$2, BUILT_IN_VARIABLES$2, TYPES$2, ERROR_TYPES$2);
 /*
 Language: LiveScript
 Author: Taneli Vatanen <taneli.vatanen@gmail.com>
@@ -11473,7 +13725,6 @@ function livescript(hljs) {
 }
 
 var livescript_1 = livescript;
-
 /*
 Language: LLVM IR
 Author: Michael Rodler <contact@f0rki.at>
@@ -11481,6 +13732,7 @@ Description: language used as intermediate representation in the LLVM compiler f
 Website: https://llvm.org/docs/LangRef.html
 Category: assembler
 */
+
 function llvm(hljs) {
   var identifier = '([-a-zA-Z$._][\\w\\-$.]*)';
   return {
@@ -11533,7 +13785,6 @@ function llvm(hljs) {
 }
 
 var llvm_1 = llvm;
-
 /*
 Language: LSL (Linden Scripting Language)
 Description: The Linden Scripting Language is used in Second Life by Linden Labs.
@@ -11541,6 +13792,7 @@ Author: Builder's Brewery <buildersbrewery@gmail.com>
 Website: http://wiki.secondlife.com/wiki/LSL_Portal
 Category: scripting
 */
+
 function lsl(hljs) {
   var LSL_STRING_ESCAPE_CHARS = {
     className: 'subst',
@@ -11598,7 +13850,6 @@ function lsl(hljs) {
 }
 
 var lsl_1 = lsl;
-
 /*
 Language: Lua
 Description: Lua is a powerful, efficient, lightweight, embeddable scripting language.
@@ -11606,6 +13857,7 @@ Author: Andrew Fedorov <dmmdrs@mail.ru>
 Category: common, scripting
 Website: https://www.lua.org
 */
+
 function lua(hljs) {
   var OPENING_LONG_BRACKET = '\\[=*\\[';
   var CLOSING_LONG_BRACKET = '\\]=*\\]';
@@ -11652,7 +13904,6 @@ function lua(hljs) {
 }
 
 var lua_1 = lua;
-
 /*
 Language: Makefile
 Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
@@ -11660,6 +13911,7 @@ Contributors: Joël Porquet <joel@porquet.org>
 Website: https://www.gnu.org/software/make/manual/html_node/Introduction.html
 Category: common
 */
+
 function makefile(hljs) {
   /* Variables: simple (eg $(var)) and special (eg $@) */
   var VARIABLE = {
@@ -11726,7 +13978,6 @@ function makefile(hljs) {
 }
 
 var makefile_1 = makefile;
-
 /*
 Language: Mathematica
 Description: Wolfram Mathematica (usually termed Mathematica) is a modern technical computing system spanning most areas of technical computing.
@@ -11734,6 +13985,7 @@ Authors: Daniel Kvasnicka <dkvasnicka@vendavo.com>, Jan Poeschko <jan@poeschko.c
 Website: https://www.wolfram.com/mathematica/
 Category: scientific
 */
+
 function mathematica(hljs) {
   return {
     name: 'Mathematica',
@@ -11759,7 +14011,6 @@ function mathematica(hljs) {
 }
 
 var mathematica_1 = mathematica;
-
 /*
 Language: Matlab
 Author: Denis Bardadym <bardadymchik@gmail.com>
@@ -11772,6 +14023,7 @@ Category: scientific
   Formal syntax is not published, helpful link:
   https://github.com/kornilova-l/matlab-IntelliJ-plugin/blob/master/src/main/grammar/Matlab.bnf
 */
+
 function matlab(hljs) {
   var TRANSPOSE_RE = '(\'|\\.\')+';
   var TRANSPOSE = {
@@ -11838,13 +14090,13 @@ function matlab(hljs) {
 }
 
 var matlab_1 = matlab;
-
 /*
 Language: Maxima
 Author: Robert Dodier <robert.dodier@gmail.com>
 Website: http://maxima.sourceforge.net
 Category: scientific
 */
+
 function maxima(hljs) {
   var KEYWORDS = 'if then else elseif for thru do while unless step in and or not';
   var LITERALS = 'true false unknown inf minf ind und %e %i %pi %phi %gamma';
@@ -11890,7 +14142,6 @@ function maxima(hljs) {
 }
 
 var maxima_1 = maxima;
-
 /*
 Language: MEL
 Description: Maya Embedded Language
@@ -11898,6 +14149,7 @@ Author: Shuen-Huei Guan <drake.guan@gmail.com>
 Website: http://www.autodesk.com/products/autodesk-maya/overview
 Category: graphics
 */
+
 function mel(hljs) {
   return {
     name: 'MEL',
@@ -11916,13 +14168,13 @@ function mel(hljs) {
 }
 
 var mel_1 = mel;
-
 /*
 Language: Mercury
 Author: mucaho <mkucko@gmail.com>
 Description: Mercury is a logic/functional programming language which combines the clarity and expressiveness of declarative programming with advanced static analysis and error detection features.
 Website: https://www.mercurylang.org
 */
+
 function mercury(hljs) {
   var KEYWORDS = {
     keyword: 'module use_module import_module include_module end_module initialise ' + 'mutable initialize finalize finalise interface implementation pred ' + 'mode func type inst solver any_pred any_func is semidet det nondet ' + 'multi erroneous failure cc_nondet cc_multi typeclass instance where ' + 'pragma promise external trace atomic or_else require_complete_switch ' + 'require_det require_semidet require_multi require_nondet ' + 'require_cc_multi require_cc_nondet require_erroneous require_failure',
@@ -11990,7 +14242,6 @@ function mercury(hljs) {
 }
 
 var mercury_1 = mercury;
-
 /*
 Language: MIPS Assembly
 Author: Nebuleon Fumika <nebuleon.fumika@gmail.com>
@@ -11998,6 +14249,7 @@ Description: MIPS Assembly (up to MIPS32R2)
 Website: https://en.wikipedia.org/wiki/MIPS_architecture
 Category: assembler
 */
+
 function mipsasm(hljs) {
   //local labels: %?[FB]?[AT]?\d{1,2}\w+
   return {
@@ -12070,7 +14322,6 @@ function mipsasm(hljs) {
 }
 
 var mipsasm_1 = mipsasm;
-
 /*
 Language: Mizar
 Description: The Mizar Language is a formal language derived from the mathematical vernacular.
@@ -12078,6 +14329,7 @@ Author: Kelley van Evert <kelleyvanevert@gmail.com>
 Website: http://mizar.org/language/
 Category: scientific
 */
+
 function mizar(hljs) {
   return {
     name: 'Mizar',
@@ -12087,13 +14339,13 @@ function mizar(hljs) {
 }
 
 var mizar_1 = mizar;
-
 /*
 Language: Perl
 Author: Peter Leonov <gojpeg@yandex.ru>
 Website: https://www.perl.org
 Category: common
 */
+
 function perl(hljs) {
   var PERL_KEYWORDS = {
     $pattern: /[\w.]+/,
@@ -12222,7 +14474,6 @@ function perl(hljs) {
 }
 
 var perl_1 = perl;
-
 /*
 Language: Mojolicious
 Requires: xml.js, perl.js
@@ -12231,6 +14482,7 @@ Description: Mojolicious .ep (Embedded Perl) templates
 Website: https://mojolicious.org
 Category: template
 */
+
 function mojolicious(hljs) {
   return {
     name: 'Mojolicious',
@@ -12255,13 +14507,13 @@ function mojolicious(hljs) {
 }
 
 var mojolicious_1 = mojolicious;
-
 /*
 Language: Monkey
 Description: Monkey2 is an easy to use, cross platform, games oriented programming language from Blitz Research.
 Author: Arthur Bikmullin <devolonter@gmail.com>
 Website: https://blitzresearch.itch.io/monkey2
 */
+
 function monkey(hljs) {
   var NUMBER = {
     className: 'number',
@@ -12316,7 +14568,6 @@ function monkey(hljs) {
 }
 
 var monkey_1 = monkey;
-
 /*
 Language: MoonScript
 Author: Billy Quith <chinbillybilbo@gmail.com>
@@ -12325,6 +14576,7 @@ Origin: coffeescript.js
 Website: http://moonscript.org/
 Category: scripting
 */
+
 function moonscript(hljs) {
   var KEYWORDS = {
     keyword: // Moonscript keywords
@@ -12432,7 +14684,6 @@ function moonscript(hljs) {
 }
 
 var moonscript_1 = moonscript;
-
 /*
  Language: N1QL
  Author: Andres Täht <andres.taht@gmail.com>
@@ -12440,6 +14691,7 @@ var moonscript_1 = moonscript;
  Description: Couchbase query language
  Website: https://www.couchbase.com/products/n1ql
  */
+
 function n1ql(hljs) {
   return {
     name: 'N1QL',
@@ -12480,7 +14732,6 @@ function n1ql(hljs) {
 }
 
 var n1ql_1 = n1ql;
-
 /*
 Language: Nginx config
 Author: Peter Leonov <gojpeg@yandex.ru>
@@ -12488,6 +14739,7 @@ Contributors: Ivan Sagalaev <maniac@softwaremaniacs.org>
 Category: common, config
 Website: https://www.nginx.com
 */
+
 function nginx(hljs) {
   var VAR = {
     className: 'variable',
@@ -12583,13 +14835,13 @@ function nginx(hljs) {
 }
 
 var nginx_1 = nginx;
-
 /*
 Language: Nim
 Description: Nim is a statically typed compiled systems programming language.
 Website: https://nim-lang.org
 Category: system
 */
+
 function nim(hljs) {
   return {
     name: 'Nim',
@@ -12637,13 +14889,13 @@ function nim(hljs) {
 }
 
 var nim_1 = nim;
-
 /*
 Language: Nix
 Author: Domen Kožar <domen@dev.si>
 Description: Nix functional language
 Website: http://nixos.org/nix
 */
+
 function nix(hljs) {
   var NIX_KEYWORDS = {
     keyword: 'rec with let in inherit assert if else then',
@@ -12687,13 +14939,13 @@ function nix(hljs) {
 }
 
 var nix_1 = nix;
-
 /*
 Language: NSIS
 Description: Nullsoft Scriptable Install System
 Author: Jan T. Sott <jan.sott@gmail.com>
 Website: https://nsis.sourceforge.io/Main_Page
 */
+
 function nsis(hljs) {
   var CONSTANTS = {
     className: 'variable',
@@ -12768,7 +15020,6 @@ function nsis(hljs) {
 }
 
 var nsis_1 = nsis;
-
 /*
 Language: Objective-C
 Author: Valerii Hiora <valerii.hiora@gmail.com>
@@ -12776,6 +15027,7 @@ Contributors: Angel G. Olloqui <angelgarcia.mail@gmail.com>, Matt Diephouse <mat
 Website: https://developer.apple.com/documentation/objectivec
 Category: common
 */
+
 function objectivec(hljs) {
   var API_CLASS = {
     className: 'built_in',
@@ -12838,7 +15090,6 @@ function objectivec(hljs) {
 }
 
 var objectivec_1 = objectivec;
-
 /*
 Language: OCaml
 Author: Mehdi Dogguy <mehdi@dogguy.org>
@@ -12847,6 +15098,7 @@ Description: OCaml language definition.
 Website: https://ocaml.org
 Category: functional
 */
+
 function ocaml(hljs) {
   /* missing support for heredoc-like string (OCaml 4.0.2+) */
   return {
@@ -12907,7 +15159,6 @@ function ocaml(hljs) {
 }
 
 var ocaml_1 = ocaml;
-
 /*
 Language: OpenSCAD
 Author: Dan Panzarella <alsoelp@gmail.com>
@@ -12915,6 +15166,7 @@ Description: OpenSCAD is a language for the 3D CAD modeling software of the same
 Website: https://www.openscad.org
 Category: scientific
 */
+
 function openscad(hljs) {
   var SPECIAL_VARS = {
     className: 'keyword',
@@ -12970,13 +15222,13 @@ function openscad(hljs) {
 }
 
 var openscad_1 = openscad;
-
 /*
 Language: Oxygene
 Author: Carlo Kok <ck@remobjects.com>
 Description: Oxygene is built on the foundation of Object Pascal, revamped and extended to be a modern language for the twenty-first century.
 Website: https://www.elementscompiler.com/elements/default.aspx
 */
+
 function oxygene(hljs) {
   var OXYGENE_KEYWORDS = {
     $pattern: /\.?\w+/,
@@ -13029,7 +15281,6 @@ function oxygene(hljs) {
 }
 
 var oxygene_1 = oxygene;
-
 /*
 Language: Parser3
 Requires: xml.js
@@ -13037,6 +15288,7 @@ Author: Oleg Volchkov <oleg@volchkov.net>
 Website: https://www.parser.ru/en/
 Category: template
 */
+
 function parser3(hljs) {
   var CURLY_SUBCOMMENT = hljs.COMMENT('{', '}', {
     contains: ['self']
@@ -13069,7 +15321,6 @@ function parser3(hljs) {
 }
 
 var parser3_1 = parser3;
-
 /*
 Language: Packet Filter config
 Description: pf.conf — packet filter configuration file (OpenBSD)
@@ -13077,6 +15328,7 @@ Author: Peter Piwowarski <oldlaptop654@aol.com>
 Website: http://man.openbsd.org/pf.conf
 Category: config
 */
+
 function pf(hljs) {
   var MACRO = {
     className: 'variable',
@@ -13105,7 +15357,6 @@ function pf(hljs) {
 }
 
 var pf_1 = pf;
-
 /*
 Language: PostgreSQL and PL/pgSQL
 Author: Egor Rogov (e.rogov@postgrespro.ru)
@@ -13123,6 +15374,7 @@ Description:
       call from other constructs, hence we can't highlight _all_ function names. And
       some names highlighted while others not looks ugly.
 */
+
 function pgsql(hljs) {
   var COMMENT_MODE = hljs.COMMENT('--', '$');
   var UNQUOTED_IDENT = '[a-zA-Z_][a-zA-Z_0-9$]*';
@@ -13428,7 +15680,6 @@ function pgsql(hljs) {
 }
 
 var pgsql_1 = pgsql;
-
 /*
 Language: PHP
 Author: Victor Karamzin <Victor.Karamzin@enterra-inc.com>
@@ -13436,6 +15687,7 @@ Contributors: Evgeny Stepanischev <imbolk@gmail.com>, Ivan Sagalaev <maniac@soft
 Website: https://www.php.net
 Category: common
 */
+
 function php(hljs) {
   var VARIABLE = {
     begin: '\\$+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
@@ -13566,7 +15818,6 @@ function php(hljs) {
 }
 
 var php_1 = php;
-
 /*
 Language: PHP Template
 Requires: xml.js, php.js
@@ -13574,6 +15825,7 @@ Author: Josh Goebel <hello@joshgoebel.com>
 Website: https://www.php.net
 Category: common
 */
+
 function phpTemplate(hljs) {
   return {
     name: "PHP template",
@@ -13612,13 +15864,13 @@ function phpTemplate(hljs) {
 }
 
 var phpTemplate_1 = phpTemplate;
-
 /*
 Language: Plain text
 Author: Egor Rogov (e.rogov@postgrespro.ru)
 Description: Plain text without any highlighting.
 Category: common
 */
+
 function plaintext(hljs) {
   return {
     name: 'Plain text',
@@ -13628,7 +15880,6 @@ function plaintext(hljs) {
 }
 
 var plaintext_1 = plaintext;
-
 /*
 Language: Pony
 Author: Joe Eli McIlvain <joe.eli.mac@gmail.com>
@@ -13636,6 +15887,7 @@ Description: Pony is an open-source, object-oriented, actor-model,
              capabilities-secure, high performance programming language.
 Website: https://www.ponylang.io
 */
+
 function pony(hljs) {
   var KEYWORDS = {
     keyword: 'actor addressof and as be break class compile_error compile_intrinsic ' + 'consume continue delegate digestof do else elseif embed end error ' + 'for fun if ifdef in interface is isnt lambda let match new not object ' + 'or primitive recover repeat return struct then trait try type until ' + 'use var where while with xor',
@@ -13694,7 +15946,6 @@ function pony(hljs) {
 }
 
 var pony_1 = pony;
-
 /*
 Language: PowerShell
 Description: PowerShell is a task-based command-line shell and scripting language built on .NET.
@@ -13702,6 +15953,7 @@ Author: David Mohundro <david@mohundro.com>
 Contributors: Nicholas Blumhardt <nblumhardt@nblumhardt.com>, Victor Zhou <OiCMudkips@users.noreply.github.com>, Nicolas Le Gall <contact@nlegall.fr>
 Website: https://docs.microsoft.com/en-us/powershell/
 */
+
 function powershell(hljs) {
   var TYPES = ["string", "char", "byte", "int", "long", "bool", "decimal", "single", "double", "DateTime", "xml", "array", "hashtable", "void"]; // https://msdn.microsoft.com/en-us/library/ms714428(v=vs.85).aspx
 
@@ -13897,7 +16149,6 @@ function powershell(hljs) {
 }
 
 var powershell_1 = powershell;
-
 /*
 Language: Processing
 Description: Processing is a flexible software sketchbook and a language for learning how to code within the context of the visual arts.
@@ -13905,6 +16156,7 @@ Author: Erik Paluka <erik.paluka@gmail.com>
 Website: https://processing.org
 Category: graphics
 */
+
 function processing(hljs) {
   return {
     name: 'Processing',
@@ -13920,12 +16172,12 @@ function processing(hljs) {
 }
 
 var processing_1 = processing;
-
 /*
 Language: Python profiler
 Description: Python profiler results
 Author: Brian Beck <exogen@gmail.com>
 */
+
 function profile(hljs) {
   return {
     name: 'Python profiler',
@@ -13955,13 +16207,13 @@ function profile(hljs) {
 }
 
 var profile_1 = profile;
-
 /*
 Language: Prolog
 Description: Prolog is a general purpose logic programming language associated with artificial intelligence and computational linguistics.
 Author: Raivo Laanemets <raivo@infdot.com>
 Website: https://en.wikipedia.org/wiki/Prolog
 */
+
 function prolog(hljs) {
   var ATOM = {
     begin: /[a-z][A-Za-z0-9_]*/,
@@ -14024,13 +16276,13 @@ function prolog(hljs) {
 }
 
 var prolog_1 = prolog;
-
 /*
 Language: .properties
 Contributors: Valentin Aitken <valentin@nalisbg.com>, Egor Rogov <e.rogov@postgrespro.ru>
 Website: https://en.wikipedia.org/wiki/.properties
 Category: common, config
 */
+
 function properties(hljs) {
   // whitespaces: space, tab, formfeed
   var WS0 = '[ \\t\\f]*';
@@ -14091,7 +16343,6 @@ function properties(hljs) {
 }
 
 var properties_1 = properties;
-
 /*
 Language: Protocol Buffers
 Author: Dan Tao <daniel.tao@gmail.com>
@@ -14099,6 +16350,7 @@ Description: Protocol buffer message definition format
 Website: https://developers.google.com/protocol-buffers/docs/proto3
 Category: protocols
 */
+
 function protobuf(hljs) {
   return {
     name: 'Protocol Buffers',
@@ -14134,13 +16386,13 @@ function protobuf(hljs) {
 }
 
 var protobuf_1 = protobuf;
-
 /*
 Language: Puppet
 Author: Jose Molina Colmenero <gaudy41@gmail.com>
 Website: https://puppet.com/docs
 Category: config
 */
+
 function puppet(hljs) {
   var PUPPET_KEYWORDS = {
     keyword:
@@ -14223,7 +16475,6 @@ function puppet(hljs) {
 }
 
 var puppet_1 = puppet;
-
 /*
 Language: PureBASIC
 Author: Tristano Ajmone <tajmone@gmail.com>
@@ -14232,6 +16483,7 @@ Credits: I've taken inspiration from the PureBasic language file for GeSHi, crea
 Website: https://www.purebasic.com
 */
 // Base deafult colors in PB IDE: background: #FFFFDF; foreground: #000000;
+
 function purebasic(hljs) {
   var STRINGS = {
     // PB IDE color: #0080FF (Azure Radiance)
@@ -14301,13 +16553,13 @@ function purebasic(hljs) {
 
 
 var purebasic_1 = purebasic;
-
 /*
 Language: Python
 Description: Python is an interpreted, object-oriented, high-level programming language with dynamic semantics.
 Website: https://www.python.org
 Category: common
 */
+
 function python(hljs) {
   var KEYWORDS = {
     keyword: 'and elif is global as in if from raise for except finally print import pass return ' + 'exec else break not with class assert yield try while continue del or def lambda ' + 'async await nonlocal|10',
@@ -14438,13 +16690,13 @@ function python(hljs) {
 }
 
 var python_1 = python;
-
 /*
 Language: Python REPL
 Requires: python.js
 Author: Josh Goebel <hello@joshgoebel.com>
 Category: common
 */
+
 function pythonRepl(hljs) {
   return {
     aliases: ['pycon'],
@@ -14469,7 +16721,6 @@ function pythonRepl(hljs) {
 }
 
 var pythonRepl_1 = pythonRepl;
-
 /*
 Language: Q
 Description: Q is a vector-based functional paradigm programming language built into the kdb+ database.
@@ -14477,6 +16728,7 @@ Description: Q is a vector-based functional paradigm programming language built 
 Author: Sergey Vidyuk <svidyuk@gmail.com>
 Website: https://kx.com/connect-with-us/developers/
 */
+
 function q(hljs) {
   var Q_KEYWORDS = {
     $pattern: /(`?)[A-Za-z0-9_]+\b/,
@@ -14494,7 +16746,6 @@ function q(hljs) {
 }
 
 var q_1 = q;
-
 /*
 Language: QML
 Requires: javascript.js, xml.js
@@ -14504,6 +16755,7 @@ Description: Syntax highlighting for the Qt Quick QML scripting language, based 
 Website: https://doc.qt.io/qt-5/qmlapplications.html
 Category: scripting
 */
+
 function qml(hljs) {
   var KEYWORDS = {
     keyword: 'in of on if for while finally var new function do return void else break catch ' + 'instanceof with throw case default try this switch continue typeof delete ' + 'let yield const export super debugger as async await import',
@@ -14637,7 +16889,6 @@ function qml(hljs) {
 }
 
 var qml_1 = qml;
-
 /*
 Language: R
 Description: R is a free software environment for statistical computing and graphics.
@@ -14645,6 +16896,7 @@ Author: Joe Cheng <joe@rstudio.org>
 Website: https://www.r-project.org
 Category: scientific
 */
+
 function r(hljs) {
   var IDENT_RE = '([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*';
   return {
@@ -14702,7 +16954,6 @@ function r(hljs) {
 }
 
 var r_1 = r;
-
 /*
 Language: ReasonML
 Description: Reason lets you write simple, fast and quality type safe code while leveraging both the JavaScript & OCaml ecosystems.
@@ -14710,6 +16961,7 @@ Website: https://reasonml.github.io
 Author: Gidi Meir Morris <oss@gidi.io>
 Category: functional
 */
+
 function reasonml(hljs) {
   function orReValues(ops) {
     return ops.map(function (op) {
@@ -14921,7 +17173,6 @@ function reasonml(hljs) {
 }
 
 var reasonml_1 = reasonml;
-
 /*
 Language: RenderMan RIB
 Author: Konstantin Evdokimenko <qewerty@gmail.com>
@@ -14929,6 +17180,7 @@ Contributors: Shuen-Huei Guan <drake.guan@gmail.com>
 Website: https://renderman.pixar.com/resources/RenderMan_20/ribBinding.html
 Category: graphics
 */
+
 function rib(hljs) {
   return {
     name: 'RenderMan RIB',
@@ -14939,7 +17191,6 @@ function rib(hljs) {
 }
 
 var rib_1 = rib;
-
 /*
 Language: Roboconf
 Author: Vincent Zurczak <vzurczak@linagora.com>
@@ -14947,6 +17198,7 @@ Description: Syntax highlighting for Roboconf's DSL
 Website: http://roboconf.net
 Category: config
 */
+
 function roboconf(hljs) {
   var IDENTIFIER = '[a-zA-Z-_][^\\n{]+\\{';
   var PROPERTY = {
@@ -14995,7 +17247,6 @@ function roboconf(hljs) {
 }
 
 var roboconf_1 = roboconf;
-
 /*
 Language: Microtik RouterOS script
 Author: Ivan Dementev <ivan_div@mail.ru>
@@ -15007,6 +17258,7 @@ Website: https://wiki.mikrotik.com/wiki/Manual:Scripting
 //   teal         - #0C9A9A
 //   purple       - #99069A
 //   light-brown  - #9A9900
+
 function routeros(hljs) {
   var STATEMENTS = 'foreach do while for if from to step else on-error and or not in'; // Global commands: Every global command should start with ":" token, otherwise it will be treated as variable.
 
@@ -15160,7 +17412,6 @@ function routeros(hljs) {
 }
 
 var routeros_1 = routeros;
-
 /*
 Language: RenderMan RSL
 Author: Konstantin Evdokimenko <qewerty@gmail.com>
@@ -15168,6 +17419,7 @@ Contributors: Shuen-Huei Guan <drake.guan@gmail.com>
 Website: https://renderman.pixar.com/resources/RenderMan_20/shadingLanguage.html
 Category: graphics
 */
+
 function rsl(hljs) {
   return {
     name: 'RenderMan RSL',
@@ -15192,7 +17444,6 @@ function rsl(hljs) {
 }
 
 var rsl_1 = rsl;
-
 /*
 Language: Oracle Rules Language
 Author: Jason Jacobson <jason.a.jacobson@gmail.com>
@@ -15200,6 +17451,7 @@ Description: The Oracle Utilities Rules Language is used to program the Oracle U
 Website: https://docs.oracle.com/cd/E17904_01/dev.1111/e10227/rlref.htm
 Category: enterprise
 */
+
 function ruleslanguage(hljs) {
   return {
     name: 'Oracle Rules Language',
@@ -15221,7 +17473,6 @@ function ruleslanguage(hljs) {
 }
 
 var ruleslanguage_1 = ruleslanguage;
-
 /*
 Language: Rust
 Author: Andrey Vlasovskikh <andrey.vlasovskikh@gmail.com>
@@ -15229,6 +17480,7 @@ Contributors: Roman Shmatov <romanshmatov@gmail.com>, Kasper Andersen <kma_untru
 Website: https://www.rust-lang.org
 Category: common, system
 */
+
 function rust(hljs) {
   var NUM_SUFFIX = '([ui](8|16|32|64|128|size)|f(32|64))\?';
   var KEYWORDS = 'abstract as async await become box break const continue crate do dyn ' + 'else enum extern false final fn for if impl in let loop macro match mod ' + 'move mut override priv pub ref return self Self static struct super ' + 'trait true try type typeof unsafe unsized use virtual where while yield';
@@ -15317,12 +17569,12 @@ function rust(hljs) {
 }
 
 var rust_1 = rust;
-
 /*
 Language: SAS
 Author: Mauricio Caceres <mauricio.caceres.bravo@gmail.com>
 Description: Syntax Highlighting for SAS
 */
+
 function sas(hljs) {
   // Data step and PROC SQL statements
   var SAS_KEYWORDS = '' + 'do if then else end until while ' + '' + 'abort array attrib by call cards cards4 catname continue ' + 'datalines datalines4 delete delim delimiter display dm drop ' + 'endsas error file filename footnote format goto in infile ' + 'informat input keep label leave length libname link list ' + 'lostcard merge missing modify options output out page put ' + 'redirect remove rename replace retain return select set skip ' + 'startsas stop title update waitsas where window x systask ' + '' + 'add and alter as cascade check create delete describe ' + 'distinct drop foreign from group having index insert into in ' + 'key like message modify msgtype not null on or order primary ' + 'references reset restrict select set table unique update ' + 'validate view where'; // Built-in SAS functions
@@ -15371,7 +17623,6 @@ function sas(hljs) {
 }
 
 var sas_1 = sas;
-
 /*
 Language: Scala
 Category: functional
@@ -15379,6 +17630,7 @@ Author: Jan Berkel <jan.berkel@gmail.com>
 Contributors: Erik Osheim <d_m@plastic-idolatry.com>
 Website: https://www.scala-lang.org
 */
+
 function scala(hljs) {
   var ANNOTATION = {
     className: 'meta',
@@ -15475,7 +17727,6 @@ function scala(hljs) {
 }
 
 var scala_1 = scala;
-
 /*
 Language: Scheme
 Description: Scheme is a programming language in the Lisp family.
@@ -15486,6 +17737,7 @@ Origin: clojure.js
 Website: http://community.schemewiki.org/?what-is-scheme
 Category: lisp
 */
+
 function scheme(hljs) {
   var SCHEME_IDENT_RE = '[^\\(\\)\\[\\]\\{\\}",\'`;#|\\\\\\s]+';
   var SCHEME_SIMPLE_NUMBER_RE = '(\\-|\\+)?\\d+([./]\\d+)?';
@@ -15577,7 +17829,6 @@ function scheme(hljs) {
 }
 
 var scheme_1 = scheme;
-
 /*
 Language: Scilab
 Author: Sylvestre Ledru <sylvestre.ledru@scilab-enterprises.com>
@@ -15586,6 +17837,7 @@ Description: Scilab is a port from Matlab
 Website: https://www.scilab.org
 Category: scientific
 */
+
 function scilab(hljs) {
   var COMMON_CONTAINS = [hljs.C_NUMBER_MODE, {
     className: 'string',
@@ -15629,7 +17881,6 @@ function scilab(hljs) {
 }
 
 var scilab_1 = scilab;
-
 /*
 Language: SCSS
 Description: Scss is an extension of the syntax of CSS.
@@ -15637,6 +17888,7 @@ Author: Kurt Emch <kurt@kurtemch.com>
 Website: https://sass-lang.com
 Category: common, css
 */
+
 function scss(hljs) {
   var AT_IDENTIFIER = '@[a-z-]+'; // @font-face
 
@@ -15731,13 +17983,13 @@ function scss(hljs) {
 }
 
 var scss_1 = scss;
-
 /*
 Language: Shell Session
 Requires: bash.js
 Author: TSUYUSATO Kitsune <make.just.on@gmail.com>
 Category: common
 */
+
 function shell(hljs) {
   return {
     name: 'Shell Session',
@@ -15754,13 +18006,13 @@ function shell(hljs) {
 }
 
 var shell_1 = shell;
-
 /*
 Language: Smali
 Author: Dennis Titze <dennis.titze@gmail.com>
 Description: Basic Smali highlighting
 Website: https://github.com/JesusFreke/smali
 */
+
 function smali(hljs) {
   var smali_instr_low_prio = ['add', 'and', 'cmp', 'cmpg', 'cmpl', 'const', 'div', 'double', 'float', 'goto', 'if', 'int', 'long', 'move', 'mul', 'neg', 'new', 'nop', 'not', 'or', 'rem', 'return', 'shl', 'shr', 'sput', 'sub', 'throw', 'ushr', 'xor'];
   var smali_instr_high_prio = ['aget', 'aput', 'array', 'check', 'execute', 'fill', 'filled', 'goto/16', 'goto/32', 'iget', 'instance', 'invoke', 'iput', 'monitor', 'packed', 'sget', 'sparse'];
@@ -15810,13 +18062,13 @@ function smali(hljs) {
 }
 
 var smali_1 = smali;
-
 /*
 Language: Smalltalk
 Description: Smalltalk is an object-oriented, dynamically typed reflective programming language.
 Author: Vladimir Gubarkov <xonixx@gmail.com>
 Website: https://en.wikipedia.org/wiki/Smalltalk
 */
+
 function smalltalk(hljs) {
   var VAR_IDENT_RE = '[a-z][a-zA-Z0-9_]*';
   var CHAR = {
@@ -15859,7 +18111,6 @@ function smalltalk(hljs) {
 }
 
 var smalltalk_1 = smalltalk;
-
 /*
 Language: SML (Standard ML)
 Author: Edwin Dalorzo <edwin@dalorzo.org>
@@ -15868,6 +18119,7 @@ Website: https://www.smlnj.org
 Origin: ocaml.js
 Category: functional
 */
+
 function sml(hljs) {
   return {
     name: 'SML (Standard ML)',
@@ -15924,7 +18176,6 @@ function sml(hljs) {
 }
 
 var sml_1 = sml;
-
 /*
 Language: SQF
 Author: Søren Enevoldsen <senevoldsen90@gmail.com>
@@ -15933,6 +18184,7 @@ Description: Scripting language for the Arma game series
 Website: https://community.bistudio.com/wiki/SQF_syntax
 Category: scripting
 */
+
 function sqf(hljs) {
   // In SQF, a variable start with _
   var VARIABLE = {
@@ -16001,13 +18253,13 @@ function sqf(hljs) {
 }
 
 var sqf_1 = sqf;
-
 /*
  Language: SQL
  Contributors: Nikolay Lisienko <info@neor.ru>, Heiko August <post@auge8472.de>, Travis Odom <travis.a.odom@gmail.com>, Vadimtro <vadimtro@yahoo.com>, Benjamin Auder <benjamin.auder@gmail.com>
  Website: https://en.wikipedia.org/wiki/SQL
  Category: common
  */
+
 function sql(hljs) {
   var COMMENT_MODE = hljs.COMMENT('--', '$');
   return {
@@ -16048,7 +18300,6 @@ function sql(hljs) {
 }
 
 var sql_1 = sql;
-
 /*
 Language: Stan
 Description: The Stan probabilistic programming language
@@ -16056,6 +18307,7 @@ Author: Jeffrey B. Arnold <jeffrey.arnold@gmail.com>
 Website: http://mc-stan.org/
 Category: scientific
 */
+
 function stan(hljs) {
   // variable names cannot conflict with block identifiers
   var BLOCKS = ['functions', 'model', 'data', 'parameters', 'quantities', 'transformed', 'generated'];
@@ -16119,7 +18371,6 @@ function stan(hljs) {
 }
 
 var stan_1 = stan;
-
 /*
 Language: Stata
 Author: Brian Quistorff <bquistorff@gmail.com>
@@ -16132,6 +18383,7 @@ Category: scientific
 /*
   This is a fork and modification of Drew McDonald's file (https://github.com/drewmcdonald/stata-highlighting). I have also included a list of builtin commands from https://bugs.kde.org/show_bug.cgi?id=135646.
 */
+
 function stata(hljs) {
   return {
     name: 'Stata',
@@ -16161,13 +18413,13 @@ function stata(hljs) {
 }
 
 var stata_1 = stata;
-
 /*
 Language: STEP Part 21
 Contributors: Adam Joseph Cook <adam.joseph.cook@gmail.com>
 Description: Syntax highlighter for STEP Part 21 files (ISO 10303-21).
 Website: https://en.wikipedia.org/wiki/ISO_10303-21
 */
+
 function step21(hljs) {
   var STEP21_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
   var STEP21_KEYWORDS = {
@@ -16210,7 +18462,6 @@ function step21(hljs) {
 }
 
 var step21_1 = step21;
-
 /*
 Language: Stylus
 Author: Bryant Williams <b.n.williams@gmail.com>
@@ -16218,6 +18469,7 @@ Description: Stylus is an expressive, robust, feature-rich CSS language built fo
 Website: https://github.com/stylus/stylus
 Category: css
 */
+
 function stylus(hljs) {
   var VARIABLE = {
     className: 'variable',
@@ -16307,12 +18559,12 @@ function stylus(hljs) {
 }
 
 var stylus_1 = stylus;
-
 /*
 Language: SubUnit
 Author: Sergey Bronnikov <sergeyb@bronevichok.ru>
 Website: https://pypi.org/project/python-subunit/
 */
+
 function subunit(hljs) {
   var DETAILS = {
     className: 'string',
@@ -16348,7 +18600,6 @@ function subunit(hljs) {
 }
 
 var subunit_1 = subunit;
-
 /*
 Language: Swift
 Description: Swift is a general-purpose programming language built using a modern approach to safety, performance, and software design patterns.
@@ -16357,6 +18608,7 @@ Contributors: Nate Cook <natecook@gmail.com>, Alexander Lichter <manniL@gmx.net>
 Website: https://swift.org
 Category: common, system
 */
+
 function swift(hljs) {
   var SWIFT_KEYWORDS = {
     keyword: '#available #colorLiteral #column #else #elseif #endif #file ' + '#fileLiteral #function #if #imageLiteral #line #selector #sourceLocation ' + '_ __COLUMN__ __FILE__ __FUNCTION__ __LINE__ Any as as! as? associatedtype ' + 'associativity break case catch class continue convenience default defer deinit didSet do ' + 'dynamic dynamicType else enum extension fallthrough false fileprivate final for func ' + 'get guard if import in indirect infix init inout internal is lazy left let ' + 'mutating nil none nonmutating open operator optional override postfix precedence ' + 'prefix private protocol Protocol public repeat required rethrows return ' + 'right self Self set static struct subscript super switch throw throws true ' + 'try try! try? Type typealias unowned var weak where while willSet',
@@ -16365,13 +18617,13 @@ function swift(hljs) {
   };
   var TYPE = {
     className: 'type',
-    begin: '\\b[A-Z][\\w\u00C0-\u02B8\']*',
+    begin: "\\b[A-Z][\\w\xC0-\u02B8']*",
     relevance: 0
   }; // slightly more special to swift
 
   var OPTIONAL_USING_TYPE = {
     className: 'type',
-    begin: '\\b[A-Z][\\w\u00C0-\u02B8\']*[!?]'
+    begin: "\\b[A-Z][\\w\xC0-\u02B8']*[!?]"
   };
   var BLOCK_COMMENT = hljs.COMMENT('/\\*', '\\*/', {
     contains: ['self']
@@ -16449,13 +18701,13 @@ function swift(hljs) {
 }
 
 var swift_1 = swift;
-
 /*
 Language: Tagger Script
 Author: Philipp Wolfer <ph.wolfer@gmail.com>
 Description: Syntax Highlighting for the Tagger Script as used by MusicBrainz Picard.
 Website: https://picard.musicbrainz.org
  */
+
 function taggerscript(hljs) {
   var COMMENT = {
     className: 'comment',
@@ -16492,7 +18744,6 @@ function taggerscript(hljs) {
 }
 
 var taggerscript_1 = taggerscript;
-
 /*
 Language: YAML
 Description: Yet Another Markdown Language
@@ -16502,6 +18753,7 @@ Requires: ruby.js
 Website: https://yaml.org
 Category: common, config
 */
+
 function yaml(hljs) {
   var LITERALS = 'true false yes no null'; // YAML spec allows non-reserved URI characters in tags.
 
@@ -16653,7 +18905,7 @@ function yaml(hljs) {
     className: 'number',
     begin: hljs.C_NUMBER_RE + '\\b'
   }, OBJECT, ARRAY, STRING];
-  var VALUE_MODES = [...MODES];
+  var VALUE_MODES = [].concat(MODES);
   VALUE_MODES.pop();
   VALUE_MODES.push(CONTAINER_STRING);
   VALUE_CONTAINER.contains = VALUE_MODES;
@@ -16666,7 +18918,6 @@ function yaml(hljs) {
 }
 
 var yaml_1 = yaml;
-
 /*
 Language: Test Anything Protocol
 Description: TAP, the Test Anything Protocol, is a simple text-based interface between testing modules in a test harness.
@@ -16674,6 +18925,7 @@ Requires: yaml.js
 Author: Sergey Bronnikov <sergeyb@bronevichok.ru>
 Website: https://testanything.org
 */
+
 function tap(hljs) {
   return {
     name: 'Test Anything Protocol',
@@ -16709,13 +18961,13 @@ function tap(hljs) {
 }
 
 var tap_1 = tap;
-
 /*
 Language: Tcl
 Description: Tcl is a very simple programming language.
 Author: Radek Liska <radekliska@gmail.com>
 Website: https://www.tcl.tk/about/language.html
 */
+
 function tcl(hljs) {
   return {
     name: 'Tcl',
@@ -16755,7 +19007,6 @@ function tcl(hljs) {
 }
 
 var tcl_1 = tcl;
-
 /*
 Language: Thrift
 Author: Oleg Efimov <efimovov@gmail.com>
@@ -16763,6 +19014,7 @@ Description: Thrift message definition format
 Website: https://thrift.apache.org
 Category: protocols
 */
+
 function thrift(hljs) {
   var BUILT_IN_TYPES = 'bool byte i16 i32 i64 double string binary';
   return {
@@ -16794,12 +19046,12 @@ function thrift(hljs) {
 }
 
 var thrift_1 = thrift;
-
 /*
 Language: TP
 Author: Jay Strybis <jay.strybis@gmail.com>
 Description: FANUC TP programming language (TPP).
 */
+
 function tp(hljs) {
   var TPID = {
     className: 'number',
@@ -16861,7 +19113,6 @@ function tp(hljs) {
 }
 
 var tp_1 = tp;
-
 /*
 Language: Twig
 Requires: xml.js
@@ -16870,6 +19121,7 @@ Description: Twig is a templating language for PHP
 Website: https://twig.symfony.com
 Category: template
 */
+
 function twig(hljs) {
   var PARAMS = {
     className: 'params',
@@ -16923,20 +19175,19 @@ function twig(hljs) {
 }
 
 var twig_1 = twig;
-
-const IDENT_RE$2 = '[A-Za-z$_][0-9A-Za-z$_]*';
-const KEYWORDS$3 = ["as", // for exports
+var IDENT_RE$2 = '[A-Za-z$_][0-9A-Za-z$_]*';
+var KEYWORDS$3 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$3 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$3 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$3 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$3 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$3 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+var LITERALS$3 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+var TYPES$3 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+var ERROR_TYPES$3 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+var BUILT_IN_GLOBALS$3 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+var BUILT_IN_VARIABLES$3 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$3 = [].concat(BUILT_IN_GLOBALS$3, BUILT_IN_VARIABLES$3, TYPES$3, ERROR_TYPES$3);
+var BUILT_INS$3 = [].concat(BUILT_IN_GLOBALS$3, BUILT_IN_VARIABLES$3, TYPES$3, ERROR_TYPES$3);
 /*
 Language: TypeScript
 Author: Panu Horsmalahti <panu.horsmalahti@iki.fi>
@@ -17104,13 +19355,13 @@ function typescript(hljs) {
 }
 
 var typescript_1 = typescript;
-
 /*
 Language: Vala
 Author: Antono Vasiljev <antono.vasiljev@gmail.com>
 Description: Vala is a new programming language that aims to bring modern programming language features to GNOME developers without imposing any additional runtime requirements and without using a different ABI compared to applications and libraries written in C.
 Website: https://wiki.gnome.org/Projects/Vala
 */
+
 function vala(hljs) {
   return {
     name: 'Vala',
@@ -17147,13 +19398,13 @@ function vala(hljs) {
 }
 
 var vala_1 = vala;
-
 /*
 Language: Visual Basic .NET
 Description: Visual Basic .NET (VB.NET) is a multi-paradigm, object-oriented programming language, implemented on the .NET Framework.
 Author: Poren Chiang <ren.chiang@gmail.com>
 Website: https://docs.microsoft.com/en-us/dotnet/visual-basic/getting-started/
 */
+
 function vbnet(hljs) {
   return {
     name: 'Visual Basic .NET',
@@ -17223,7 +19474,6 @@ function vbnet(hljs) {
 }
 
 var vbnet_1 = vbnet;
-
 /*
 Language: VBScript
 Description: VBScript ("Microsoft Visual Basic Scripting Edition") is an Active Scripting language developed by Microsoft that is modeled on Visual Basic.
@@ -17232,6 +19482,7 @@ Contributors: Michal Gabrukiewicz <mgabru@gmail.com>
 Website: https://en.wikipedia.org/wiki/VBScript
 Category: scripting
 */
+
 function vbscript(hljs) {
   return {
     name: 'VBScript',
@@ -17254,7 +19505,6 @@ function vbscript(hljs) {
 }
 
 var vbscript_1 = vbscript;
-
 /*
 Language: VBScript in HTML
 Requires: xml.js, vbscript.js
@@ -17263,6 +19513,7 @@ Description: "Bridge" language defining fragments of VBScript in HTML within <% 
 Website: https://en.wikipedia.org/wiki/VBScript
 Category: scripting
 */
+
 function vbscriptHtml(hljs) {
   return {
     name: 'VBScript in HTML',
@@ -17276,7 +19527,6 @@ function vbscriptHtml(hljs) {
 }
 
 var vbscriptHtml_1 = vbscriptHtml;
-
 /*
 Language: Verilog
 Author: Jon Evans <jon@craftyjon.com>
@@ -17284,6 +19534,7 @@ Contributors: Boone Severson <boone.severson@gmail.com>
 Description: Verilog is a hardware description language used in electronic design automation to describe digital and mixed-signal systems. This highlighter supports Verilog and SystemVerilog through IEEE 1800-2012.
 Website: http://www.verilog.com
 */
+
 function verilog(hljs) {
   var SV_KEYWORDS = {
     $pattern: /[\w\$]+/,
@@ -17330,7 +19581,6 @@ function verilog(hljs) {
 }
 
 var verilog_1 = verilog;
-
 /*
 Language: VHDL
 Author: Igor Kalnitsky <igor@kalnitsky.org>
@@ -17338,6 +19588,7 @@ Contributors: Daniel C.K. Kho <daniel.kho@tauhop.com>, Guillaume Savaton <guilla
 Description: VHDL is a hardware description language used in electronic design automation to describe digital and mixed-signal systems.
 Website: https://en.wikipedia.org/wiki/VHDL
 */
+
 function vhdl(hljs) {
   // Regular expression for VHDL numeric literals.
   // Decimal literal:
@@ -17377,7 +19628,6 @@ function vhdl(hljs) {
 }
 
 var vhdl_1 = vhdl;
-
 /*
 Language: Vim Script
 Author: Jun Yang <yangjvn@126.com>
@@ -17385,6 +19635,7 @@ Description: full keyword and built-in from http://vimdoc.sourceforge.net/htmldo
 Website: https://www.vim.org
 Category: scripting
 */
+
 function vim(hljs) {
   return {
     name: 'Vim Script',
@@ -17436,7 +19687,6 @@ function vim(hljs) {
 }
 
 var vim_1 = vim;
-
 /*
 Language: Intel x86 Assembly
 Author: innocenat <innocenat@gmail.com>
@@ -17444,6 +19694,7 @@ Description: x86 assembly language using Intel's mnemonic and NASM syntax
 Website: https://en.wikipedia.org/wiki/X86_assembly_language
 Category: assembler
 */
+
 function x86asm(hljs) {
   return {
     name: 'Intel x86 Assembly',
@@ -17529,13 +19780,13 @@ function x86asm(hljs) {
 }
 
 var x86asm_1 = x86asm;
-
 /*
 Language: XL
 Author: Christophe de Dinechin <christophe@taodyne.com>
 Description: An extensible programming language, based on parse tree rewriting
 Website: http://xlr.sf.net
 */
+
 function xl(hljs) {
   var BUILTIN_MODULES = 'ObjectLoader Animate MovieCredits Slides Filters Shading Materials LensFlare Mapping VLCAudioVideo ' + 'StereoDecoder PointCloud NetworkAccess RemoteControl RegExp ChromaKey Snowfall NodeJS Speech Charts';
   var XL_KEYWORDS = {
@@ -17592,7 +19843,6 @@ function xl(hljs) {
 }
 
 var xl_1 = xl;
-
 /*
 Language: XQuery
 Author: Dirk Kirsten <dk@basex.org>
@@ -17602,6 +19852,7 @@ Refactored to process xml constructor syntax and function-bodies. Added missing 
 Website: https://www.w3.org/XML/Query/
 Category: functional
 */
+
 function xquery(hljs) {
   // see https://www.w3.org/TR/xquery/#id-terminal-delimitation
   var KEYWORDS = 'module schema namespace boundary-space preserve no-preserve strip default collation base-uri ordering context decimal-format decimal-separator copy-namespaces empty-sequence except exponent-separator external grouping-separator inherit no-inherit lax minus-sign per-mille percent schema-attribute schema-element strict unordered zero-digit ' + 'declare import option function validate variable ' + 'for at in let where order group by return if then else ' + 'tumbling sliding window start when only end previous next stable ' + 'ascending descending allowing empty greatest least some every satisfies switch case typeswitch try catch ' + 'and or to union intersect instance of treat as castable cast map array ' + 'delete insert into replace value rename copy modify update'; // Node Types (sorted by inheritance)
@@ -17727,13 +19978,13 @@ function xquery(hljs) {
 }
 
 var xquery_1 = xquery;
-
 /*
  Language: Zephir
  Description: Zephir, an open source, high-level language designed to ease the creation and maintainability of extensions for PHP with a focus on type and memory safety.
  Author: Oleg Efimov <efimovov@gmail.com>
  Website: https://zephir-lang.com/en
  */
+
 function zephir(hljs) {
   var STRING = {
     className: 'string',
@@ -17816,7 +20067,6 @@ function zephir(hljs) {
 }
 
 var zephir_1 = zephir;
-
 core.registerLanguage('1c', _1c_1);
 core.registerLanguage('abnf', abnf_1);
 core.registerLanguage('accesslog', accesslog_1);
@@ -18007,45 +20257,41 @@ core.registerLanguage('xl', xl_1);
 core.registerLanguage('xquery', xquery_1);
 core.registerLanguage('zephir', zephir_1);
 var lib = core;
-
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+function getDefaultExportFromCjs(x) {
+  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
 function createCommonjsModule(fn, basedir, module) {
-	return module = {
-	  path: basedir,
-	  exports: {},
-	  require: function (path, base) {
-      return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
+  return module = {
+    path: basedir,
+    exports: {},
+    require: function require(path, base) {
+      return commonjsRequire(path, base === undefined || base === null ? module.path : base);
     }
-	}, fn(module, module.exports), module.exports;
+  }, fn(module, module.exports), module.exports;
 }
 
-function commonjsRequire () {
-	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
+function commonjsRequire() {
+  throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
 }
-
 /** Detect free variable `global` from Node.js. */
 
-var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-var _freeGlobal = freeGlobal;
 
+var freeGlobal = _typeof2(commonjsGlobal) == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
+var _freeGlobal = freeGlobal;
 /** Detect free variable `self`. */
 
-var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+var freeSelf = (typeof self === "undefined" ? "undefined" : _typeof2(self)) == 'object' && self && self.Object === Object && self;
 /** Used as a reference to the global object. */
 
 var root = _freeGlobal || freeSelf || Function('return this')();
 var _root = root;
-
 /** Built-in value references. */
 
 var Symbol$1 = _root.Symbol;
 var _Symbol = Symbol$1;
-
 /**
  * A specialized version of `_.map` for arrays without support for iteratee
  * shorthands.
@@ -18055,6 +20301,7 @@ var _Symbol = Symbol$1;
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns the new mapped array.
  */
+
 function arrayMap(array, iteratee) {
   var index = -1,
       length = array == null ? 0 : array.length,
@@ -18068,7 +20315,6 @@ function arrayMap(array, iteratee) {
 }
 
 var _arrayMap = arrayMap;
-
 /**
  * Checks if `value` is classified as an `Array` object.
  *
@@ -18092,9 +20338,9 @@ var _arrayMap = arrayMap;
  * _.isArray(_.noop);
  * // => false
  */
+
 var isArray = Array.isArray;
 var isArray_1 = isArray;
-
 /** Used for built-in method references. */
 
 var objectProto = Object.prototype;
@@ -18142,8 +20388,8 @@ function getRawTag(value) {
 }
 
 var _getRawTag = getRawTag;
-
 /** Used for built-in method references. */
+
 var objectProto$1 = Object.prototype;
 /**
  * Used to resolve the
@@ -18165,7 +20411,6 @@ function objectToString(value) {
 }
 
 var _objectToString = objectToString;
-
 /** `Object#toString` result references. */
 
 var nullTag = '[object Null]',
@@ -18190,7 +20435,6 @@ function baseGetTag(value) {
 }
 
 var _baseGetTag = baseGetTag;
-
 /**
  * Checks if `value` is object-like. A value is object-like if it's not `null`
  * and has a `typeof` result of "object".
@@ -18215,12 +20459,12 @@ var _baseGetTag = baseGetTag;
  * _.isObjectLike(null);
  * // => false
  */
+
 function isObjectLike(value) {
-  return value != null && typeof value == 'object';
+  return value != null && _typeof2(value) == 'object';
 }
 
 var isObjectLike_1 = isObjectLike;
-
 /** `Object#toString` result references. */
 
 var symbolTag = '[object Symbol]';
@@ -18243,11 +20487,10 @@ var symbolTag = '[object Symbol]';
  */
 
 function isSymbol(value) {
-  return typeof value == 'symbol' || isObjectLike_1(value) && _baseGetTag(value) == symbolTag;
+  return _typeof2(value) == 'symbol' || isObjectLike_1(value) && _baseGetTag(value) == symbolTag;
 }
 
 var isSymbol_1 = isSymbol;
-
 /** Used as references for various `Number` constants. */
 
 var INFINITY = 1 / 0;
@@ -18284,7 +20527,6 @@ function baseToString(value) {
 }
 
 var _baseToString = baseToString;
-
 /**
  * Converts `value` to a string. An empty string is returned for `null`
  * and `undefined` values. The sign of `-0` is preserved.
@@ -18312,7 +20554,6 @@ function toString(value) {
 }
 
 var toString_1 = toString;
-
 /**
  * The base implementation of `_.propertyOf` without support for deep paths.
  *
@@ -18320,6 +20561,7 @@ var toString_1 = toString;
  * @param {Object} object The object to query.
  * @returns {Function} Returns the new accessor function.
  */
+
 function basePropertyOf(object) {
   return function (key) {
     return object == null ? undefined : object[key];
@@ -18327,7 +20569,6 @@ function basePropertyOf(object) {
 }
 
 var _basePropertyOf = basePropertyOf;
-
 /** Used to map HTML entities to characters. */
 
 var htmlUnescapes = {
@@ -18346,8 +20587,8 @@ var htmlUnescapes = {
  */
 
 var unescapeHtmlChar = _basePropertyOf(htmlUnescapes);
-var _unescapeHtmlChar = unescapeHtmlChar;
 
+var _unescapeHtmlChar = unescapeHtmlChar;
 /** Used to match HTML entities and HTML characters. */
 
 var reEscapedHtml = /&(?:amp|lt|gt|quot|#39);/g,
@@ -18378,7 +20619,6 @@ function unescape(string) {
 }
 
 var _unescape = unescape;
-
 var prism = createCommonjsModule(function (module) {
   /* **********************************************
        Begin prism-core.js
@@ -18463,7 +20703,7 @@ var prism = createCommonjsModule(function (module) {
          * type(String)    === 'Function'
          * type(/abc+/)    === 'RegExp'
          */
-        type: function (o) {
+        type: function type(o) {
           return Object.prototype.toString.call(o).slice(8, -1);
         },
 
@@ -18473,7 +20713,7 @@ var prism = createCommonjsModule(function (module) {
          * @param {Object} obj
          * @returns {number}
          */
-        objId: function (obj) {
+        objId: function objId(obj) {
           if (!obj['__id']) {
             Object.defineProperty(obj, '__id', {
               value: ++uniqueId
@@ -18530,10 +20770,10 @@ var prism = createCommonjsModule(function (module) {
 
               clone = [];
               visited[id] = clone;
-
               /** @type {Array} */
 
               /** @type {any} */
+
               o.forEach(function (v, i) {
                 clone[i] = deepClone(v, visited);
               });
@@ -18555,7 +20795,7 @@ var prism = createCommonjsModule(function (module) {
          * @param {Element} element
          * @returns {string}
          */
-        getLanguage: function (element) {
+        getLanguage: function getLanguage(element) {
           while (element && !lang.test(element.className)) {
             element = element.parentElement;
           }
@@ -18574,7 +20814,7 @@ var prism = createCommonjsModule(function (module) {
          *
          * @returns {HTMLScriptElement | null}
          */
-        currentScript: function () {
+        currentScript: function currentScript() {
           if (typeof document === 'undefined') {
             return null;
           }
@@ -18635,7 +20875,7 @@ var prism = createCommonjsModule(function (module) {
          * @param {boolean} [defaultActivation=false]
          * @returns {boolean}
          */
-        isActive: function (element, className, defaultActivation) {
+        isActive: function isActive(element, className, defaultActivation) {
           var no = 'no-' + className;
 
           while (element) {
@@ -18692,7 +20932,7 @@ var prism = createCommonjsModule(function (module) {
          *     'color': /\b(?:red|green|blue)\b/
          * });
          */
-        extend: function (id, redef) {
+        extend: function extend(id, redef) {
           var lang = _.util.clone(_.languages[id]);
 
           for (var key in redef) {
@@ -18777,7 +21017,7 @@ var prism = createCommonjsModule(function (module) {
          * @returns {Grammar} The new grammar object.
          * @public
          */
-        insertBefore: function (inside, before, insert, root) {
+        insertBefore: function insertBefore(inside, before, insert, root) {
           root = root ||
           /** @type {any} */
           _.languages;
@@ -18851,7 +21091,7 @@ var prism = createCommonjsModule(function (module) {
        * @memberof Prism
        * @public
        */
-      highlightAll: function (async, callback) {
+      highlightAll: function highlightAll(async, callback) {
         _.highlightAllUnder(document, async, callback);
       },
 
@@ -18869,7 +21109,7 @@ var prism = createCommonjsModule(function (module) {
        * @memberof Prism
        * @public
        */
-      highlightAllUnder: function (container, async, callback) {
+      highlightAllUnder: function highlightAllUnder(container, async, callback) {
         var env = {
           callback: callback,
           container: container,
@@ -18912,7 +21152,7 @@ var prism = createCommonjsModule(function (module) {
        * @memberof Prism
        * @public
        */
-      highlightElement: function (element, async, callback) {
+      highlightElement: function highlightElement(element, async, callback) {
         // Find language
         var language = _.util.getLanguage(element);
 
@@ -19001,7 +21241,7 @@ var prism = createCommonjsModule(function (module) {
        * @example
        * Prism.highlight('var foo = true;', Prism.languages.javascript, 'javascript');
        */
-      highlight: function (text, grammar, language) {
+      highlight: function highlight(text, grammar, language) {
         var env = {
           code: text,
           grammar: grammar,
@@ -19041,7 +21281,7 @@ var prism = createCommonjsModule(function (module) {
        *     }
        * });
        */
-      tokenize: function (text, grammar) {
+      tokenize: function tokenize(text, grammar) {
         var rest = grammar.rest;
 
         if (rest) {
@@ -19078,7 +21318,7 @@ var prism = createCommonjsModule(function (module) {
          * @param {HookCallback} callback The callback function which is given environment variables.
          * @public
          */
-        add: function (name, callback) {
+        add: function add(name, callback) {
           var hooks = _.hooks.all;
           hooks[name] = hooks[name] || [];
           hooks[name].push(callback);
@@ -19093,7 +21333,7 @@ var prism = createCommonjsModule(function (module) {
          * @param {Object<string, any>} env The environment variables of the hook passed to all callbacks registered.
          * @public
          */
-        run: function (name, env) {
+        run: function run(name, env) {
           var callbacks = _.hooks.all[name];
 
           if (!callbacks || !callbacks.length) {
@@ -19547,7 +21787,7 @@ var prism = createCommonjsModule(function (module) {
     return _;
   }(_self);
 
-  if ( module.exports) {
+  if (module.exports) {
     module.exports = Prism;
   } // hack for components to work correctly in node.js
 
@@ -19920,7 +22160,7 @@ var prism = createCommonjsModule(function (module) {
     var Prism = window.Prism;
     var LOADING_MESSAGE = 'Loading…';
 
-    var FAILURE_MESSAGE = function (status, message) {
+    var FAILURE_MESSAGE = function FAILURE_MESSAGE(status, message) {
       return '✖ Error ' + status + ' while fetching file: ' + message;
     };
 
@@ -20049,7 +22289,6 @@ var prism = createCommonjsModule(function (module) {
     };
   })();
 });
-
 /** Used to map characters to HTML entities. */
 
 var htmlEscapes = {
@@ -20068,8 +22307,8 @@ var htmlEscapes = {
  */
 
 var escapeHtmlChar = _basePropertyOf(htmlEscapes);
-var _escapeHtmlChar = escapeHtmlChar;
 
+var _escapeHtmlChar = escapeHtmlChar;
 /** Used to match HTML entities and HTML characters. */
 
 var reUnescapedHtml = /[&<>"']/g,
@@ -20109,7 +22348,6 @@ function escape$2(string) {
 }
 
 var _escape = escape$2;
-
 var pdfobject = createCommonjsModule(function (module) {
   /*global ActiveXObject, window, console, define, module, jQuery */
   //jshint unused:false, strict: false
@@ -20122,7 +22360,7 @@ var pdfobject = createCommonjsModule(function (module) {
       UMD module pattern from https://github.com/umdjs/umd/blob/master/templates/returnExports.js
   */
   (function (root, factory) {
-    if ( module.exports) {
+    if (module.exports) {
       // Node. Does not work with strict CommonJS, but
       // only CommonJS-like environments that support module.exports,
       // like Node.
@@ -20135,7 +22373,6 @@ var pdfobject = createCommonjsModule(function (module) {
     //PDFObject is designed for client-side (browsers), not server-side (node)
     //Will choke on undefined navigator and window vars when run on server
     //Return boolean false and exit function when running server-side
-
     if (typeof window === "undefined" || typeof navigator === "undefined") {
       return false;
     }
@@ -20172,7 +22409,7 @@ var pdfobject = createCommonjsModule(function (module) {
         buildFragmentString,
         log,
         embedError,
-        embed,
+        _embed,
         getTargetElement,
         generatePDFJSiframe,
         generateEmbedElement;
@@ -20181,7 +22418,7 @@ var pdfobject = createCommonjsModule(function (module) {
        ---------------------------------------------------- */
 
 
-    createAXO = function (type) {
+    createAXO = function createAXO(type) {
       var ax;
 
       try {
@@ -20199,13 +22436,13 @@ var pdfobject = createCommonjsModule(function (module) {
     //Constructed as a method (not a prop) to avoid unneccesarry overhead -- will only be evaluated if needed
 
 
-    isIE = function () {
+    isIE = function isIE() {
       return !!(window.ActiveXObject || "ActiveXObject" in window);
     }; //If either ActiveX support for "AcroPDF.PDF" or "PDF.PdfCtrl" are found, return true
     //Constructed as a method (not a prop) to avoid unneccesarry overhead -- will only be evaluated if needed
 
 
-    supportsPdfActiveX = function () {
+    supportsPdfActiveX = function supportsPdfActiveX() {
       return !!(createAXO("AcroPDF.PDF") || createAXO("PDF.PdfCtrl"));
     }; //Determines whether PDF support is available
 
@@ -20218,7 +22455,7 @@ var pdfobject = createCommonjsModule(function (module) {
     supportsPdfMimeType || //Pity the poor souls still using IE
     isIE() && supportsPdfActiveX()); //Create a fragment identifier for using PDF Open parameters when embedding PDF
 
-    buildFragmentString = function (pdfParams) {
+    buildFragmentString = function buildFragmentString(pdfParams) {
       var string = "",
           prop;
 
@@ -20240,18 +22477,18 @@ var pdfobject = createCommonjsModule(function (module) {
       return string;
     };
 
-    log = function (msg) {
+    log = function log(msg) {
       if (typeof console !== "undefined" && console.log) {
         console.log("[PDFObject] " + msg);
       }
     };
 
-    embedError = function (msg) {
+    embedError = function embedError(msg) {
       log(msg);
       return false;
     };
 
-    getTargetElement = function (targetSelector) {
+    getTargetElement = function getTargetElement(targetSelector) {
       //Default to body for full-browser PDF
       var targetNode = document.body; //If a targetSelector is specified, check to see whether
       //it's passing a selector, jQuery object, or an HTML element
@@ -20270,7 +22507,7 @@ var pdfobject = createCommonjsModule(function (module) {
       return targetNode;
     };
 
-    generatePDFJSiframe = function (targetNode, url, pdfOpenFragment, PDFJS_URL, id) {
+    generatePDFJSiframe = function generatePDFJSiframe(targetNode, url, pdfOpenFragment, PDFJS_URL, id) {
       var fullURL = PDFJS_URL + "?file=" + encodeURIComponent(url) + pdfOpenFragment;
       var scrollfix = isIOS ? "-webkit-overflow-scrolling: touch; overflow-y: scroll; " : "overflow: hidden; ";
       var iframe = "<div style='" + scrollfix + "position: absolute; top: 0; right: 0; bottom: 0; left: 0;'><iframe  " + id + " src='" + fullURL + "' style='border: none; width: 100%; height: 100%;' frameborder='0'></iframe></div>";
@@ -20281,7 +22518,7 @@ var pdfobject = createCommonjsModule(function (module) {
       return targetNode.getElementsByTagName("iframe")[0];
     };
 
-    generateEmbedElement = function (targetNode, targetSelector, url, pdfOpenFragment, width, height, id) {
+    generateEmbedElement = function generateEmbedElement(targetNode, targetSelector, url, pdfOpenFragment, width, height, id) {
       var style = "";
 
       if (targetSelector && targetSelector !== document.body) {
@@ -20295,7 +22532,7 @@ var pdfobject = createCommonjsModule(function (module) {
       return targetNode.getElementsByTagName("embed")[0];
     };
 
-    embed = function (url, targetSelector, options) {
+    _embed = function embed(url, targetSelector, options) {
       //Ensure URL is available. If not, exit now.
       if (typeof url !== "string") {
         return embedError("URL is not valid");
@@ -20351,8 +22588,8 @@ var pdfobject = createCommonjsModule(function (module) {
     };
 
     return {
-      embed: function (a, b, c) {
-        return embed(a, b, c);
+      embed: function embed(a, b, c) {
+        return _embed(a, b, c);
       },
       pdfobjectversion: function () {
         return pdfobjectversion;
@@ -20363,9 +22600,7 @@ var pdfobject = createCommonjsModule(function (module) {
     };
   });
 });
-
 var assertString_1 = createCommonjsModule(function (module, exports) {
-
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -20374,13 +22609,13 @@ var assertString_1 = createCommonjsModule(function (module, exports) {
   function _typeof(obj) {
     "@babel/helpers - typeof";
 
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
       _typeof = function _typeof(obj) {
-        return typeof obj;
+        return _typeof2(obj);
       };
     } else {
       _typeof = function _typeof(obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
       };
     }
 
@@ -20412,9 +22647,7 @@ var assertString_1 = createCommonjsModule(function (module, exports) {
   module.exports = exports.default;
   module.exports.default = exports.default;
 });
-
 var merge_1 = createCommonjsModule(function (module, exports) {
-
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -20436,9 +22669,7 @@ var merge_1 = createCommonjsModule(function (module, exports) {
   module.exports = exports.default;
   module.exports.default = exports.default;
 });
-
 var isFQDN_1 = createCommonjsModule(function (module, exports) {
-
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -20517,9 +22748,7 @@ var isFQDN_1 = createCommonjsModule(function (module, exports) {
   module.exports = exports.default;
   module.exports.default = exports.default;
 });
-
 var isIP_1 = createCommonjsModule(function (module, exports) {
-
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -20641,7 +22870,7 @@ var isIP_1 = createCommonjsModule(function (module, exports) {
           }
 
           foundOmissionBlock = true;
-        } else if (foundIPv4TransitionBlock && i === blocks.length - 1) ; else if (!ipv6Block.test(blocks[i])) {
+        } else if (foundIPv4TransitionBlock && i === blocks.length - 1) ;else if (!ipv6Block.test(blocks[i])) {
           return false;
         }
       }
@@ -20659,9 +22888,7 @@ var isIP_1 = createCommonjsModule(function (module, exports) {
   module.exports = exports.default;
   module.exports.default = exports.default;
 });
-
 var isURL_1 = createCommonjsModule(function (module, exports) {
-
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -20828,8 +23055,9 @@ var isURL_1 = createCommonjsModule(function (module, exports) {
   module.exports = exports.default;
   module.exports.default = exports.default;
 });
-var isURL = /*@__PURE__*/getDefaultExportFromCjs(isURL_1);
-
+var isURL =
+/*@__PURE__*/
+getDefaultExportFromCjs(isURL_1);
 /*!
  * markdown-it-regexp
  * Copyright (c) 2014 Alex Kocharin
@@ -20846,14 +23074,13 @@ var isURL = /*@__PURE__*/getDefaultExportFromCjs(isURL_1);
  * Borrowed from escape-html component, MIT-licensed
  */
 
-var _escape$1 = function (html) {
+var _escape$1 = function _escape$1(html) {
   return String(html).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 };
 
 var utils$1 = {
   escape: _escape$1
 };
-
 /*!
  * markdown-it-regexp
  * Copyright (c) 2014 Alex Kocharin
@@ -20881,7 +23108,7 @@ var lib$1 = Plugin;
 function Plugin(regexp, replacer) {
   // return value should be a callable function
   // with strictly defined options passed by markdown-it
-  var self = function (md, options) {
+  var self = function self(md, options) {
     self.options = options;
     self.init(md);
   }; // initialize plugin object
@@ -20900,7 +23127,8 @@ function Plugin(regexp, replacer) {
   return self;
 }
 
-util.inherits(Plugin, Function); // function that registers plugin with markdown-it
+_util.default.inherits(Plugin, Function); // function that registers plugin with markdown-it
+
 
 Plugin.prototype.init = function (md) {
   md.inline.ruler.push(this.id, this.parse.bind(this));
@@ -20927,7 +23155,6 @@ Plugin.prototype.render = function (tokens, id, options, env) {
 };
 
 var markdownItRegexp = lib$1;
-
 var Aacute = "Á";
 var aacute = "á";
 var Abreve = "Ă";
@@ -23052,2140 +25279,2136 @@ var zscr = "𝓏";
 var zwj = "‍";
 var zwnj = "‌";
 var require$$0 = {
-	Aacute: Aacute,
-	aacute: aacute,
-	Abreve: Abreve,
-	abreve: abreve,
-	ac: ac,
-	acd: acd,
-	acE: acE,
-	Acirc: Acirc,
-	acirc: acirc,
-	acute: acute,
-	Acy: Acy,
-	acy: acy,
-	AElig: AElig,
-	aelig: aelig,
-	af: af,
-	Afr: Afr,
-	afr: afr,
-	Agrave: Agrave,
-	agrave: agrave,
-	alefsym: alefsym,
-	aleph: aleph,
-	Alpha: Alpha,
-	alpha: alpha,
-	Amacr: Amacr,
-	amacr: amacr,
-	amalg: amalg,
-	amp: amp,
-	AMP: AMP,
-	andand: andand,
-	And: And,
-	and: and,
-	andd: andd,
-	andslope: andslope,
-	andv: andv,
-	ang: ang,
-	ange: ange,
-	angle: angle,
-	angmsdaa: angmsdaa,
-	angmsdab: angmsdab,
-	angmsdac: angmsdac,
-	angmsdad: angmsdad,
-	angmsdae: angmsdae,
-	angmsdaf: angmsdaf,
-	angmsdag: angmsdag,
-	angmsdah: angmsdah,
-	angmsd: angmsd,
-	angrt: angrt,
-	angrtvb: angrtvb,
-	angrtvbd: angrtvbd,
-	angsph: angsph,
-	angst: angst,
-	angzarr: angzarr,
-	Aogon: Aogon,
-	aogon: aogon,
-	Aopf: Aopf,
-	aopf: aopf,
-	apacir: apacir,
-	ap: ap,
-	apE: apE,
-	ape: ape,
-	apid: apid,
-	apos: apos,
-	ApplyFunction: ApplyFunction,
-	approx: approx,
-	approxeq: approxeq,
-	Aring: Aring,
-	aring: aring,
-	Ascr: Ascr,
-	ascr: ascr,
-	Assign: Assign,
-	ast: ast,
-	asymp: asymp,
-	asympeq: asympeq,
-	Atilde: Atilde,
-	atilde: atilde,
-	Auml: Auml,
-	auml: auml,
-	awconint: awconint,
-	awint: awint,
-	backcong: backcong,
-	backepsilon: backepsilon,
-	backprime: backprime,
-	backsim: backsim,
-	backsimeq: backsimeq,
-	Backslash: Backslash,
-	Barv: Barv,
-	barvee: barvee,
-	barwed: barwed,
-	Barwed: Barwed,
-	barwedge: barwedge,
-	bbrk: bbrk,
-	bbrktbrk: bbrktbrk,
-	bcong: bcong,
-	Bcy: Bcy,
-	bcy: bcy,
-	bdquo: bdquo,
-	becaus: becaus,
-	because: because,
-	Because: Because,
-	bemptyv: bemptyv,
-	bepsi: bepsi,
-	bernou: bernou,
-	Bernoullis: Bernoullis,
-	Beta: Beta,
-	beta: beta,
-	beth: beth,
-	between: between,
-	Bfr: Bfr,
-	bfr: bfr,
-	bigcap: bigcap,
-	bigcirc: bigcirc,
-	bigcup: bigcup,
-	bigodot: bigodot,
-	bigoplus: bigoplus,
-	bigotimes: bigotimes,
-	bigsqcup: bigsqcup,
-	bigstar: bigstar,
-	bigtriangledown: bigtriangledown,
-	bigtriangleup: bigtriangleup,
-	biguplus: biguplus,
-	bigvee: bigvee,
-	bigwedge: bigwedge,
-	bkarow: bkarow,
-	blacklozenge: blacklozenge,
-	blacksquare: blacksquare,
-	blacktriangle: blacktriangle,
-	blacktriangledown: blacktriangledown,
-	blacktriangleleft: blacktriangleleft,
-	blacktriangleright: blacktriangleright,
-	blank: blank,
-	blk12: blk12,
-	blk14: blk14,
-	blk34: blk34,
-	block: block,
-	bne: bne,
-	bnequiv: bnequiv,
-	bNot: bNot,
-	bnot: bnot,
-	Bopf: Bopf,
-	bopf: bopf,
-	bot: bot,
-	bottom: bottom,
-	bowtie: bowtie,
-	boxbox: boxbox,
-	boxdl: boxdl,
-	boxdL: boxdL,
-	boxDl: boxDl,
-	boxDL: boxDL,
-	boxdr: boxdr,
-	boxdR: boxdR,
-	boxDr: boxDr,
-	boxDR: boxDR,
-	boxh: boxh,
-	boxH: boxH,
-	boxhd: boxhd,
-	boxHd: boxHd,
-	boxhD: boxhD,
-	boxHD: boxHD,
-	boxhu: boxhu,
-	boxHu: boxHu,
-	boxhU: boxhU,
-	boxHU: boxHU,
-	boxminus: boxminus,
-	boxplus: boxplus,
-	boxtimes: boxtimes,
-	boxul: boxul,
-	boxuL: boxuL,
-	boxUl: boxUl,
-	boxUL: boxUL,
-	boxur: boxur,
-	boxuR: boxuR,
-	boxUr: boxUr,
-	boxUR: boxUR,
-	boxv: boxv,
-	boxV: boxV,
-	boxvh: boxvh,
-	boxvH: boxvH,
-	boxVh: boxVh,
-	boxVH: boxVH,
-	boxvl: boxvl,
-	boxvL: boxvL,
-	boxVl: boxVl,
-	boxVL: boxVL,
-	boxvr: boxvr,
-	boxvR: boxvR,
-	boxVr: boxVr,
-	boxVR: boxVR,
-	bprime: bprime,
-	breve: breve,
-	Breve: Breve,
-	brvbar: brvbar,
-	bscr: bscr,
-	Bscr: Bscr,
-	bsemi: bsemi,
-	bsim: bsim,
-	bsime: bsime,
-	bsolb: bsolb,
-	bsol: bsol,
-	bsolhsub: bsolhsub,
-	bull: bull,
-	bullet: bullet,
-	bump: bump,
-	bumpE: bumpE,
-	bumpe: bumpe,
-	Bumpeq: Bumpeq,
-	bumpeq: bumpeq,
-	Cacute: Cacute,
-	cacute: cacute,
-	capand: capand,
-	capbrcup: capbrcup,
-	capcap: capcap,
-	cap: cap,
-	Cap: Cap,
-	capcup: capcup,
-	capdot: capdot,
-	CapitalDifferentialD: CapitalDifferentialD,
-	caps: caps,
-	caret: caret,
-	caron: caron,
-	Cayleys: Cayleys,
-	ccaps: ccaps,
-	Ccaron: Ccaron,
-	ccaron: ccaron,
-	Ccedil: Ccedil,
-	ccedil: ccedil,
-	Ccirc: Ccirc,
-	ccirc: ccirc,
-	Cconint: Cconint,
-	ccups: ccups,
-	ccupssm: ccupssm,
-	Cdot: Cdot,
-	cdot: cdot,
-	cedil: cedil,
-	Cedilla: Cedilla,
-	cemptyv: cemptyv,
-	cent: cent,
-	centerdot: centerdot,
-	CenterDot: CenterDot,
-	cfr: cfr,
-	Cfr: Cfr,
-	CHcy: CHcy,
-	chcy: chcy,
-	check: check,
-	checkmark: checkmark,
-	Chi: Chi,
-	chi: chi,
-	circ: circ,
-	circeq: circeq,
-	circlearrowleft: circlearrowleft,
-	circlearrowright: circlearrowright,
-	circledast: circledast,
-	circledcirc: circledcirc,
-	circleddash: circleddash,
-	CircleDot: CircleDot,
-	circledR: circledR,
-	circledS: circledS,
-	CircleMinus: CircleMinus,
-	CirclePlus: CirclePlus,
-	CircleTimes: CircleTimes,
-	cir: cir,
-	cirE: cirE,
-	cire: cire,
-	cirfnint: cirfnint,
-	cirmid: cirmid,
-	cirscir: cirscir,
-	ClockwiseContourIntegral: ClockwiseContourIntegral,
-	CloseCurlyDoubleQuote: CloseCurlyDoubleQuote,
-	CloseCurlyQuote: CloseCurlyQuote,
-	clubs: clubs,
-	clubsuit: clubsuit,
-	colon: colon,
-	Colon: Colon,
-	Colone: Colone,
-	colone: colone,
-	coloneq: coloneq,
-	comma: comma,
-	commat: commat,
-	comp: comp,
-	compfn: compfn,
-	complement: complement,
-	complexes: complexes,
-	cong: cong,
-	congdot: congdot,
-	Congruent: Congruent,
-	conint: conint,
-	Conint: Conint,
-	ContourIntegral: ContourIntegral,
-	copf: copf,
-	Copf: Copf,
-	coprod: coprod,
-	Coproduct: Coproduct,
-	copy: copy,
-	COPY: COPY,
-	copysr: copysr,
-	CounterClockwiseContourIntegral: CounterClockwiseContourIntegral,
-	crarr: crarr,
-	cross: cross,
-	Cross: Cross,
-	Cscr: Cscr,
-	cscr: cscr,
-	csub: csub,
-	csube: csube,
-	csup: csup,
-	csupe: csupe,
-	ctdot: ctdot,
-	cudarrl: cudarrl,
-	cudarrr: cudarrr,
-	cuepr: cuepr,
-	cuesc: cuesc,
-	cularr: cularr,
-	cularrp: cularrp,
-	cupbrcap: cupbrcap,
-	cupcap: cupcap,
-	CupCap: CupCap,
-	cup: cup,
-	Cup: Cup,
-	cupcup: cupcup,
-	cupdot: cupdot,
-	cupor: cupor,
-	cups: cups,
-	curarr: curarr,
-	curarrm: curarrm,
-	curlyeqprec: curlyeqprec,
-	curlyeqsucc: curlyeqsucc,
-	curlyvee: curlyvee,
-	curlywedge: curlywedge,
-	curren: curren,
-	curvearrowleft: curvearrowleft,
-	curvearrowright: curvearrowright,
-	cuvee: cuvee,
-	cuwed: cuwed,
-	cwconint: cwconint,
-	cwint: cwint,
-	cylcty: cylcty,
-	dagger: dagger,
-	Dagger: Dagger,
-	daleth: daleth,
-	darr: darr,
-	Darr: Darr,
-	dArr: dArr,
-	dash: dash,
-	Dashv: Dashv,
-	dashv: dashv,
-	dbkarow: dbkarow,
-	dblac: dblac,
-	Dcaron: Dcaron,
-	dcaron: dcaron,
-	Dcy: Dcy,
-	dcy: dcy,
-	ddagger: ddagger,
-	ddarr: ddarr,
-	DD: DD,
-	dd: dd,
-	DDotrahd: DDotrahd,
-	ddotseq: ddotseq,
-	deg: deg,
-	Del: Del,
-	Delta: Delta,
-	delta: delta,
-	demptyv: demptyv,
-	dfisht: dfisht,
-	Dfr: Dfr,
-	dfr: dfr,
-	dHar: dHar,
-	dharl: dharl,
-	dharr: dharr,
-	DiacriticalAcute: DiacriticalAcute,
-	DiacriticalDot: DiacriticalDot,
-	DiacriticalDoubleAcute: DiacriticalDoubleAcute,
-	DiacriticalGrave: DiacriticalGrave,
-	DiacriticalTilde: DiacriticalTilde,
-	diam: diam,
-	diamond: diamond,
-	Diamond: Diamond,
-	diamondsuit: diamondsuit,
-	diams: diams,
-	die: die,
-	DifferentialD: DifferentialD,
-	digamma: digamma,
-	disin: disin,
-	div: div,
-	divide: divide,
-	divideontimes: divideontimes,
-	divonx: divonx,
-	DJcy: DJcy,
-	djcy: djcy,
-	dlcorn: dlcorn,
-	dlcrop: dlcrop,
-	dollar: dollar,
-	Dopf: Dopf,
-	dopf: dopf,
-	Dot: Dot,
-	dot: dot,
-	DotDot: DotDot,
-	doteq: doteq,
-	doteqdot: doteqdot,
-	DotEqual: DotEqual,
-	dotminus: dotminus,
-	dotplus: dotplus,
-	dotsquare: dotsquare,
-	doublebarwedge: doublebarwedge,
-	DoubleContourIntegral: DoubleContourIntegral,
-	DoubleDot: DoubleDot,
-	DoubleDownArrow: DoubleDownArrow,
-	DoubleLeftArrow: DoubleLeftArrow,
-	DoubleLeftRightArrow: DoubleLeftRightArrow,
-	DoubleLeftTee: DoubleLeftTee,
-	DoubleLongLeftArrow: DoubleLongLeftArrow,
-	DoubleLongLeftRightArrow: DoubleLongLeftRightArrow,
-	DoubleLongRightArrow: DoubleLongRightArrow,
-	DoubleRightArrow: DoubleRightArrow,
-	DoubleRightTee: DoubleRightTee,
-	DoubleUpArrow: DoubleUpArrow,
-	DoubleUpDownArrow: DoubleUpDownArrow,
-	DoubleVerticalBar: DoubleVerticalBar,
-	DownArrowBar: DownArrowBar,
-	downarrow: downarrow,
-	DownArrow: DownArrow,
-	Downarrow: Downarrow,
-	DownArrowUpArrow: DownArrowUpArrow,
-	DownBreve: DownBreve,
-	downdownarrows: downdownarrows,
-	downharpoonleft: downharpoonleft,
-	downharpoonright: downharpoonright,
-	DownLeftRightVector: DownLeftRightVector,
-	DownLeftTeeVector: DownLeftTeeVector,
-	DownLeftVectorBar: DownLeftVectorBar,
-	DownLeftVector: DownLeftVector,
-	DownRightTeeVector: DownRightTeeVector,
-	DownRightVectorBar: DownRightVectorBar,
-	DownRightVector: DownRightVector,
-	DownTeeArrow: DownTeeArrow,
-	DownTee: DownTee,
-	drbkarow: drbkarow,
-	drcorn: drcorn,
-	drcrop: drcrop,
-	Dscr: Dscr,
-	dscr: dscr,
-	DScy: DScy,
-	dscy: dscy,
-	dsol: dsol,
-	Dstrok: Dstrok,
-	dstrok: dstrok,
-	dtdot: dtdot,
-	dtri: dtri,
-	dtrif: dtrif,
-	duarr: duarr,
-	duhar: duhar,
-	dwangle: dwangle,
-	DZcy: DZcy,
-	dzcy: dzcy,
-	dzigrarr: dzigrarr,
-	Eacute: Eacute,
-	eacute: eacute,
-	easter: easter,
-	Ecaron: Ecaron,
-	ecaron: ecaron,
-	Ecirc: Ecirc,
-	ecirc: ecirc,
-	ecir: ecir,
-	ecolon: ecolon,
-	Ecy: Ecy,
-	ecy: ecy,
-	eDDot: eDDot,
-	Edot: Edot,
-	edot: edot,
-	eDot: eDot,
-	ee: ee,
-	efDot: efDot,
-	Efr: Efr,
-	efr: efr,
-	eg: eg,
-	Egrave: Egrave,
-	egrave: egrave,
-	egs: egs,
-	egsdot: egsdot,
-	el: el,
-	Element: Element,
-	elinters: elinters,
-	ell: ell,
-	els: els,
-	elsdot: elsdot,
-	Emacr: Emacr,
-	emacr: emacr,
-	empty: empty,
-	emptyset: emptyset,
-	EmptySmallSquare: EmptySmallSquare,
-	emptyv: emptyv,
-	EmptyVerySmallSquare: EmptyVerySmallSquare,
-	emsp13: emsp13,
-	emsp14: emsp14,
-	emsp: emsp,
-	ENG: ENG,
-	eng: eng,
-	ensp: ensp,
-	Eogon: Eogon,
-	eogon: eogon,
-	Eopf: Eopf,
-	eopf: eopf,
-	epar: epar,
-	eparsl: eparsl,
-	eplus: eplus,
-	epsi: epsi,
-	Epsilon: Epsilon,
-	epsilon: epsilon,
-	epsiv: epsiv,
-	eqcirc: eqcirc,
-	eqcolon: eqcolon,
-	eqsim: eqsim,
-	eqslantgtr: eqslantgtr,
-	eqslantless: eqslantless,
-	Equal: Equal,
-	equals: equals,
-	EqualTilde: EqualTilde,
-	equest: equest,
-	Equilibrium: Equilibrium,
-	equiv: equiv,
-	equivDD: equivDD,
-	eqvparsl: eqvparsl,
-	erarr: erarr,
-	erDot: erDot,
-	escr: escr,
-	Escr: Escr,
-	esdot: esdot,
-	Esim: Esim,
-	esim: esim,
-	Eta: Eta,
-	eta: eta,
-	ETH: ETH,
-	eth: eth,
-	Euml: Euml,
-	euml: euml,
-	euro: euro,
-	excl: excl,
-	exist: exist,
-	Exists: Exists,
-	expectation: expectation,
-	exponentiale: exponentiale,
-	ExponentialE: ExponentialE,
-	fallingdotseq: fallingdotseq,
-	Fcy: Fcy,
-	fcy: fcy,
-	female: female,
-	ffilig: ffilig,
-	fflig: fflig,
-	ffllig: ffllig,
-	Ffr: Ffr,
-	ffr: ffr,
-	filig: filig,
-	FilledSmallSquare: FilledSmallSquare,
-	FilledVerySmallSquare: FilledVerySmallSquare,
-	fjlig: fjlig,
-	flat: flat,
-	fllig: fllig,
-	fltns: fltns,
-	fnof: fnof,
-	Fopf: Fopf,
-	fopf: fopf,
-	forall: forall,
-	ForAll: ForAll,
-	fork: fork,
-	forkv: forkv,
-	Fouriertrf: Fouriertrf,
-	fpartint: fpartint,
-	frac12: frac12,
-	frac13: frac13,
-	frac14: frac14,
-	frac15: frac15,
-	frac16: frac16,
-	frac18: frac18,
-	frac23: frac23,
-	frac25: frac25,
-	frac34: frac34,
-	frac35: frac35,
-	frac38: frac38,
-	frac45: frac45,
-	frac56: frac56,
-	frac58: frac58,
-	frac78: frac78,
-	frasl: frasl,
-	frown: frown,
-	fscr: fscr,
-	Fscr: Fscr,
-	gacute: gacute,
-	Gamma: Gamma,
-	gamma: gamma,
-	Gammad: Gammad,
-	gammad: gammad,
-	gap: gap,
-	Gbreve: Gbreve,
-	gbreve: gbreve,
-	Gcedil: Gcedil,
-	Gcirc: Gcirc,
-	gcirc: gcirc,
-	Gcy: Gcy,
-	gcy: gcy,
-	Gdot: Gdot,
-	gdot: gdot,
-	ge: ge,
-	gE: gE,
-	gEl: gEl,
-	gel: gel,
-	geq: geq,
-	geqq: geqq,
-	geqslant: geqslant,
-	gescc: gescc,
-	ges: ges,
-	gesdot: gesdot,
-	gesdoto: gesdoto,
-	gesdotol: gesdotol,
-	gesl: gesl,
-	gesles: gesles,
-	Gfr: Gfr,
-	gfr: gfr,
-	gg: gg,
-	Gg: Gg,
-	ggg: ggg,
-	gimel: gimel,
-	GJcy: GJcy,
-	gjcy: gjcy,
-	gla: gla,
-	gl: gl,
-	glE: glE,
-	glj: glj,
-	gnap: gnap,
-	gnapprox: gnapprox,
-	gne: gne,
-	gnE: gnE,
-	gneq: gneq,
-	gneqq: gneqq,
-	gnsim: gnsim,
-	Gopf: Gopf,
-	gopf: gopf,
-	grave: grave,
-	GreaterEqual: GreaterEqual,
-	GreaterEqualLess: GreaterEqualLess,
-	GreaterFullEqual: GreaterFullEqual,
-	GreaterGreater: GreaterGreater,
-	GreaterLess: GreaterLess,
-	GreaterSlantEqual: GreaterSlantEqual,
-	GreaterTilde: GreaterTilde,
-	Gscr: Gscr,
-	gscr: gscr,
-	gsim: gsim,
-	gsime: gsime,
-	gsiml: gsiml,
-	gtcc: gtcc,
-	gtcir: gtcir,
-	gt: gt,
-	GT: GT,
-	Gt: Gt,
-	gtdot: gtdot,
-	gtlPar: gtlPar,
-	gtquest: gtquest,
-	gtrapprox: gtrapprox,
-	gtrarr: gtrarr,
-	gtrdot: gtrdot,
-	gtreqless: gtreqless,
-	gtreqqless: gtreqqless,
-	gtrless: gtrless,
-	gtrsim: gtrsim,
-	gvertneqq: gvertneqq,
-	gvnE: gvnE,
-	Hacek: Hacek,
-	hairsp: hairsp,
-	half: half,
-	hamilt: hamilt,
-	HARDcy: HARDcy,
-	hardcy: hardcy,
-	harrcir: harrcir,
-	harr: harr,
-	hArr: hArr,
-	harrw: harrw,
-	Hat: Hat,
-	hbar: hbar,
-	Hcirc: Hcirc,
-	hcirc: hcirc,
-	hearts: hearts,
-	heartsuit: heartsuit,
-	hellip: hellip,
-	hercon: hercon,
-	hfr: hfr,
-	Hfr: Hfr,
-	HilbertSpace: HilbertSpace,
-	hksearow: hksearow,
-	hkswarow: hkswarow,
-	hoarr: hoarr,
-	homtht: homtht,
-	hookleftarrow: hookleftarrow,
-	hookrightarrow: hookrightarrow,
-	hopf: hopf,
-	Hopf: Hopf,
-	horbar: horbar,
-	HorizontalLine: HorizontalLine,
-	hscr: hscr,
-	Hscr: Hscr,
-	hslash: hslash,
-	Hstrok: Hstrok,
-	hstrok: hstrok,
-	HumpDownHump: HumpDownHump,
-	HumpEqual: HumpEqual,
-	hybull: hybull,
-	hyphen: hyphen,
-	Iacute: Iacute,
-	iacute: iacute,
-	ic: ic,
-	Icirc: Icirc,
-	icirc: icirc,
-	Icy: Icy,
-	icy: icy,
-	Idot: Idot,
-	IEcy: IEcy,
-	iecy: iecy,
-	iexcl: iexcl,
-	iff: iff,
-	ifr: ifr,
-	Ifr: Ifr,
-	Igrave: Igrave,
-	igrave: igrave,
-	ii: ii,
-	iiiint: iiiint,
-	iiint: iiint,
-	iinfin: iinfin,
-	iiota: iiota,
-	IJlig: IJlig,
-	ijlig: ijlig,
-	Imacr: Imacr,
-	imacr: imacr,
-	image: image,
-	ImaginaryI: ImaginaryI,
-	imagline: imagline,
-	imagpart: imagpart,
-	imath: imath,
-	Im: Im,
-	imof: imof,
-	imped: imped,
-	Implies: Implies,
-	incare: incare,
-	"in": "∈",
-	infin: infin,
-	infintie: infintie,
-	inodot: inodot,
-	intcal: intcal,
-	int: int,
-	Int: Int,
-	integers: integers,
-	Integral: Integral,
-	intercal: intercal,
-	Intersection: Intersection,
-	intlarhk: intlarhk,
-	intprod: intprod,
-	InvisibleComma: InvisibleComma,
-	InvisibleTimes: InvisibleTimes,
-	IOcy: IOcy,
-	iocy: iocy,
-	Iogon: Iogon,
-	iogon: iogon,
-	Iopf: Iopf,
-	iopf: iopf,
-	Iota: Iota,
-	iota: iota,
-	iprod: iprod,
-	iquest: iquest,
-	iscr: iscr,
-	Iscr: Iscr,
-	isin: isin,
-	isindot: isindot,
-	isinE: isinE,
-	isins: isins,
-	isinsv: isinsv,
-	isinv: isinv,
-	it: it,
-	Itilde: Itilde,
-	itilde: itilde,
-	Iukcy: Iukcy,
-	iukcy: iukcy,
-	Iuml: Iuml,
-	iuml: iuml,
-	Jcirc: Jcirc,
-	jcirc: jcirc,
-	Jcy: Jcy,
-	jcy: jcy,
-	Jfr: Jfr,
-	jfr: jfr,
-	jmath: jmath,
-	Jopf: Jopf,
-	jopf: jopf,
-	Jscr: Jscr,
-	jscr: jscr,
-	Jsercy: Jsercy,
-	jsercy: jsercy,
-	Jukcy: Jukcy,
-	jukcy: jukcy,
-	Kappa: Kappa,
-	kappa: kappa,
-	kappav: kappav,
-	Kcedil: Kcedil,
-	kcedil: kcedil,
-	Kcy: Kcy,
-	kcy: kcy,
-	Kfr: Kfr,
-	kfr: kfr,
-	kgreen: kgreen,
-	KHcy: KHcy,
-	khcy: khcy,
-	KJcy: KJcy,
-	kjcy: kjcy,
-	Kopf: Kopf,
-	kopf: kopf,
-	Kscr: Kscr,
-	kscr: kscr,
-	lAarr: lAarr,
-	Lacute: Lacute,
-	lacute: lacute,
-	laemptyv: laemptyv,
-	lagran: lagran,
-	Lambda: Lambda,
-	lambda: lambda,
-	lang: lang,
-	Lang: Lang,
-	langd: langd,
-	langle: langle,
-	lap: lap,
-	Laplacetrf: Laplacetrf,
-	laquo: laquo,
-	larrb: larrb,
-	larrbfs: larrbfs,
-	larr: larr,
-	Larr: Larr,
-	lArr: lArr,
-	larrfs: larrfs,
-	larrhk: larrhk,
-	larrlp: larrlp,
-	larrpl: larrpl,
-	larrsim: larrsim,
-	larrtl: larrtl,
-	latail: latail,
-	lAtail: lAtail,
-	lat: lat,
-	late: late,
-	lates: lates,
-	lbarr: lbarr,
-	lBarr: lBarr,
-	lbbrk: lbbrk,
-	lbrace: lbrace,
-	lbrack: lbrack,
-	lbrke: lbrke,
-	lbrksld: lbrksld,
-	lbrkslu: lbrkslu,
-	Lcaron: Lcaron,
-	lcaron: lcaron,
-	Lcedil: Lcedil,
-	lcedil: lcedil,
-	lceil: lceil,
-	lcub: lcub,
-	Lcy: Lcy,
-	lcy: lcy,
-	ldca: ldca,
-	ldquo: ldquo,
-	ldquor: ldquor,
-	ldrdhar: ldrdhar,
-	ldrushar: ldrushar,
-	ldsh: ldsh,
-	le: le,
-	lE: lE,
-	LeftAngleBracket: LeftAngleBracket,
-	LeftArrowBar: LeftArrowBar,
-	leftarrow: leftarrow,
-	LeftArrow: LeftArrow,
-	Leftarrow: Leftarrow,
-	LeftArrowRightArrow: LeftArrowRightArrow,
-	leftarrowtail: leftarrowtail,
-	LeftCeiling: LeftCeiling,
-	LeftDoubleBracket: LeftDoubleBracket,
-	LeftDownTeeVector: LeftDownTeeVector,
-	LeftDownVectorBar: LeftDownVectorBar,
-	LeftDownVector: LeftDownVector,
-	LeftFloor: LeftFloor,
-	leftharpoondown: leftharpoondown,
-	leftharpoonup: leftharpoonup,
-	leftleftarrows: leftleftarrows,
-	leftrightarrow: leftrightarrow,
-	LeftRightArrow: LeftRightArrow,
-	Leftrightarrow: Leftrightarrow,
-	leftrightarrows: leftrightarrows,
-	leftrightharpoons: leftrightharpoons,
-	leftrightsquigarrow: leftrightsquigarrow,
-	LeftRightVector: LeftRightVector,
-	LeftTeeArrow: LeftTeeArrow,
-	LeftTee: LeftTee,
-	LeftTeeVector: LeftTeeVector,
-	leftthreetimes: leftthreetimes,
-	LeftTriangleBar: LeftTriangleBar,
-	LeftTriangle: LeftTriangle,
-	LeftTriangleEqual: LeftTriangleEqual,
-	LeftUpDownVector: LeftUpDownVector,
-	LeftUpTeeVector: LeftUpTeeVector,
-	LeftUpVectorBar: LeftUpVectorBar,
-	LeftUpVector: LeftUpVector,
-	LeftVectorBar: LeftVectorBar,
-	LeftVector: LeftVector,
-	lEg: lEg,
-	leg: leg,
-	leq: leq,
-	leqq: leqq,
-	leqslant: leqslant,
-	lescc: lescc,
-	les: les,
-	lesdot: lesdot,
-	lesdoto: lesdoto,
-	lesdotor: lesdotor,
-	lesg: lesg,
-	lesges: lesges,
-	lessapprox: lessapprox,
-	lessdot: lessdot,
-	lesseqgtr: lesseqgtr,
-	lesseqqgtr: lesseqqgtr,
-	LessEqualGreater: LessEqualGreater,
-	LessFullEqual: LessFullEqual,
-	LessGreater: LessGreater,
-	lessgtr: lessgtr,
-	LessLess: LessLess,
-	lesssim: lesssim,
-	LessSlantEqual: LessSlantEqual,
-	LessTilde: LessTilde,
-	lfisht: lfisht,
-	lfloor: lfloor,
-	Lfr: Lfr,
-	lfr: lfr,
-	lg: lg,
-	lgE: lgE,
-	lHar: lHar,
-	lhard: lhard,
-	lharu: lharu,
-	lharul: lharul,
-	lhblk: lhblk,
-	LJcy: LJcy,
-	ljcy: ljcy,
-	llarr: llarr,
-	ll: ll,
-	Ll: Ll,
-	llcorner: llcorner,
-	Lleftarrow: Lleftarrow,
-	llhard: llhard,
-	lltri: lltri,
-	Lmidot: Lmidot,
-	lmidot: lmidot,
-	lmoustache: lmoustache,
-	lmoust: lmoust,
-	lnap: lnap,
-	lnapprox: lnapprox,
-	lne: lne,
-	lnE: lnE,
-	lneq: lneq,
-	lneqq: lneqq,
-	lnsim: lnsim,
-	loang: loang,
-	loarr: loarr,
-	lobrk: lobrk,
-	longleftarrow: longleftarrow,
-	LongLeftArrow: LongLeftArrow,
-	Longleftarrow: Longleftarrow,
-	longleftrightarrow: longleftrightarrow,
-	LongLeftRightArrow: LongLeftRightArrow,
-	Longleftrightarrow: Longleftrightarrow,
-	longmapsto: longmapsto,
-	longrightarrow: longrightarrow,
-	LongRightArrow: LongRightArrow,
-	Longrightarrow: Longrightarrow,
-	looparrowleft: looparrowleft,
-	looparrowright: looparrowright,
-	lopar: lopar,
-	Lopf: Lopf,
-	lopf: lopf,
-	loplus: loplus,
-	lotimes: lotimes,
-	lowast: lowast,
-	lowbar: lowbar,
-	LowerLeftArrow: LowerLeftArrow,
-	LowerRightArrow: LowerRightArrow,
-	loz: loz,
-	lozenge: lozenge,
-	lozf: lozf,
-	lpar: lpar,
-	lparlt: lparlt,
-	lrarr: lrarr,
-	lrcorner: lrcorner,
-	lrhar: lrhar,
-	lrhard: lrhard,
-	lrm: lrm,
-	lrtri: lrtri,
-	lsaquo: lsaquo,
-	lscr: lscr,
-	Lscr: Lscr,
-	lsh: lsh,
-	Lsh: Lsh,
-	lsim: lsim,
-	lsime: lsime,
-	lsimg: lsimg,
-	lsqb: lsqb,
-	lsquo: lsquo,
-	lsquor: lsquor,
-	Lstrok: Lstrok,
-	lstrok: lstrok,
-	ltcc: ltcc,
-	ltcir: ltcir,
-	lt: lt,
-	LT: LT,
-	Lt: Lt,
-	ltdot: ltdot,
-	lthree: lthree,
-	ltimes: ltimes,
-	ltlarr: ltlarr,
-	ltquest: ltquest,
-	ltri: ltri,
-	ltrie: ltrie,
-	ltrif: ltrif,
-	ltrPar: ltrPar,
-	lurdshar: lurdshar,
-	luruhar: luruhar,
-	lvertneqq: lvertneqq,
-	lvnE: lvnE,
-	macr: macr,
-	male: male,
-	malt: malt,
-	maltese: maltese,
-	"Map": "⤅",
-	map: map,
-	mapsto: mapsto,
-	mapstodown: mapstodown,
-	mapstoleft: mapstoleft,
-	mapstoup: mapstoup,
-	marker: marker,
-	mcomma: mcomma,
-	Mcy: Mcy,
-	mcy: mcy,
-	mdash: mdash,
-	mDDot: mDDot,
-	measuredangle: measuredangle,
-	MediumSpace: MediumSpace,
-	Mellintrf: Mellintrf,
-	Mfr: Mfr,
-	mfr: mfr,
-	mho: mho,
-	micro: micro,
-	midast: midast,
-	midcir: midcir,
-	mid: mid,
-	middot: middot,
-	minusb: minusb,
-	minus: minus,
-	minusd: minusd,
-	minusdu: minusdu,
-	MinusPlus: MinusPlus,
-	mlcp: mlcp,
-	mldr: mldr,
-	mnplus: mnplus,
-	models: models,
-	Mopf: Mopf,
-	mopf: mopf,
-	mp: mp,
-	mscr: mscr,
-	Mscr: Mscr,
-	mstpos: mstpos,
-	Mu: Mu,
-	mu: mu,
-	multimap: multimap,
-	mumap: mumap,
-	nabla: nabla,
-	Nacute: Nacute,
-	nacute: nacute,
-	nang: nang,
-	nap: nap,
-	napE: napE,
-	napid: napid,
-	napos: napos,
-	napprox: napprox,
-	natural: natural,
-	naturals: naturals,
-	natur: natur,
-	nbsp: nbsp,
-	nbump: nbump,
-	nbumpe: nbumpe,
-	ncap: ncap,
-	Ncaron: Ncaron,
-	ncaron: ncaron,
-	Ncedil: Ncedil,
-	ncedil: ncedil,
-	ncong: ncong,
-	ncongdot: ncongdot,
-	ncup: ncup,
-	Ncy: Ncy,
-	ncy: ncy,
-	ndash: ndash,
-	nearhk: nearhk,
-	nearr: nearr,
-	neArr: neArr,
-	nearrow: nearrow,
-	ne: ne,
-	nedot: nedot,
-	NegativeMediumSpace: NegativeMediumSpace,
-	NegativeThickSpace: NegativeThickSpace,
-	NegativeThinSpace: NegativeThinSpace,
-	NegativeVeryThinSpace: NegativeVeryThinSpace,
-	nequiv: nequiv,
-	nesear: nesear,
-	nesim: nesim,
-	NestedGreaterGreater: NestedGreaterGreater,
-	NestedLessLess: NestedLessLess,
-	NewLine: NewLine,
-	nexist: nexist,
-	nexists: nexists,
-	Nfr: Nfr,
-	nfr: nfr,
-	ngE: ngE,
-	nge: nge,
-	ngeq: ngeq,
-	ngeqq: ngeqq,
-	ngeqslant: ngeqslant,
-	nges: nges,
-	nGg: nGg,
-	ngsim: ngsim,
-	nGt: nGt,
-	ngt: ngt,
-	ngtr: ngtr,
-	nGtv: nGtv,
-	nharr: nharr,
-	nhArr: nhArr,
-	nhpar: nhpar,
-	ni: ni,
-	nis: nis,
-	nisd: nisd,
-	niv: niv,
-	NJcy: NJcy,
-	njcy: njcy,
-	nlarr: nlarr,
-	nlArr: nlArr,
-	nldr: nldr,
-	nlE: nlE,
-	nle: nle,
-	nleftarrow: nleftarrow,
-	nLeftarrow: nLeftarrow,
-	nleftrightarrow: nleftrightarrow,
-	nLeftrightarrow: nLeftrightarrow,
-	nleq: nleq,
-	nleqq: nleqq,
-	nleqslant: nleqslant,
-	nles: nles,
-	nless: nless,
-	nLl: nLl,
-	nlsim: nlsim,
-	nLt: nLt,
-	nlt: nlt,
-	nltri: nltri,
-	nltrie: nltrie,
-	nLtv: nLtv,
-	nmid: nmid,
-	NoBreak: NoBreak,
-	NonBreakingSpace: NonBreakingSpace,
-	nopf: nopf,
-	Nopf: Nopf,
-	Not: Not,
-	not: not,
-	NotCongruent: NotCongruent,
-	NotCupCap: NotCupCap,
-	NotDoubleVerticalBar: NotDoubleVerticalBar,
-	NotElement: NotElement,
-	NotEqual: NotEqual,
-	NotEqualTilde: NotEqualTilde,
-	NotExists: NotExists,
-	NotGreater: NotGreater,
-	NotGreaterEqual: NotGreaterEqual,
-	NotGreaterFullEqual: NotGreaterFullEqual,
-	NotGreaterGreater: NotGreaterGreater,
-	NotGreaterLess: NotGreaterLess,
-	NotGreaterSlantEqual: NotGreaterSlantEqual,
-	NotGreaterTilde: NotGreaterTilde,
-	NotHumpDownHump: NotHumpDownHump,
-	NotHumpEqual: NotHumpEqual,
-	notin: notin,
-	notindot: notindot,
-	notinE: notinE,
-	notinva: notinva,
-	notinvb: notinvb,
-	notinvc: notinvc,
-	NotLeftTriangleBar: NotLeftTriangleBar,
-	NotLeftTriangle: NotLeftTriangle,
-	NotLeftTriangleEqual: NotLeftTriangleEqual,
-	NotLess: NotLess,
-	NotLessEqual: NotLessEqual,
-	NotLessGreater: NotLessGreater,
-	NotLessLess: NotLessLess,
-	NotLessSlantEqual: NotLessSlantEqual,
-	NotLessTilde: NotLessTilde,
-	NotNestedGreaterGreater: NotNestedGreaterGreater,
-	NotNestedLessLess: NotNestedLessLess,
-	notni: notni,
-	notniva: notniva,
-	notnivb: notnivb,
-	notnivc: notnivc,
-	NotPrecedes: NotPrecedes,
-	NotPrecedesEqual: NotPrecedesEqual,
-	NotPrecedesSlantEqual: NotPrecedesSlantEqual,
-	NotReverseElement: NotReverseElement,
-	NotRightTriangleBar: NotRightTriangleBar,
-	NotRightTriangle: NotRightTriangle,
-	NotRightTriangleEqual: NotRightTriangleEqual,
-	NotSquareSubset: NotSquareSubset,
-	NotSquareSubsetEqual: NotSquareSubsetEqual,
-	NotSquareSuperset: NotSquareSuperset,
-	NotSquareSupersetEqual: NotSquareSupersetEqual,
-	NotSubset: NotSubset,
-	NotSubsetEqual: NotSubsetEqual,
-	NotSucceeds: NotSucceeds,
-	NotSucceedsEqual: NotSucceedsEqual,
-	NotSucceedsSlantEqual: NotSucceedsSlantEqual,
-	NotSucceedsTilde: NotSucceedsTilde,
-	NotSuperset: NotSuperset,
-	NotSupersetEqual: NotSupersetEqual,
-	NotTilde: NotTilde,
-	NotTildeEqual: NotTildeEqual,
-	NotTildeFullEqual: NotTildeFullEqual,
-	NotTildeTilde: NotTildeTilde,
-	NotVerticalBar: NotVerticalBar,
-	nparallel: nparallel,
-	npar: npar,
-	nparsl: nparsl,
-	npart: npart,
-	npolint: npolint,
-	npr: npr,
-	nprcue: nprcue,
-	nprec: nprec,
-	npreceq: npreceq,
-	npre: npre,
-	nrarrc: nrarrc,
-	nrarr: nrarr,
-	nrArr: nrArr,
-	nrarrw: nrarrw,
-	nrightarrow: nrightarrow,
-	nRightarrow: nRightarrow,
-	nrtri: nrtri,
-	nrtrie: nrtrie,
-	nsc: nsc,
-	nsccue: nsccue,
-	nsce: nsce,
-	Nscr: Nscr,
-	nscr: nscr,
-	nshortmid: nshortmid,
-	nshortparallel: nshortparallel,
-	nsim: nsim,
-	nsime: nsime,
-	nsimeq: nsimeq,
-	nsmid: nsmid,
-	nspar: nspar,
-	nsqsube: nsqsube,
-	nsqsupe: nsqsupe,
-	nsub: nsub,
-	nsubE: nsubE,
-	nsube: nsube,
-	nsubset: nsubset,
-	nsubseteq: nsubseteq,
-	nsubseteqq: nsubseteqq,
-	nsucc: nsucc,
-	nsucceq: nsucceq,
-	nsup: nsup,
-	nsupE: nsupE,
-	nsupe: nsupe,
-	nsupset: nsupset,
-	nsupseteq: nsupseteq,
-	nsupseteqq: nsupseteqq,
-	ntgl: ntgl,
-	Ntilde: Ntilde,
-	ntilde: ntilde,
-	ntlg: ntlg,
-	ntriangleleft: ntriangleleft,
-	ntrianglelefteq: ntrianglelefteq,
-	ntriangleright: ntriangleright,
-	ntrianglerighteq: ntrianglerighteq,
-	Nu: Nu,
-	nu: nu,
-	num: num,
-	numero: numero,
-	numsp: numsp,
-	nvap: nvap,
-	nvdash: nvdash,
-	nvDash: nvDash,
-	nVdash: nVdash,
-	nVDash: nVDash,
-	nvge: nvge,
-	nvgt: nvgt,
-	nvHarr: nvHarr,
-	nvinfin: nvinfin,
-	nvlArr: nvlArr,
-	nvle: nvle,
-	nvlt: nvlt,
-	nvltrie: nvltrie,
-	nvrArr: nvrArr,
-	nvrtrie: nvrtrie,
-	nvsim: nvsim,
-	nwarhk: nwarhk,
-	nwarr: nwarr,
-	nwArr: nwArr,
-	nwarrow: nwarrow,
-	nwnear: nwnear,
-	Oacute: Oacute,
-	oacute: oacute,
-	oast: oast,
-	Ocirc: Ocirc,
-	ocirc: ocirc,
-	ocir: ocir,
-	Ocy: Ocy,
-	ocy: ocy,
-	odash: odash,
-	Odblac: Odblac,
-	odblac: odblac,
-	odiv: odiv,
-	odot: odot,
-	odsold: odsold,
-	OElig: OElig,
-	oelig: oelig,
-	ofcir: ofcir,
-	Ofr: Ofr,
-	ofr: ofr,
-	ogon: ogon,
-	Ograve: Ograve,
-	ograve: ograve,
-	ogt: ogt,
-	ohbar: ohbar,
-	ohm: ohm,
-	oint: oint,
-	olarr: olarr,
-	olcir: olcir,
-	olcross: olcross,
-	oline: oline,
-	olt: olt,
-	Omacr: Omacr,
-	omacr: omacr,
-	Omega: Omega,
-	omega: omega,
-	Omicron: Omicron,
-	omicron: omicron,
-	omid: omid,
-	ominus: ominus,
-	Oopf: Oopf,
-	oopf: oopf,
-	opar: opar,
-	OpenCurlyDoubleQuote: OpenCurlyDoubleQuote,
-	OpenCurlyQuote: OpenCurlyQuote,
-	operp: operp,
-	oplus: oplus,
-	orarr: orarr,
-	Or: Or,
-	or: or,
-	ord: ord,
-	order: order,
-	orderof: orderof,
-	ordf: ordf,
-	ordm: ordm,
-	origof: origof,
-	oror: oror,
-	orslope: orslope,
-	orv: orv,
-	oS: oS,
-	Oscr: Oscr,
-	oscr: oscr,
-	Oslash: Oslash,
-	oslash: oslash,
-	osol: osol,
-	Otilde: Otilde,
-	otilde: otilde,
-	otimesas: otimesas,
-	Otimes: Otimes,
-	otimes: otimes,
-	Ouml: Ouml,
-	ouml: ouml,
-	ovbar: ovbar,
-	OverBar: OverBar,
-	OverBrace: OverBrace,
-	OverBracket: OverBracket,
-	OverParenthesis: OverParenthesis,
-	para: para,
-	parallel: parallel,
-	par: par,
-	parsim: parsim,
-	parsl: parsl,
-	part: part,
-	PartialD: PartialD,
-	Pcy: Pcy,
-	pcy: pcy,
-	percnt: percnt,
-	period: period,
-	permil: permil,
-	perp: perp,
-	pertenk: pertenk,
-	Pfr: Pfr,
-	pfr: pfr,
-	Phi: Phi,
-	phi: phi,
-	phiv: phiv,
-	phmmat: phmmat,
-	phone: phone,
-	Pi: Pi,
-	pi: pi,
-	pitchfork: pitchfork,
-	piv: piv,
-	planck: planck,
-	planckh: planckh,
-	plankv: plankv,
-	plusacir: plusacir,
-	plusb: plusb,
-	pluscir: pluscir,
-	plus: plus,
-	plusdo: plusdo,
-	plusdu: plusdu,
-	pluse: pluse,
-	PlusMinus: PlusMinus,
-	plusmn: plusmn,
-	plussim: plussim,
-	plustwo: plustwo,
-	pm: pm,
-	Poincareplane: Poincareplane,
-	pointint: pointint,
-	popf: popf,
-	Popf: Popf,
-	pound: pound,
-	prap: prap,
-	Pr: Pr,
-	pr: pr,
-	prcue: prcue,
-	precapprox: precapprox,
-	prec: prec,
-	preccurlyeq: preccurlyeq,
-	Precedes: Precedes,
-	PrecedesEqual: PrecedesEqual,
-	PrecedesSlantEqual: PrecedesSlantEqual,
-	PrecedesTilde: PrecedesTilde,
-	preceq: preceq,
-	precnapprox: precnapprox,
-	precneqq: precneqq,
-	precnsim: precnsim,
-	pre: pre,
-	prE: prE,
-	precsim: precsim,
-	prime: prime,
-	Prime: Prime,
-	primes: primes,
-	prnap: prnap,
-	prnE: prnE,
-	prnsim: prnsim,
-	prod: prod,
-	Product: Product,
-	profalar: profalar,
-	profline: profline,
-	profsurf: profsurf,
-	prop: prop,
-	Proportional: Proportional,
-	Proportion: Proportion,
-	propto: propto,
-	prsim: prsim,
-	prurel: prurel,
-	Pscr: Pscr,
-	pscr: pscr,
-	Psi: Psi,
-	psi: psi,
-	puncsp: puncsp,
-	Qfr: Qfr,
-	qfr: qfr,
-	qint: qint,
-	qopf: qopf,
-	Qopf: Qopf,
-	qprime: qprime,
-	Qscr: Qscr,
-	qscr: qscr,
-	quaternions: quaternions,
-	quatint: quatint,
-	quest: quest,
-	questeq: questeq,
-	quot: quot,
-	QUOT: QUOT,
-	rAarr: rAarr,
-	race: race,
-	Racute: Racute,
-	racute: racute,
-	radic: radic,
-	raemptyv: raemptyv,
-	rang: rang,
-	Rang: Rang,
-	rangd: rangd,
-	range: range,
-	rangle: rangle,
-	raquo: raquo,
-	rarrap: rarrap,
-	rarrb: rarrb,
-	rarrbfs: rarrbfs,
-	rarrc: rarrc,
-	rarr: rarr,
-	Rarr: Rarr,
-	rArr: rArr,
-	rarrfs: rarrfs,
-	rarrhk: rarrhk,
-	rarrlp: rarrlp,
-	rarrpl: rarrpl,
-	rarrsim: rarrsim,
-	Rarrtl: Rarrtl,
-	rarrtl: rarrtl,
-	rarrw: rarrw,
-	ratail: ratail,
-	rAtail: rAtail,
-	ratio: ratio,
-	rationals: rationals,
-	rbarr: rbarr,
-	rBarr: rBarr,
-	RBarr: RBarr,
-	rbbrk: rbbrk,
-	rbrace: rbrace,
-	rbrack: rbrack,
-	rbrke: rbrke,
-	rbrksld: rbrksld,
-	rbrkslu: rbrkslu,
-	Rcaron: Rcaron,
-	rcaron: rcaron,
-	Rcedil: Rcedil,
-	rcedil: rcedil,
-	rceil: rceil,
-	rcub: rcub,
-	Rcy: Rcy,
-	rcy: rcy,
-	rdca: rdca,
-	rdldhar: rdldhar,
-	rdquo: rdquo,
-	rdquor: rdquor,
-	rdsh: rdsh,
-	real: real,
-	realine: realine,
-	realpart: realpart,
-	reals: reals,
-	Re: Re,
-	rect: rect,
-	reg: reg,
-	REG: REG,
-	ReverseElement: ReverseElement,
-	ReverseEquilibrium: ReverseEquilibrium,
-	ReverseUpEquilibrium: ReverseUpEquilibrium,
-	rfisht: rfisht,
-	rfloor: rfloor,
-	rfr: rfr,
-	Rfr: Rfr,
-	rHar: rHar,
-	rhard: rhard,
-	rharu: rharu,
-	rharul: rharul,
-	Rho: Rho,
-	rho: rho,
-	rhov: rhov,
-	RightAngleBracket: RightAngleBracket,
-	RightArrowBar: RightArrowBar,
-	rightarrow: rightarrow,
-	RightArrow: RightArrow,
-	Rightarrow: Rightarrow,
-	RightArrowLeftArrow: RightArrowLeftArrow,
-	rightarrowtail: rightarrowtail,
-	RightCeiling: RightCeiling,
-	RightDoubleBracket: RightDoubleBracket,
-	RightDownTeeVector: RightDownTeeVector,
-	RightDownVectorBar: RightDownVectorBar,
-	RightDownVector: RightDownVector,
-	RightFloor: RightFloor,
-	rightharpoondown: rightharpoondown,
-	rightharpoonup: rightharpoonup,
-	rightleftarrows: rightleftarrows,
-	rightleftharpoons: rightleftharpoons,
-	rightrightarrows: rightrightarrows,
-	rightsquigarrow: rightsquigarrow,
-	RightTeeArrow: RightTeeArrow,
-	RightTee: RightTee,
-	RightTeeVector: RightTeeVector,
-	rightthreetimes: rightthreetimes,
-	RightTriangleBar: RightTriangleBar,
-	RightTriangle: RightTriangle,
-	RightTriangleEqual: RightTriangleEqual,
-	RightUpDownVector: RightUpDownVector,
-	RightUpTeeVector: RightUpTeeVector,
-	RightUpVectorBar: RightUpVectorBar,
-	RightUpVector: RightUpVector,
-	RightVectorBar: RightVectorBar,
-	RightVector: RightVector,
-	ring: ring,
-	risingdotseq: risingdotseq,
-	rlarr: rlarr,
-	rlhar: rlhar,
-	rlm: rlm,
-	rmoustache: rmoustache,
-	rmoust: rmoust,
-	rnmid: rnmid,
-	roang: roang,
-	roarr: roarr,
-	robrk: robrk,
-	ropar: ropar,
-	ropf: ropf,
-	Ropf: Ropf,
-	roplus: roplus,
-	rotimes: rotimes,
-	RoundImplies: RoundImplies,
-	rpar: rpar,
-	rpargt: rpargt,
-	rppolint: rppolint,
-	rrarr: rrarr,
-	Rrightarrow: Rrightarrow,
-	rsaquo: rsaquo,
-	rscr: rscr,
-	Rscr: Rscr,
-	rsh: rsh,
-	Rsh: Rsh,
-	rsqb: rsqb,
-	rsquo: rsquo,
-	rsquor: rsquor,
-	rthree: rthree,
-	rtimes: rtimes,
-	rtri: rtri,
-	rtrie: rtrie,
-	rtrif: rtrif,
-	rtriltri: rtriltri,
-	RuleDelayed: RuleDelayed,
-	ruluhar: ruluhar,
-	rx: rx,
-	Sacute: Sacute,
-	sacute: sacute,
-	sbquo: sbquo,
-	scap: scap,
-	Scaron: Scaron,
-	scaron: scaron,
-	Sc: Sc,
-	sc: sc,
-	sccue: sccue,
-	sce: sce,
-	scE: scE,
-	Scedil: Scedil,
-	scedil: scedil,
-	Scirc: Scirc,
-	scirc: scirc,
-	scnap: scnap,
-	scnE: scnE,
-	scnsim: scnsim,
-	scpolint: scpolint,
-	scsim: scsim,
-	Scy: Scy,
-	scy: scy,
-	sdotb: sdotb,
-	sdot: sdot,
-	sdote: sdote,
-	searhk: searhk,
-	searr: searr,
-	seArr: seArr,
-	searrow: searrow,
-	sect: sect,
-	semi: semi,
-	seswar: seswar,
-	setminus: setminus,
-	setmn: setmn,
-	sext: sext,
-	Sfr: Sfr,
-	sfr: sfr,
-	sfrown: sfrown,
-	sharp: sharp,
-	SHCHcy: SHCHcy,
-	shchcy: shchcy,
-	SHcy: SHcy,
-	shcy: shcy,
-	ShortDownArrow: ShortDownArrow,
-	ShortLeftArrow: ShortLeftArrow,
-	shortmid: shortmid,
-	shortparallel: shortparallel,
-	ShortRightArrow: ShortRightArrow,
-	ShortUpArrow: ShortUpArrow,
-	shy: shy,
-	Sigma: Sigma,
-	sigma: sigma,
-	sigmaf: sigmaf,
-	sigmav: sigmav,
-	sim: sim,
-	simdot: simdot,
-	sime: sime,
-	simeq: simeq,
-	simg: simg,
-	simgE: simgE,
-	siml: siml,
-	simlE: simlE,
-	simne: simne,
-	simplus: simplus,
-	simrarr: simrarr,
-	slarr: slarr,
-	SmallCircle: SmallCircle,
-	smallsetminus: smallsetminus,
-	smashp: smashp,
-	smeparsl: smeparsl,
-	smid: smid,
-	smile: smile,
-	smt: smt,
-	smte: smte,
-	smtes: smtes,
-	SOFTcy: SOFTcy,
-	softcy: softcy,
-	solbar: solbar,
-	solb: solb,
-	sol: sol,
-	Sopf: Sopf,
-	sopf: sopf,
-	spades: spades,
-	spadesuit: spadesuit,
-	spar: spar,
-	sqcap: sqcap,
-	sqcaps: sqcaps,
-	sqcup: sqcup,
-	sqcups: sqcups,
-	Sqrt: Sqrt,
-	sqsub: sqsub,
-	sqsube: sqsube,
-	sqsubset: sqsubset,
-	sqsubseteq: sqsubseteq,
-	sqsup: sqsup,
-	sqsupe: sqsupe,
-	sqsupset: sqsupset,
-	sqsupseteq: sqsupseteq,
-	square: square,
-	Square: Square,
-	SquareIntersection: SquareIntersection,
-	SquareSubset: SquareSubset,
-	SquareSubsetEqual: SquareSubsetEqual,
-	SquareSuperset: SquareSuperset,
-	SquareSupersetEqual: SquareSupersetEqual,
-	SquareUnion: SquareUnion,
-	squarf: squarf,
-	squ: squ,
-	squf: squf,
-	srarr: srarr,
-	Sscr: Sscr,
-	sscr: sscr,
-	ssetmn: ssetmn,
-	ssmile: ssmile,
-	sstarf: sstarf,
-	Star: Star,
-	star: star,
-	starf: starf,
-	straightepsilon: straightepsilon,
-	straightphi: straightphi,
-	strns: strns,
-	sub: sub,
-	Sub: Sub,
-	subdot: subdot,
-	subE: subE,
-	sube: sube,
-	subedot: subedot,
-	submult: submult,
-	subnE: subnE,
-	subne: subne,
-	subplus: subplus,
-	subrarr: subrarr,
-	subset: subset,
-	Subset: Subset,
-	subseteq: subseteq,
-	subseteqq: subseteqq,
-	SubsetEqual: SubsetEqual,
-	subsetneq: subsetneq,
-	subsetneqq: subsetneqq,
-	subsim: subsim,
-	subsub: subsub,
-	subsup: subsup,
-	succapprox: succapprox,
-	succ: succ,
-	succcurlyeq: succcurlyeq,
-	Succeeds: Succeeds,
-	SucceedsEqual: SucceedsEqual,
-	SucceedsSlantEqual: SucceedsSlantEqual,
-	SucceedsTilde: SucceedsTilde,
-	succeq: succeq,
-	succnapprox: succnapprox,
-	succneqq: succneqq,
-	succnsim: succnsim,
-	succsim: succsim,
-	SuchThat: SuchThat,
-	sum: sum,
-	Sum: Sum,
-	sung: sung,
-	sup1: sup1,
-	sup2: sup2,
-	sup3: sup3,
-	sup: sup,
-	Sup: Sup,
-	supdot: supdot,
-	supdsub: supdsub,
-	supE: supE,
-	supe: supe,
-	supedot: supedot,
-	Superset: Superset,
-	SupersetEqual: SupersetEqual,
-	suphsol: suphsol,
-	suphsub: suphsub,
-	suplarr: suplarr,
-	supmult: supmult,
-	supnE: supnE,
-	supne: supne,
-	supplus: supplus,
-	supset: supset,
-	Supset: Supset,
-	supseteq: supseteq,
-	supseteqq: supseteqq,
-	supsetneq: supsetneq,
-	supsetneqq: supsetneqq,
-	supsim: supsim,
-	supsub: supsub,
-	supsup: supsup,
-	swarhk: swarhk,
-	swarr: swarr,
-	swArr: swArr,
-	swarrow: swarrow,
-	swnwar: swnwar,
-	szlig: szlig,
-	Tab: Tab,
-	target: target,
-	Tau: Tau,
-	tau: tau,
-	tbrk: tbrk,
-	Tcaron: Tcaron,
-	tcaron: tcaron,
-	Tcedil: Tcedil,
-	tcedil: tcedil,
-	Tcy: Tcy,
-	tcy: tcy,
-	tdot: tdot,
-	telrec: telrec,
-	Tfr: Tfr,
-	tfr: tfr,
-	there4: there4,
-	therefore: therefore,
-	Therefore: Therefore,
-	Theta: Theta,
-	theta: theta,
-	thetasym: thetasym,
-	thetav: thetav,
-	thickapprox: thickapprox,
-	thicksim: thicksim,
-	ThickSpace: ThickSpace,
-	ThinSpace: ThinSpace,
-	thinsp: thinsp,
-	thkap: thkap,
-	thksim: thksim,
-	THORN: THORN,
-	thorn: thorn,
-	tilde: tilde,
-	Tilde: Tilde,
-	TildeEqual: TildeEqual,
-	TildeFullEqual: TildeFullEqual,
-	TildeTilde: TildeTilde,
-	timesbar: timesbar,
-	timesb: timesb,
-	times: times,
-	timesd: timesd,
-	tint: tint,
-	toea: toea,
-	topbot: topbot,
-	topcir: topcir,
-	top: top,
-	Topf: Topf,
-	topf: topf,
-	topfork: topfork,
-	tosa: tosa,
-	tprime: tprime,
-	trade: trade,
-	TRADE: TRADE,
-	triangle: triangle,
-	triangledown: triangledown,
-	triangleleft: triangleleft,
-	trianglelefteq: trianglelefteq,
-	triangleq: triangleq,
-	triangleright: triangleright,
-	trianglerighteq: trianglerighteq,
-	tridot: tridot,
-	trie: trie,
-	triminus: triminus,
-	TripleDot: TripleDot,
-	triplus: triplus,
-	trisb: trisb,
-	tritime: tritime,
-	trpezium: trpezium,
-	Tscr: Tscr,
-	tscr: tscr,
-	TScy: TScy,
-	tscy: tscy,
-	TSHcy: TSHcy,
-	tshcy: tshcy,
-	Tstrok: Tstrok,
-	tstrok: tstrok,
-	twixt: twixt,
-	twoheadleftarrow: twoheadleftarrow,
-	twoheadrightarrow: twoheadrightarrow,
-	Uacute: Uacute,
-	uacute: uacute,
-	uarr: uarr,
-	Uarr: Uarr,
-	uArr: uArr,
-	Uarrocir: Uarrocir,
-	Ubrcy: Ubrcy,
-	ubrcy: ubrcy,
-	Ubreve: Ubreve,
-	ubreve: ubreve,
-	Ucirc: Ucirc,
-	ucirc: ucirc,
-	Ucy: Ucy,
-	ucy: ucy,
-	udarr: udarr,
-	Udblac: Udblac,
-	udblac: udblac,
-	udhar: udhar,
-	ufisht: ufisht,
-	Ufr: Ufr,
-	ufr: ufr,
-	Ugrave: Ugrave,
-	ugrave: ugrave,
-	uHar: uHar,
-	uharl: uharl,
-	uharr: uharr,
-	uhblk: uhblk,
-	ulcorn: ulcorn,
-	ulcorner: ulcorner,
-	ulcrop: ulcrop,
-	ultri: ultri,
-	Umacr: Umacr,
-	umacr: umacr,
-	uml: uml,
-	UnderBar: UnderBar,
-	UnderBrace: UnderBrace,
-	UnderBracket: UnderBracket,
-	UnderParenthesis: UnderParenthesis,
-	Union: Union,
-	UnionPlus: UnionPlus,
-	Uogon: Uogon,
-	uogon: uogon,
-	Uopf: Uopf,
-	uopf: uopf,
-	UpArrowBar: UpArrowBar,
-	uparrow: uparrow,
-	UpArrow: UpArrow,
-	Uparrow: Uparrow,
-	UpArrowDownArrow: UpArrowDownArrow,
-	updownarrow: updownarrow,
-	UpDownArrow: UpDownArrow,
-	Updownarrow: Updownarrow,
-	UpEquilibrium: UpEquilibrium,
-	upharpoonleft: upharpoonleft,
-	upharpoonright: upharpoonright,
-	uplus: uplus,
-	UpperLeftArrow: UpperLeftArrow,
-	UpperRightArrow: UpperRightArrow,
-	upsi: upsi,
-	Upsi: Upsi,
-	upsih: upsih,
-	Upsilon: Upsilon,
-	upsilon: upsilon,
-	UpTeeArrow: UpTeeArrow,
-	UpTee: UpTee,
-	upuparrows: upuparrows,
-	urcorn: urcorn,
-	urcorner: urcorner,
-	urcrop: urcrop,
-	Uring: Uring,
-	uring: uring,
-	urtri: urtri,
-	Uscr: Uscr,
-	uscr: uscr,
-	utdot: utdot,
-	Utilde: Utilde,
-	utilde: utilde,
-	utri: utri,
-	utrif: utrif,
-	uuarr: uuarr,
-	Uuml: Uuml,
-	uuml: uuml,
-	uwangle: uwangle,
-	vangrt: vangrt,
-	varepsilon: varepsilon,
-	varkappa: varkappa,
-	varnothing: varnothing,
-	varphi: varphi,
-	varpi: varpi,
-	varpropto: varpropto,
-	varr: varr,
-	vArr: vArr,
-	varrho: varrho,
-	varsigma: varsigma,
-	varsubsetneq: varsubsetneq,
-	varsubsetneqq: varsubsetneqq,
-	varsupsetneq: varsupsetneq,
-	varsupsetneqq: varsupsetneqq,
-	vartheta: vartheta,
-	vartriangleleft: vartriangleleft,
-	vartriangleright: vartriangleright,
-	vBar: vBar,
-	Vbar: Vbar,
-	vBarv: vBarv,
-	Vcy: Vcy,
-	vcy: vcy,
-	vdash: vdash,
-	vDash: vDash,
-	Vdash: Vdash,
-	VDash: VDash,
-	Vdashl: Vdashl,
-	veebar: veebar,
-	vee: vee,
-	Vee: Vee,
-	veeeq: veeeq,
-	vellip: vellip,
-	verbar: verbar,
-	Verbar: Verbar,
-	vert: vert,
-	Vert: Vert,
-	VerticalBar: VerticalBar,
-	VerticalLine: VerticalLine,
-	VerticalSeparator: VerticalSeparator,
-	VerticalTilde: VerticalTilde,
-	VeryThinSpace: VeryThinSpace,
-	Vfr: Vfr,
-	vfr: vfr,
-	vltri: vltri,
-	vnsub: vnsub,
-	vnsup: vnsup,
-	Vopf: Vopf,
-	vopf: vopf,
-	vprop: vprop,
-	vrtri: vrtri,
-	Vscr: Vscr,
-	vscr: vscr,
-	vsubnE: vsubnE,
-	vsubne: vsubne,
-	vsupnE: vsupnE,
-	vsupne: vsupne,
-	Vvdash: Vvdash,
-	vzigzag: vzigzag,
-	Wcirc: Wcirc,
-	wcirc: wcirc,
-	wedbar: wedbar,
-	wedge: wedge,
-	Wedge: Wedge,
-	wedgeq: wedgeq,
-	weierp: weierp,
-	Wfr: Wfr,
-	wfr: wfr,
-	Wopf: Wopf,
-	wopf: wopf,
-	wp: wp,
-	wr: wr,
-	wreath: wreath,
-	Wscr: Wscr,
-	wscr: wscr,
-	xcap: xcap,
-	xcirc: xcirc,
-	xcup: xcup,
-	xdtri: xdtri,
-	Xfr: Xfr,
-	xfr: xfr,
-	xharr: xharr,
-	xhArr: xhArr,
-	Xi: Xi,
-	xi: xi,
-	xlarr: xlarr,
-	xlArr: xlArr,
-	xmap: xmap,
-	xnis: xnis,
-	xodot: xodot,
-	Xopf: Xopf,
-	xopf: xopf,
-	xoplus: xoplus,
-	xotime: xotime,
-	xrarr: xrarr,
-	xrArr: xrArr,
-	Xscr: Xscr,
-	xscr: xscr,
-	xsqcup: xsqcup,
-	xuplus: xuplus,
-	xutri: xutri,
-	xvee: xvee,
-	xwedge: xwedge,
-	Yacute: Yacute,
-	yacute: yacute,
-	YAcy: YAcy,
-	yacy: yacy,
-	Ycirc: Ycirc,
-	ycirc: ycirc,
-	Ycy: Ycy,
-	ycy: ycy,
-	yen: yen,
-	Yfr: Yfr,
-	yfr: yfr,
-	YIcy: YIcy,
-	yicy: yicy,
-	Yopf: Yopf,
-	yopf: yopf,
-	Yscr: Yscr,
-	yscr: yscr,
-	YUcy: YUcy,
-	yucy: yucy,
-	yuml: yuml,
-	Yuml: Yuml,
-	Zacute: Zacute,
-	zacute: zacute,
-	Zcaron: Zcaron,
-	zcaron: zcaron,
-	Zcy: Zcy,
-	zcy: zcy,
-	Zdot: Zdot,
-	zdot: zdot,
-	zeetrf: zeetrf,
-	ZeroWidthSpace: ZeroWidthSpace,
-	Zeta: Zeta,
-	zeta: zeta,
-	zfr: zfr,
-	Zfr: Zfr,
-	ZHcy: ZHcy,
-	zhcy: zhcy,
-	zigrarr: zigrarr,
-	zopf: zopf,
-	Zopf: Zopf,
-	Zscr: Zscr,
-	zscr: zscr,
-	zwj: zwj,
-	zwnj: zwnj
+  Aacute: Aacute,
+  aacute: aacute,
+  Abreve: Abreve,
+  abreve: abreve,
+  ac: ac,
+  acd: acd,
+  acE: acE,
+  Acirc: Acirc,
+  acirc: acirc,
+  acute: acute,
+  Acy: Acy,
+  acy: acy,
+  AElig: AElig,
+  aelig: aelig,
+  af: af,
+  Afr: Afr,
+  afr: afr,
+  Agrave: Agrave,
+  agrave: agrave,
+  alefsym: alefsym,
+  aleph: aleph,
+  Alpha: Alpha,
+  alpha: alpha,
+  Amacr: Amacr,
+  amacr: amacr,
+  amalg: amalg,
+  amp: amp,
+  AMP: AMP,
+  andand: andand,
+  And: And,
+  and: and,
+  andd: andd,
+  andslope: andslope,
+  andv: andv,
+  ang: ang,
+  ange: ange,
+  angle: angle,
+  angmsdaa: angmsdaa,
+  angmsdab: angmsdab,
+  angmsdac: angmsdac,
+  angmsdad: angmsdad,
+  angmsdae: angmsdae,
+  angmsdaf: angmsdaf,
+  angmsdag: angmsdag,
+  angmsdah: angmsdah,
+  angmsd: angmsd,
+  angrt: angrt,
+  angrtvb: angrtvb,
+  angrtvbd: angrtvbd,
+  angsph: angsph,
+  angst: angst,
+  angzarr: angzarr,
+  Aogon: Aogon,
+  aogon: aogon,
+  Aopf: Aopf,
+  aopf: aopf,
+  apacir: apacir,
+  ap: ap,
+  apE: apE,
+  ape: ape,
+  apid: apid,
+  apos: apos,
+  ApplyFunction: ApplyFunction,
+  approx: approx,
+  approxeq: approxeq,
+  Aring: Aring,
+  aring: aring,
+  Ascr: Ascr,
+  ascr: ascr,
+  Assign: Assign,
+  ast: ast,
+  asymp: asymp,
+  asympeq: asympeq,
+  Atilde: Atilde,
+  atilde: atilde,
+  Auml: Auml,
+  auml: auml,
+  awconint: awconint,
+  awint: awint,
+  backcong: backcong,
+  backepsilon: backepsilon,
+  backprime: backprime,
+  backsim: backsim,
+  backsimeq: backsimeq,
+  Backslash: Backslash,
+  Barv: Barv,
+  barvee: barvee,
+  barwed: barwed,
+  Barwed: Barwed,
+  barwedge: barwedge,
+  bbrk: bbrk,
+  bbrktbrk: bbrktbrk,
+  bcong: bcong,
+  Bcy: Bcy,
+  bcy: bcy,
+  bdquo: bdquo,
+  becaus: becaus,
+  because: because,
+  Because: Because,
+  bemptyv: bemptyv,
+  bepsi: bepsi,
+  bernou: bernou,
+  Bernoullis: Bernoullis,
+  Beta: Beta,
+  beta: beta,
+  beth: beth,
+  between: between,
+  Bfr: Bfr,
+  bfr: bfr,
+  bigcap: bigcap,
+  bigcirc: bigcirc,
+  bigcup: bigcup,
+  bigodot: bigodot,
+  bigoplus: bigoplus,
+  bigotimes: bigotimes,
+  bigsqcup: bigsqcup,
+  bigstar: bigstar,
+  bigtriangledown: bigtriangledown,
+  bigtriangleup: bigtriangleup,
+  biguplus: biguplus,
+  bigvee: bigvee,
+  bigwedge: bigwedge,
+  bkarow: bkarow,
+  blacklozenge: blacklozenge,
+  blacksquare: blacksquare,
+  blacktriangle: blacktriangle,
+  blacktriangledown: blacktriangledown,
+  blacktriangleleft: blacktriangleleft,
+  blacktriangleright: blacktriangleright,
+  blank: blank,
+  blk12: blk12,
+  blk14: blk14,
+  blk34: blk34,
+  block: block,
+  bne: bne,
+  bnequiv: bnequiv,
+  bNot: bNot,
+  bnot: bnot,
+  Bopf: Bopf,
+  bopf: bopf,
+  bot: bot,
+  bottom: bottom,
+  bowtie: bowtie,
+  boxbox: boxbox,
+  boxdl: boxdl,
+  boxdL: boxdL,
+  boxDl: boxDl,
+  boxDL: boxDL,
+  boxdr: boxdr,
+  boxdR: boxdR,
+  boxDr: boxDr,
+  boxDR: boxDR,
+  boxh: boxh,
+  boxH: boxH,
+  boxhd: boxhd,
+  boxHd: boxHd,
+  boxhD: boxhD,
+  boxHD: boxHD,
+  boxhu: boxhu,
+  boxHu: boxHu,
+  boxhU: boxhU,
+  boxHU: boxHU,
+  boxminus: boxminus,
+  boxplus: boxplus,
+  boxtimes: boxtimes,
+  boxul: boxul,
+  boxuL: boxuL,
+  boxUl: boxUl,
+  boxUL: boxUL,
+  boxur: boxur,
+  boxuR: boxuR,
+  boxUr: boxUr,
+  boxUR: boxUR,
+  boxv: boxv,
+  boxV: boxV,
+  boxvh: boxvh,
+  boxvH: boxvH,
+  boxVh: boxVh,
+  boxVH: boxVH,
+  boxvl: boxvl,
+  boxvL: boxvL,
+  boxVl: boxVl,
+  boxVL: boxVL,
+  boxvr: boxvr,
+  boxvR: boxvR,
+  boxVr: boxVr,
+  boxVR: boxVR,
+  bprime: bprime,
+  breve: breve,
+  Breve: Breve,
+  brvbar: brvbar,
+  bscr: bscr,
+  Bscr: Bscr,
+  bsemi: bsemi,
+  bsim: bsim,
+  bsime: bsime,
+  bsolb: bsolb,
+  bsol: bsol,
+  bsolhsub: bsolhsub,
+  bull: bull,
+  bullet: bullet,
+  bump: bump,
+  bumpE: bumpE,
+  bumpe: bumpe,
+  Bumpeq: Bumpeq,
+  bumpeq: bumpeq,
+  Cacute: Cacute,
+  cacute: cacute,
+  capand: capand,
+  capbrcup: capbrcup,
+  capcap: capcap,
+  cap: cap,
+  Cap: Cap,
+  capcup: capcup,
+  capdot: capdot,
+  CapitalDifferentialD: CapitalDifferentialD,
+  caps: caps,
+  caret: caret,
+  caron: caron,
+  Cayleys: Cayleys,
+  ccaps: ccaps,
+  Ccaron: Ccaron,
+  ccaron: ccaron,
+  Ccedil: Ccedil,
+  ccedil: ccedil,
+  Ccirc: Ccirc,
+  ccirc: ccirc,
+  Cconint: Cconint,
+  ccups: ccups,
+  ccupssm: ccupssm,
+  Cdot: Cdot,
+  cdot: cdot,
+  cedil: cedil,
+  Cedilla: Cedilla,
+  cemptyv: cemptyv,
+  cent: cent,
+  centerdot: centerdot,
+  CenterDot: CenterDot,
+  cfr: cfr,
+  Cfr: Cfr,
+  CHcy: CHcy,
+  chcy: chcy,
+  check: check,
+  checkmark: checkmark,
+  Chi: Chi,
+  chi: chi,
+  circ: circ,
+  circeq: circeq,
+  circlearrowleft: circlearrowleft,
+  circlearrowright: circlearrowright,
+  circledast: circledast,
+  circledcirc: circledcirc,
+  circleddash: circleddash,
+  CircleDot: CircleDot,
+  circledR: circledR,
+  circledS: circledS,
+  CircleMinus: CircleMinus,
+  CirclePlus: CirclePlus,
+  CircleTimes: CircleTimes,
+  cir: cir,
+  cirE: cirE,
+  cire: cire,
+  cirfnint: cirfnint,
+  cirmid: cirmid,
+  cirscir: cirscir,
+  ClockwiseContourIntegral: ClockwiseContourIntegral,
+  CloseCurlyDoubleQuote: CloseCurlyDoubleQuote,
+  CloseCurlyQuote: CloseCurlyQuote,
+  clubs: clubs,
+  clubsuit: clubsuit,
+  colon: colon,
+  Colon: Colon,
+  Colone: Colone,
+  colone: colone,
+  coloneq: coloneq,
+  comma: comma,
+  commat: commat,
+  comp: comp,
+  compfn: compfn,
+  complement: complement,
+  complexes: complexes,
+  cong: cong,
+  congdot: congdot,
+  Congruent: Congruent,
+  conint: conint,
+  Conint: Conint,
+  ContourIntegral: ContourIntegral,
+  copf: copf,
+  Copf: Copf,
+  coprod: coprod,
+  Coproduct: Coproduct,
+  copy: copy,
+  COPY: COPY,
+  copysr: copysr,
+  CounterClockwiseContourIntegral: CounterClockwiseContourIntegral,
+  crarr: crarr,
+  cross: cross,
+  Cross: Cross,
+  Cscr: Cscr,
+  cscr: cscr,
+  csub: csub,
+  csube: csube,
+  csup: csup,
+  csupe: csupe,
+  ctdot: ctdot,
+  cudarrl: cudarrl,
+  cudarrr: cudarrr,
+  cuepr: cuepr,
+  cuesc: cuesc,
+  cularr: cularr,
+  cularrp: cularrp,
+  cupbrcap: cupbrcap,
+  cupcap: cupcap,
+  CupCap: CupCap,
+  cup: cup,
+  Cup: Cup,
+  cupcup: cupcup,
+  cupdot: cupdot,
+  cupor: cupor,
+  cups: cups,
+  curarr: curarr,
+  curarrm: curarrm,
+  curlyeqprec: curlyeqprec,
+  curlyeqsucc: curlyeqsucc,
+  curlyvee: curlyvee,
+  curlywedge: curlywedge,
+  curren: curren,
+  curvearrowleft: curvearrowleft,
+  curvearrowright: curvearrowright,
+  cuvee: cuvee,
+  cuwed: cuwed,
+  cwconint: cwconint,
+  cwint: cwint,
+  cylcty: cylcty,
+  dagger: dagger,
+  Dagger: Dagger,
+  daleth: daleth,
+  darr: darr,
+  Darr: Darr,
+  dArr: dArr,
+  dash: dash,
+  Dashv: Dashv,
+  dashv: dashv,
+  dbkarow: dbkarow,
+  dblac: dblac,
+  Dcaron: Dcaron,
+  dcaron: dcaron,
+  Dcy: Dcy,
+  dcy: dcy,
+  ddagger: ddagger,
+  ddarr: ddarr,
+  DD: DD,
+  dd: dd,
+  DDotrahd: DDotrahd,
+  ddotseq: ddotseq,
+  deg: deg,
+  Del: Del,
+  Delta: Delta,
+  delta: delta,
+  demptyv: demptyv,
+  dfisht: dfisht,
+  Dfr: Dfr,
+  dfr: dfr,
+  dHar: dHar,
+  dharl: dharl,
+  dharr: dharr,
+  DiacriticalAcute: DiacriticalAcute,
+  DiacriticalDot: DiacriticalDot,
+  DiacriticalDoubleAcute: DiacriticalDoubleAcute,
+  DiacriticalGrave: DiacriticalGrave,
+  DiacriticalTilde: DiacriticalTilde,
+  diam: diam,
+  diamond: diamond,
+  Diamond: Diamond,
+  diamondsuit: diamondsuit,
+  diams: diams,
+  die: die,
+  DifferentialD: DifferentialD,
+  digamma: digamma,
+  disin: disin,
+  div: div,
+  divide: divide,
+  divideontimes: divideontimes,
+  divonx: divonx,
+  DJcy: DJcy,
+  djcy: djcy,
+  dlcorn: dlcorn,
+  dlcrop: dlcrop,
+  dollar: dollar,
+  Dopf: Dopf,
+  dopf: dopf,
+  Dot: Dot,
+  dot: dot,
+  DotDot: DotDot,
+  doteq: doteq,
+  doteqdot: doteqdot,
+  DotEqual: DotEqual,
+  dotminus: dotminus,
+  dotplus: dotplus,
+  dotsquare: dotsquare,
+  doublebarwedge: doublebarwedge,
+  DoubleContourIntegral: DoubleContourIntegral,
+  DoubleDot: DoubleDot,
+  DoubleDownArrow: DoubleDownArrow,
+  DoubleLeftArrow: DoubleLeftArrow,
+  DoubleLeftRightArrow: DoubleLeftRightArrow,
+  DoubleLeftTee: DoubleLeftTee,
+  DoubleLongLeftArrow: DoubleLongLeftArrow,
+  DoubleLongLeftRightArrow: DoubleLongLeftRightArrow,
+  DoubleLongRightArrow: DoubleLongRightArrow,
+  DoubleRightArrow: DoubleRightArrow,
+  DoubleRightTee: DoubleRightTee,
+  DoubleUpArrow: DoubleUpArrow,
+  DoubleUpDownArrow: DoubleUpDownArrow,
+  DoubleVerticalBar: DoubleVerticalBar,
+  DownArrowBar: DownArrowBar,
+  downarrow: downarrow,
+  DownArrow: DownArrow,
+  Downarrow: Downarrow,
+  DownArrowUpArrow: DownArrowUpArrow,
+  DownBreve: DownBreve,
+  downdownarrows: downdownarrows,
+  downharpoonleft: downharpoonleft,
+  downharpoonright: downharpoonright,
+  DownLeftRightVector: DownLeftRightVector,
+  DownLeftTeeVector: DownLeftTeeVector,
+  DownLeftVectorBar: DownLeftVectorBar,
+  DownLeftVector: DownLeftVector,
+  DownRightTeeVector: DownRightTeeVector,
+  DownRightVectorBar: DownRightVectorBar,
+  DownRightVector: DownRightVector,
+  DownTeeArrow: DownTeeArrow,
+  DownTee: DownTee,
+  drbkarow: drbkarow,
+  drcorn: drcorn,
+  drcrop: drcrop,
+  Dscr: Dscr,
+  dscr: dscr,
+  DScy: DScy,
+  dscy: dscy,
+  dsol: dsol,
+  Dstrok: Dstrok,
+  dstrok: dstrok,
+  dtdot: dtdot,
+  dtri: dtri,
+  dtrif: dtrif,
+  duarr: duarr,
+  duhar: duhar,
+  dwangle: dwangle,
+  DZcy: DZcy,
+  dzcy: dzcy,
+  dzigrarr: dzigrarr,
+  Eacute: Eacute,
+  eacute: eacute,
+  easter: easter,
+  Ecaron: Ecaron,
+  ecaron: ecaron,
+  Ecirc: Ecirc,
+  ecirc: ecirc,
+  ecir: ecir,
+  ecolon: ecolon,
+  Ecy: Ecy,
+  ecy: ecy,
+  eDDot: eDDot,
+  Edot: Edot,
+  edot: edot,
+  eDot: eDot,
+  ee: ee,
+  efDot: efDot,
+  Efr: Efr,
+  efr: efr,
+  eg: eg,
+  Egrave: Egrave,
+  egrave: egrave,
+  egs: egs,
+  egsdot: egsdot,
+  el: el,
+  Element: Element,
+  elinters: elinters,
+  ell: ell,
+  els: els,
+  elsdot: elsdot,
+  Emacr: Emacr,
+  emacr: emacr,
+  empty: empty,
+  emptyset: emptyset,
+  EmptySmallSquare: EmptySmallSquare,
+  emptyv: emptyv,
+  EmptyVerySmallSquare: EmptyVerySmallSquare,
+  emsp13: emsp13,
+  emsp14: emsp14,
+  emsp: emsp,
+  ENG: ENG,
+  eng: eng,
+  ensp: ensp,
+  Eogon: Eogon,
+  eogon: eogon,
+  Eopf: Eopf,
+  eopf: eopf,
+  epar: epar,
+  eparsl: eparsl,
+  eplus: eplus,
+  epsi: epsi,
+  Epsilon: Epsilon,
+  epsilon: epsilon,
+  epsiv: epsiv,
+  eqcirc: eqcirc,
+  eqcolon: eqcolon,
+  eqsim: eqsim,
+  eqslantgtr: eqslantgtr,
+  eqslantless: eqslantless,
+  Equal: Equal,
+  equals: equals,
+  EqualTilde: EqualTilde,
+  equest: equest,
+  Equilibrium: Equilibrium,
+  equiv: equiv,
+  equivDD: equivDD,
+  eqvparsl: eqvparsl,
+  erarr: erarr,
+  erDot: erDot,
+  escr: escr,
+  Escr: Escr,
+  esdot: esdot,
+  Esim: Esim,
+  esim: esim,
+  Eta: Eta,
+  eta: eta,
+  ETH: ETH,
+  eth: eth,
+  Euml: Euml,
+  euml: euml,
+  euro: euro,
+  excl: excl,
+  exist: exist,
+  Exists: Exists,
+  expectation: expectation,
+  exponentiale: exponentiale,
+  ExponentialE: ExponentialE,
+  fallingdotseq: fallingdotseq,
+  Fcy: Fcy,
+  fcy: fcy,
+  female: female,
+  ffilig: ffilig,
+  fflig: fflig,
+  ffllig: ffllig,
+  Ffr: Ffr,
+  ffr: ffr,
+  filig: filig,
+  FilledSmallSquare: FilledSmallSquare,
+  FilledVerySmallSquare: FilledVerySmallSquare,
+  fjlig: fjlig,
+  flat: flat,
+  fllig: fllig,
+  fltns: fltns,
+  fnof: fnof,
+  Fopf: Fopf,
+  fopf: fopf,
+  forall: forall,
+  ForAll: ForAll,
+  fork: fork,
+  forkv: forkv,
+  Fouriertrf: Fouriertrf,
+  fpartint: fpartint,
+  frac12: frac12,
+  frac13: frac13,
+  frac14: frac14,
+  frac15: frac15,
+  frac16: frac16,
+  frac18: frac18,
+  frac23: frac23,
+  frac25: frac25,
+  frac34: frac34,
+  frac35: frac35,
+  frac38: frac38,
+  frac45: frac45,
+  frac56: frac56,
+  frac58: frac58,
+  frac78: frac78,
+  frasl: frasl,
+  frown: frown,
+  fscr: fscr,
+  Fscr: Fscr,
+  gacute: gacute,
+  Gamma: Gamma,
+  gamma: gamma,
+  Gammad: Gammad,
+  gammad: gammad,
+  gap: gap,
+  Gbreve: Gbreve,
+  gbreve: gbreve,
+  Gcedil: Gcedil,
+  Gcirc: Gcirc,
+  gcirc: gcirc,
+  Gcy: Gcy,
+  gcy: gcy,
+  Gdot: Gdot,
+  gdot: gdot,
+  ge: ge,
+  gE: gE,
+  gEl: gEl,
+  gel: gel,
+  geq: geq,
+  geqq: geqq,
+  geqslant: geqslant,
+  gescc: gescc,
+  ges: ges,
+  gesdot: gesdot,
+  gesdoto: gesdoto,
+  gesdotol: gesdotol,
+  gesl: gesl,
+  gesles: gesles,
+  Gfr: Gfr,
+  gfr: gfr,
+  gg: gg,
+  Gg: Gg,
+  ggg: ggg,
+  gimel: gimel,
+  GJcy: GJcy,
+  gjcy: gjcy,
+  gla: gla,
+  gl: gl,
+  glE: glE,
+  glj: glj,
+  gnap: gnap,
+  gnapprox: gnapprox,
+  gne: gne,
+  gnE: gnE,
+  gneq: gneq,
+  gneqq: gneqq,
+  gnsim: gnsim,
+  Gopf: Gopf,
+  gopf: gopf,
+  grave: grave,
+  GreaterEqual: GreaterEqual,
+  GreaterEqualLess: GreaterEqualLess,
+  GreaterFullEqual: GreaterFullEqual,
+  GreaterGreater: GreaterGreater,
+  GreaterLess: GreaterLess,
+  GreaterSlantEqual: GreaterSlantEqual,
+  GreaterTilde: GreaterTilde,
+  Gscr: Gscr,
+  gscr: gscr,
+  gsim: gsim,
+  gsime: gsime,
+  gsiml: gsiml,
+  gtcc: gtcc,
+  gtcir: gtcir,
+  gt: gt,
+  GT: GT,
+  Gt: Gt,
+  gtdot: gtdot,
+  gtlPar: gtlPar,
+  gtquest: gtquest,
+  gtrapprox: gtrapprox,
+  gtrarr: gtrarr,
+  gtrdot: gtrdot,
+  gtreqless: gtreqless,
+  gtreqqless: gtreqqless,
+  gtrless: gtrless,
+  gtrsim: gtrsim,
+  gvertneqq: gvertneqq,
+  gvnE: gvnE,
+  Hacek: Hacek,
+  hairsp: hairsp,
+  half: half,
+  hamilt: hamilt,
+  HARDcy: HARDcy,
+  hardcy: hardcy,
+  harrcir: harrcir,
+  harr: harr,
+  hArr: hArr,
+  harrw: harrw,
+  Hat: Hat,
+  hbar: hbar,
+  Hcirc: Hcirc,
+  hcirc: hcirc,
+  hearts: hearts,
+  heartsuit: heartsuit,
+  hellip: hellip,
+  hercon: hercon,
+  hfr: hfr,
+  Hfr: Hfr,
+  HilbertSpace: HilbertSpace,
+  hksearow: hksearow,
+  hkswarow: hkswarow,
+  hoarr: hoarr,
+  homtht: homtht,
+  hookleftarrow: hookleftarrow,
+  hookrightarrow: hookrightarrow,
+  hopf: hopf,
+  Hopf: Hopf,
+  horbar: horbar,
+  HorizontalLine: HorizontalLine,
+  hscr: hscr,
+  Hscr: Hscr,
+  hslash: hslash,
+  Hstrok: Hstrok,
+  hstrok: hstrok,
+  HumpDownHump: HumpDownHump,
+  HumpEqual: HumpEqual,
+  hybull: hybull,
+  hyphen: hyphen,
+  Iacute: Iacute,
+  iacute: iacute,
+  ic: ic,
+  Icirc: Icirc,
+  icirc: icirc,
+  Icy: Icy,
+  icy: icy,
+  Idot: Idot,
+  IEcy: IEcy,
+  iecy: iecy,
+  iexcl: iexcl,
+  iff: iff,
+  ifr: ifr,
+  Ifr: Ifr,
+  Igrave: Igrave,
+  igrave: igrave,
+  ii: ii,
+  iiiint: iiiint,
+  iiint: iiint,
+  iinfin: iinfin,
+  iiota: iiota,
+  IJlig: IJlig,
+  ijlig: ijlig,
+  Imacr: Imacr,
+  imacr: imacr,
+  image: image,
+  ImaginaryI: ImaginaryI,
+  imagline: imagline,
+  imagpart: imagpart,
+  imath: imath,
+  Im: Im,
+  imof: imof,
+  imped: imped,
+  Implies: Implies,
+  incare: incare,
+  "in": "∈",
+  infin: infin,
+  infintie: infintie,
+  inodot: inodot,
+  intcal: intcal,
+  int: int,
+  Int: Int,
+  integers: integers,
+  Integral: Integral,
+  intercal: intercal,
+  Intersection: Intersection,
+  intlarhk: intlarhk,
+  intprod: intprod,
+  InvisibleComma: InvisibleComma,
+  InvisibleTimes: InvisibleTimes,
+  IOcy: IOcy,
+  iocy: iocy,
+  Iogon: Iogon,
+  iogon: iogon,
+  Iopf: Iopf,
+  iopf: iopf,
+  Iota: Iota,
+  iota: iota,
+  iprod: iprod,
+  iquest: iquest,
+  iscr: iscr,
+  Iscr: Iscr,
+  isin: isin,
+  isindot: isindot,
+  isinE: isinE,
+  isins: isins,
+  isinsv: isinsv,
+  isinv: isinv,
+  it: it,
+  Itilde: Itilde,
+  itilde: itilde,
+  Iukcy: Iukcy,
+  iukcy: iukcy,
+  Iuml: Iuml,
+  iuml: iuml,
+  Jcirc: Jcirc,
+  jcirc: jcirc,
+  Jcy: Jcy,
+  jcy: jcy,
+  Jfr: Jfr,
+  jfr: jfr,
+  jmath: jmath,
+  Jopf: Jopf,
+  jopf: jopf,
+  Jscr: Jscr,
+  jscr: jscr,
+  Jsercy: Jsercy,
+  jsercy: jsercy,
+  Jukcy: Jukcy,
+  jukcy: jukcy,
+  Kappa: Kappa,
+  kappa: kappa,
+  kappav: kappav,
+  Kcedil: Kcedil,
+  kcedil: kcedil,
+  Kcy: Kcy,
+  kcy: kcy,
+  Kfr: Kfr,
+  kfr: kfr,
+  kgreen: kgreen,
+  KHcy: KHcy,
+  khcy: khcy,
+  KJcy: KJcy,
+  kjcy: kjcy,
+  Kopf: Kopf,
+  kopf: kopf,
+  Kscr: Kscr,
+  kscr: kscr,
+  lAarr: lAarr,
+  Lacute: Lacute,
+  lacute: lacute,
+  laemptyv: laemptyv,
+  lagran: lagran,
+  Lambda: Lambda,
+  lambda: lambda,
+  lang: lang,
+  Lang: Lang,
+  langd: langd,
+  langle: langle,
+  lap: lap,
+  Laplacetrf: Laplacetrf,
+  laquo: laquo,
+  larrb: larrb,
+  larrbfs: larrbfs,
+  larr: larr,
+  Larr: Larr,
+  lArr: lArr,
+  larrfs: larrfs,
+  larrhk: larrhk,
+  larrlp: larrlp,
+  larrpl: larrpl,
+  larrsim: larrsim,
+  larrtl: larrtl,
+  latail: latail,
+  lAtail: lAtail,
+  lat: lat,
+  late: late,
+  lates: lates,
+  lbarr: lbarr,
+  lBarr: lBarr,
+  lbbrk: lbbrk,
+  lbrace: lbrace,
+  lbrack: lbrack,
+  lbrke: lbrke,
+  lbrksld: lbrksld,
+  lbrkslu: lbrkslu,
+  Lcaron: Lcaron,
+  lcaron: lcaron,
+  Lcedil: Lcedil,
+  lcedil: lcedil,
+  lceil: lceil,
+  lcub: lcub,
+  Lcy: Lcy,
+  lcy: lcy,
+  ldca: ldca,
+  ldquo: ldquo,
+  ldquor: ldquor,
+  ldrdhar: ldrdhar,
+  ldrushar: ldrushar,
+  ldsh: ldsh,
+  le: le,
+  lE: lE,
+  LeftAngleBracket: LeftAngleBracket,
+  LeftArrowBar: LeftArrowBar,
+  leftarrow: leftarrow,
+  LeftArrow: LeftArrow,
+  Leftarrow: Leftarrow,
+  LeftArrowRightArrow: LeftArrowRightArrow,
+  leftarrowtail: leftarrowtail,
+  LeftCeiling: LeftCeiling,
+  LeftDoubleBracket: LeftDoubleBracket,
+  LeftDownTeeVector: LeftDownTeeVector,
+  LeftDownVectorBar: LeftDownVectorBar,
+  LeftDownVector: LeftDownVector,
+  LeftFloor: LeftFloor,
+  leftharpoondown: leftharpoondown,
+  leftharpoonup: leftharpoonup,
+  leftleftarrows: leftleftarrows,
+  leftrightarrow: leftrightarrow,
+  LeftRightArrow: LeftRightArrow,
+  Leftrightarrow: Leftrightarrow,
+  leftrightarrows: leftrightarrows,
+  leftrightharpoons: leftrightharpoons,
+  leftrightsquigarrow: leftrightsquigarrow,
+  LeftRightVector: LeftRightVector,
+  LeftTeeArrow: LeftTeeArrow,
+  LeftTee: LeftTee,
+  LeftTeeVector: LeftTeeVector,
+  leftthreetimes: leftthreetimes,
+  LeftTriangleBar: LeftTriangleBar,
+  LeftTriangle: LeftTriangle,
+  LeftTriangleEqual: LeftTriangleEqual,
+  LeftUpDownVector: LeftUpDownVector,
+  LeftUpTeeVector: LeftUpTeeVector,
+  LeftUpVectorBar: LeftUpVectorBar,
+  LeftUpVector: LeftUpVector,
+  LeftVectorBar: LeftVectorBar,
+  LeftVector: LeftVector,
+  lEg: lEg,
+  leg: leg,
+  leq: leq,
+  leqq: leqq,
+  leqslant: leqslant,
+  lescc: lescc,
+  les: les,
+  lesdot: lesdot,
+  lesdoto: lesdoto,
+  lesdotor: lesdotor,
+  lesg: lesg,
+  lesges: lesges,
+  lessapprox: lessapprox,
+  lessdot: lessdot,
+  lesseqgtr: lesseqgtr,
+  lesseqqgtr: lesseqqgtr,
+  LessEqualGreater: LessEqualGreater,
+  LessFullEqual: LessFullEqual,
+  LessGreater: LessGreater,
+  lessgtr: lessgtr,
+  LessLess: LessLess,
+  lesssim: lesssim,
+  LessSlantEqual: LessSlantEqual,
+  LessTilde: LessTilde,
+  lfisht: lfisht,
+  lfloor: lfloor,
+  Lfr: Lfr,
+  lfr: lfr,
+  lg: lg,
+  lgE: lgE,
+  lHar: lHar,
+  lhard: lhard,
+  lharu: lharu,
+  lharul: lharul,
+  lhblk: lhblk,
+  LJcy: LJcy,
+  ljcy: ljcy,
+  llarr: llarr,
+  ll: ll,
+  Ll: Ll,
+  llcorner: llcorner,
+  Lleftarrow: Lleftarrow,
+  llhard: llhard,
+  lltri: lltri,
+  Lmidot: Lmidot,
+  lmidot: lmidot,
+  lmoustache: lmoustache,
+  lmoust: lmoust,
+  lnap: lnap,
+  lnapprox: lnapprox,
+  lne: lne,
+  lnE: lnE,
+  lneq: lneq,
+  lneqq: lneqq,
+  lnsim: lnsim,
+  loang: loang,
+  loarr: loarr,
+  lobrk: lobrk,
+  longleftarrow: longleftarrow,
+  LongLeftArrow: LongLeftArrow,
+  Longleftarrow: Longleftarrow,
+  longleftrightarrow: longleftrightarrow,
+  LongLeftRightArrow: LongLeftRightArrow,
+  Longleftrightarrow: Longleftrightarrow,
+  longmapsto: longmapsto,
+  longrightarrow: longrightarrow,
+  LongRightArrow: LongRightArrow,
+  Longrightarrow: Longrightarrow,
+  looparrowleft: looparrowleft,
+  looparrowright: looparrowright,
+  lopar: lopar,
+  Lopf: Lopf,
+  lopf: lopf,
+  loplus: loplus,
+  lotimes: lotimes,
+  lowast: lowast,
+  lowbar: lowbar,
+  LowerLeftArrow: LowerLeftArrow,
+  LowerRightArrow: LowerRightArrow,
+  loz: loz,
+  lozenge: lozenge,
+  lozf: lozf,
+  lpar: lpar,
+  lparlt: lparlt,
+  lrarr: lrarr,
+  lrcorner: lrcorner,
+  lrhar: lrhar,
+  lrhard: lrhard,
+  lrm: lrm,
+  lrtri: lrtri,
+  lsaquo: lsaquo,
+  lscr: lscr,
+  Lscr: Lscr,
+  lsh: lsh,
+  Lsh: Lsh,
+  lsim: lsim,
+  lsime: lsime,
+  lsimg: lsimg,
+  lsqb: lsqb,
+  lsquo: lsquo,
+  lsquor: lsquor,
+  Lstrok: Lstrok,
+  lstrok: lstrok,
+  ltcc: ltcc,
+  ltcir: ltcir,
+  lt: lt,
+  LT: LT,
+  Lt: Lt,
+  ltdot: ltdot,
+  lthree: lthree,
+  ltimes: ltimes,
+  ltlarr: ltlarr,
+  ltquest: ltquest,
+  ltri: ltri,
+  ltrie: ltrie,
+  ltrif: ltrif,
+  ltrPar: ltrPar,
+  lurdshar: lurdshar,
+  luruhar: luruhar,
+  lvertneqq: lvertneqq,
+  lvnE: lvnE,
+  macr: macr,
+  male: male,
+  malt: malt,
+  maltese: maltese,
+  "Map": "⤅",
+  map: map,
+  mapsto: mapsto,
+  mapstodown: mapstodown,
+  mapstoleft: mapstoleft,
+  mapstoup: mapstoup,
+  marker: marker,
+  mcomma: mcomma,
+  Mcy: Mcy,
+  mcy: mcy,
+  mdash: mdash,
+  mDDot: mDDot,
+  measuredangle: measuredangle,
+  MediumSpace: MediumSpace,
+  Mellintrf: Mellintrf,
+  Mfr: Mfr,
+  mfr: mfr,
+  mho: mho,
+  micro: micro,
+  midast: midast,
+  midcir: midcir,
+  mid: mid,
+  middot: middot,
+  minusb: minusb,
+  minus: minus,
+  minusd: minusd,
+  minusdu: minusdu,
+  MinusPlus: MinusPlus,
+  mlcp: mlcp,
+  mldr: mldr,
+  mnplus: mnplus,
+  models: models,
+  Mopf: Mopf,
+  mopf: mopf,
+  mp: mp,
+  mscr: mscr,
+  Mscr: Mscr,
+  mstpos: mstpos,
+  Mu: Mu,
+  mu: mu,
+  multimap: multimap,
+  mumap: mumap,
+  nabla: nabla,
+  Nacute: Nacute,
+  nacute: nacute,
+  nang: nang,
+  nap: nap,
+  napE: napE,
+  napid: napid,
+  napos: napos,
+  napprox: napprox,
+  natural: natural,
+  naturals: naturals,
+  natur: natur,
+  nbsp: nbsp,
+  nbump: nbump,
+  nbumpe: nbumpe,
+  ncap: ncap,
+  Ncaron: Ncaron,
+  ncaron: ncaron,
+  Ncedil: Ncedil,
+  ncedil: ncedil,
+  ncong: ncong,
+  ncongdot: ncongdot,
+  ncup: ncup,
+  Ncy: Ncy,
+  ncy: ncy,
+  ndash: ndash,
+  nearhk: nearhk,
+  nearr: nearr,
+  neArr: neArr,
+  nearrow: nearrow,
+  ne: ne,
+  nedot: nedot,
+  NegativeMediumSpace: NegativeMediumSpace,
+  NegativeThickSpace: NegativeThickSpace,
+  NegativeThinSpace: NegativeThinSpace,
+  NegativeVeryThinSpace: NegativeVeryThinSpace,
+  nequiv: nequiv,
+  nesear: nesear,
+  nesim: nesim,
+  NestedGreaterGreater: NestedGreaterGreater,
+  NestedLessLess: NestedLessLess,
+  NewLine: NewLine,
+  nexist: nexist,
+  nexists: nexists,
+  Nfr: Nfr,
+  nfr: nfr,
+  ngE: ngE,
+  nge: nge,
+  ngeq: ngeq,
+  ngeqq: ngeqq,
+  ngeqslant: ngeqslant,
+  nges: nges,
+  nGg: nGg,
+  ngsim: ngsim,
+  nGt: nGt,
+  ngt: ngt,
+  ngtr: ngtr,
+  nGtv: nGtv,
+  nharr: nharr,
+  nhArr: nhArr,
+  nhpar: nhpar,
+  ni: ni,
+  nis: nis,
+  nisd: nisd,
+  niv: niv,
+  NJcy: NJcy,
+  njcy: njcy,
+  nlarr: nlarr,
+  nlArr: nlArr,
+  nldr: nldr,
+  nlE: nlE,
+  nle: nle,
+  nleftarrow: nleftarrow,
+  nLeftarrow: nLeftarrow,
+  nleftrightarrow: nleftrightarrow,
+  nLeftrightarrow: nLeftrightarrow,
+  nleq: nleq,
+  nleqq: nleqq,
+  nleqslant: nleqslant,
+  nles: nles,
+  nless: nless,
+  nLl: nLl,
+  nlsim: nlsim,
+  nLt: nLt,
+  nlt: nlt,
+  nltri: nltri,
+  nltrie: nltrie,
+  nLtv: nLtv,
+  nmid: nmid,
+  NoBreak: NoBreak,
+  NonBreakingSpace: NonBreakingSpace,
+  nopf: nopf,
+  Nopf: Nopf,
+  Not: Not,
+  not: not,
+  NotCongruent: NotCongruent,
+  NotCupCap: NotCupCap,
+  NotDoubleVerticalBar: NotDoubleVerticalBar,
+  NotElement: NotElement,
+  NotEqual: NotEqual,
+  NotEqualTilde: NotEqualTilde,
+  NotExists: NotExists,
+  NotGreater: NotGreater,
+  NotGreaterEqual: NotGreaterEqual,
+  NotGreaterFullEqual: NotGreaterFullEqual,
+  NotGreaterGreater: NotGreaterGreater,
+  NotGreaterLess: NotGreaterLess,
+  NotGreaterSlantEqual: NotGreaterSlantEqual,
+  NotGreaterTilde: NotGreaterTilde,
+  NotHumpDownHump: NotHumpDownHump,
+  NotHumpEqual: NotHumpEqual,
+  notin: notin,
+  notindot: notindot,
+  notinE: notinE,
+  notinva: notinva,
+  notinvb: notinvb,
+  notinvc: notinvc,
+  NotLeftTriangleBar: NotLeftTriangleBar,
+  NotLeftTriangle: NotLeftTriangle,
+  NotLeftTriangleEqual: NotLeftTriangleEqual,
+  NotLess: NotLess,
+  NotLessEqual: NotLessEqual,
+  NotLessGreater: NotLessGreater,
+  NotLessLess: NotLessLess,
+  NotLessSlantEqual: NotLessSlantEqual,
+  NotLessTilde: NotLessTilde,
+  NotNestedGreaterGreater: NotNestedGreaterGreater,
+  NotNestedLessLess: NotNestedLessLess,
+  notni: notni,
+  notniva: notniva,
+  notnivb: notnivb,
+  notnivc: notnivc,
+  NotPrecedes: NotPrecedes,
+  NotPrecedesEqual: NotPrecedesEqual,
+  NotPrecedesSlantEqual: NotPrecedesSlantEqual,
+  NotReverseElement: NotReverseElement,
+  NotRightTriangleBar: NotRightTriangleBar,
+  NotRightTriangle: NotRightTriangle,
+  NotRightTriangleEqual: NotRightTriangleEqual,
+  NotSquareSubset: NotSquareSubset,
+  NotSquareSubsetEqual: NotSquareSubsetEqual,
+  NotSquareSuperset: NotSquareSuperset,
+  NotSquareSupersetEqual: NotSquareSupersetEqual,
+  NotSubset: NotSubset,
+  NotSubsetEqual: NotSubsetEqual,
+  NotSucceeds: NotSucceeds,
+  NotSucceedsEqual: NotSucceedsEqual,
+  NotSucceedsSlantEqual: NotSucceedsSlantEqual,
+  NotSucceedsTilde: NotSucceedsTilde,
+  NotSuperset: NotSuperset,
+  NotSupersetEqual: NotSupersetEqual,
+  NotTilde: NotTilde,
+  NotTildeEqual: NotTildeEqual,
+  NotTildeFullEqual: NotTildeFullEqual,
+  NotTildeTilde: NotTildeTilde,
+  NotVerticalBar: NotVerticalBar,
+  nparallel: nparallel,
+  npar: npar,
+  nparsl: nparsl,
+  npart: npart,
+  npolint: npolint,
+  npr: npr,
+  nprcue: nprcue,
+  nprec: nprec,
+  npreceq: npreceq,
+  npre: npre,
+  nrarrc: nrarrc,
+  nrarr: nrarr,
+  nrArr: nrArr,
+  nrarrw: nrarrw,
+  nrightarrow: nrightarrow,
+  nRightarrow: nRightarrow,
+  nrtri: nrtri,
+  nrtrie: nrtrie,
+  nsc: nsc,
+  nsccue: nsccue,
+  nsce: nsce,
+  Nscr: Nscr,
+  nscr: nscr,
+  nshortmid: nshortmid,
+  nshortparallel: nshortparallel,
+  nsim: nsim,
+  nsime: nsime,
+  nsimeq: nsimeq,
+  nsmid: nsmid,
+  nspar: nspar,
+  nsqsube: nsqsube,
+  nsqsupe: nsqsupe,
+  nsub: nsub,
+  nsubE: nsubE,
+  nsube: nsube,
+  nsubset: nsubset,
+  nsubseteq: nsubseteq,
+  nsubseteqq: nsubseteqq,
+  nsucc: nsucc,
+  nsucceq: nsucceq,
+  nsup: nsup,
+  nsupE: nsupE,
+  nsupe: nsupe,
+  nsupset: nsupset,
+  nsupseteq: nsupseteq,
+  nsupseteqq: nsupseteqq,
+  ntgl: ntgl,
+  Ntilde: Ntilde,
+  ntilde: ntilde,
+  ntlg: ntlg,
+  ntriangleleft: ntriangleleft,
+  ntrianglelefteq: ntrianglelefteq,
+  ntriangleright: ntriangleright,
+  ntrianglerighteq: ntrianglerighteq,
+  Nu: Nu,
+  nu: nu,
+  num: num,
+  numero: numero,
+  numsp: numsp,
+  nvap: nvap,
+  nvdash: nvdash,
+  nvDash: nvDash,
+  nVdash: nVdash,
+  nVDash: nVDash,
+  nvge: nvge,
+  nvgt: nvgt,
+  nvHarr: nvHarr,
+  nvinfin: nvinfin,
+  nvlArr: nvlArr,
+  nvle: nvle,
+  nvlt: nvlt,
+  nvltrie: nvltrie,
+  nvrArr: nvrArr,
+  nvrtrie: nvrtrie,
+  nvsim: nvsim,
+  nwarhk: nwarhk,
+  nwarr: nwarr,
+  nwArr: nwArr,
+  nwarrow: nwarrow,
+  nwnear: nwnear,
+  Oacute: Oacute,
+  oacute: oacute,
+  oast: oast,
+  Ocirc: Ocirc,
+  ocirc: ocirc,
+  ocir: ocir,
+  Ocy: Ocy,
+  ocy: ocy,
+  odash: odash,
+  Odblac: Odblac,
+  odblac: odblac,
+  odiv: odiv,
+  odot: odot,
+  odsold: odsold,
+  OElig: OElig,
+  oelig: oelig,
+  ofcir: ofcir,
+  Ofr: Ofr,
+  ofr: ofr,
+  ogon: ogon,
+  Ograve: Ograve,
+  ograve: ograve,
+  ogt: ogt,
+  ohbar: ohbar,
+  ohm: ohm,
+  oint: oint,
+  olarr: olarr,
+  olcir: olcir,
+  olcross: olcross,
+  oline: oline,
+  olt: olt,
+  Omacr: Omacr,
+  omacr: omacr,
+  Omega: Omega,
+  omega: omega,
+  Omicron: Omicron,
+  omicron: omicron,
+  omid: omid,
+  ominus: ominus,
+  Oopf: Oopf,
+  oopf: oopf,
+  opar: opar,
+  OpenCurlyDoubleQuote: OpenCurlyDoubleQuote,
+  OpenCurlyQuote: OpenCurlyQuote,
+  operp: operp,
+  oplus: oplus,
+  orarr: orarr,
+  Or: Or,
+  or: or,
+  ord: ord,
+  order: order,
+  orderof: orderof,
+  ordf: ordf,
+  ordm: ordm,
+  origof: origof,
+  oror: oror,
+  orslope: orslope,
+  orv: orv,
+  oS: oS,
+  Oscr: Oscr,
+  oscr: oscr,
+  Oslash: Oslash,
+  oslash: oslash,
+  osol: osol,
+  Otilde: Otilde,
+  otilde: otilde,
+  otimesas: otimesas,
+  Otimes: Otimes,
+  otimes: otimes,
+  Ouml: Ouml,
+  ouml: ouml,
+  ovbar: ovbar,
+  OverBar: OverBar,
+  OverBrace: OverBrace,
+  OverBracket: OverBracket,
+  OverParenthesis: OverParenthesis,
+  para: para,
+  parallel: parallel,
+  par: par,
+  parsim: parsim,
+  parsl: parsl,
+  part: part,
+  PartialD: PartialD,
+  Pcy: Pcy,
+  pcy: pcy,
+  percnt: percnt,
+  period: period,
+  permil: permil,
+  perp: perp,
+  pertenk: pertenk,
+  Pfr: Pfr,
+  pfr: pfr,
+  Phi: Phi,
+  phi: phi,
+  phiv: phiv,
+  phmmat: phmmat,
+  phone: phone,
+  Pi: Pi,
+  pi: pi,
+  pitchfork: pitchfork,
+  piv: piv,
+  planck: planck,
+  planckh: planckh,
+  plankv: plankv,
+  plusacir: plusacir,
+  plusb: plusb,
+  pluscir: pluscir,
+  plus: plus,
+  plusdo: plusdo,
+  plusdu: plusdu,
+  pluse: pluse,
+  PlusMinus: PlusMinus,
+  plusmn: plusmn,
+  plussim: plussim,
+  plustwo: plustwo,
+  pm: pm,
+  Poincareplane: Poincareplane,
+  pointint: pointint,
+  popf: popf,
+  Popf: Popf,
+  pound: pound,
+  prap: prap,
+  Pr: Pr,
+  pr: pr,
+  prcue: prcue,
+  precapprox: precapprox,
+  prec: prec,
+  preccurlyeq: preccurlyeq,
+  Precedes: Precedes,
+  PrecedesEqual: PrecedesEqual,
+  PrecedesSlantEqual: PrecedesSlantEqual,
+  PrecedesTilde: PrecedesTilde,
+  preceq: preceq,
+  precnapprox: precnapprox,
+  precneqq: precneqq,
+  precnsim: precnsim,
+  pre: pre,
+  prE: prE,
+  precsim: precsim,
+  prime: prime,
+  Prime: Prime,
+  primes: primes,
+  prnap: prnap,
+  prnE: prnE,
+  prnsim: prnsim,
+  prod: prod,
+  Product: Product,
+  profalar: profalar,
+  profline: profline,
+  profsurf: profsurf,
+  prop: prop,
+  Proportional: Proportional,
+  Proportion: Proportion,
+  propto: propto,
+  prsim: prsim,
+  prurel: prurel,
+  Pscr: Pscr,
+  pscr: pscr,
+  Psi: Psi,
+  psi: psi,
+  puncsp: puncsp,
+  Qfr: Qfr,
+  qfr: qfr,
+  qint: qint,
+  qopf: qopf,
+  Qopf: Qopf,
+  qprime: qprime,
+  Qscr: Qscr,
+  qscr: qscr,
+  quaternions: quaternions,
+  quatint: quatint,
+  quest: quest,
+  questeq: questeq,
+  quot: quot,
+  QUOT: QUOT,
+  rAarr: rAarr,
+  race: race,
+  Racute: Racute,
+  racute: racute,
+  radic: radic,
+  raemptyv: raemptyv,
+  rang: rang,
+  Rang: Rang,
+  rangd: rangd,
+  range: range,
+  rangle: rangle,
+  raquo: raquo,
+  rarrap: rarrap,
+  rarrb: rarrb,
+  rarrbfs: rarrbfs,
+  rarrc: rarrc,
+  rarr: rarr,
+  Rarr: Rarr,
+  rArr: rArr,
+  rarrfs: rarrfs,
+  rarrhk: rarrhk,
+  rarrlp: rarrlp,
+  rarrpl: rarrpl,
+  rarrsim: rarrsim,
+  Rarrtl: Rarrtl,
+  rarrtl: rarrtl,
+  rarrw: rarrw,
+  ratail: ratail,
+  rAtail: rAtail,
+  ratio: ratio,
+  rationals: rationals,
+  rbarr: rbarr,
+  rBarr: rBarr,
+  RBarr: RBarr,
+  rbbrk: rbbrk,
+  rbrace: rbrace,
+  rbrack: rbrack,
+  rbrke: rbrke,
+  rbrksld: rbrksld,
+  rbrkslu: rbrkslu,
+  Rcaron: Rcaron,
+  rcaron: rcaron,
+  Rcedil: Rcedil,
+  rcedil: rcedil,
+  rceil: rceil,
+  rcub: rcub,
+  Rcy: Rcy,
+  rcy: rcy,
+  rdca: rdca,
+  rdldhar: rdldhar,
+  rdquo: rdquo,
+  rdquor: rdquor,
+  rdsh: rdsh,
+  real: real,
+  realine: realine,
+  realpart: realpart,
+  reals: reals,
+  Re: Re,
+  rect: rect,
+  reg: reg,
+  REG: REG,
+  ReverseElement: ReverseElement,
+  ReverseEquilibrium: ReverseEquilibrium,
+  ReverseUpEquilibrium: ReverseUpEquilibrium,
+  rfisht: rfisht,
+  rfloor: rfloor,
+  rfr: rfr,
+  Rfr: Rfr,
+  rHar: rHar,
+  rhard: rhard,
+  rharu: rharu,
+  rharul: rharul,
+  Rho: Rho,
+  rho: rho,
+  rhov: rhov,
+  RightAngleBracket: RightAngleBracket,
+  RightArrowBar: RightArrowBar,
+  rightarrow: rightarrow,
+  RightArrow: RightArrow,
+  Rightarrow: Rightarrow,
+  RightArrowLeftArrow: RightArrowLeftArrow,
+  rightarrowtail: rightarrowtail,
+  RightCeiling: RightCeiling,
+  RightDoubleBracket: RightDoubleBracket,
+  RightDownTeeVector: RightDownTeeVector,
+  RightDownVectorBar: RightDownVectorBar,
+  RightDownVector: RightDownVector,
+  RightFloor: RightFloor,
+  rightharpoondown: rightharpoondown,
+  rightharpoonup: rightharpoonup,
+  rightleftarrows: rightleftarrows,
+  rightleftharpoons: rightleftharpoons,
+  rightrightarrows: rightrightarrows,
+  rightsquigarrow: rightsquigarrow,
+  RightTeeArrow: RightTeeArrow,
+  RightTee: RightTee,
+  RightTeeVector: RightTeeVector,
+  rightthreetimes: rightthreetimes,
+  RightTriangleBar: RightTriangleBar,
+  RightTriangle: RightTriangle,
+  RightTriangleEqual: RightTriangleEqual,
+  RightUpDownVector: RightUpDownVector,
+  RightUpTeeVector: RightUpTeeVector,
+  RightUpVectorBar: RightUpVectorBar,
+  RightUpVector: RightUpVector,
+  RightVectorBar: RightVectorBar,
+  RightVector: RightVector,
+  ring: ring,
+  risingdotseq: risingdotseq,
+  rlarr: rlarr,
+  rlhar: rlhar,
+  rlm: rlm,
+  rmoustache: rmoustache,
+  rmoust: rmoust,
+  rnmid: rnmid,
+  roang: roang,
+  roarr: roarr,
+  robrk: robrk,
+  ropar: ropar,
+  ropf: ropf,
+  Ropf: Ropf,
+  roplus: roplus,
+  rotimes: rotimes,
+  RoundImplies: RoundImplies,
+  rpar: rpar,
+  rpargt: rpargt,
+  rppolint: rppolint,
+  rrarr: rrarr,
+  Rrightarrow: Rrightarrow,
+  rsaquo: rsaquo,
+  rscr: rscr,
+  Rscr: Rscr,
+  rsh: rsh,
+  Rsh: Rsh,
+  rsqb: rsqb,
+  rsquo: rsquo,
+  rsquor: rsquor,
+  rthree: rthree,
+  rtimes: rtimes,
+  rtri: rtri,
+  rtrie: rtrie,
+  rtrif: rtrif,
+  rtriltri: rtriltri,
+  RuleDelayed: RuleDelayed,
+  ruluhar: ruluhar,
+  rx: rx,
+  Sacute: Sacute,
+  sacute: sacute,
+  sbquo: sbquo,
+  scap: scap,
+  Scaron: Scaron,
+  scaron: scaron,
+  Sc: Sc,
+  sc: sc,
+  sccue: sccue,
+  sce: sce,
+  scE: scE,
+  Scedil: Scedil,
+  scedil: scedil,
+  Scirc: Scirc,
+  scirc: scirc,
+  scnap: scnap,
+  scnE: scnE,
+  scnsim: scnsim,
+  scpolint: scpolint,
+  scsim: scsim,
+  Scy: Scy,
+  scy: scy,
+  sdotb: sdotb,
+  sdot: sdot,
+  sdote: sdote,
+  searhk: searhk,
+  searr: searr,
+  seArr: seArr,
+  searrow: searrow,
+  sect: sect,
+  semi: semi,
+  seswar: seswar,
+  setminus: setminus,
+  setmn: setmn,
+  sext: sext,
+  Sfr: Sfr,
+  sfr: sfr,
+  sfrown: sfrown,
+  sharp: sharp,
+  SHCHcy: SHCHcy,
+  shchcy: shchcy,
+  SHcy: SHcy,
+  shcy: shcy,
+  ShortDownArrow: ShortDownArrow,
+  ShortLeftArrow: ShortLeftArrow,
+  shortmid: shortmid,
+  shortparallel: shortparallel,
+  ShortRightArrow: ShortRightArrow,
+  ShortUpArrow: ShortUpArrow,
+  shy: shy,
+  Sigma: Sigma,
+  sigma: sigma,
+  sigmaf: sigmaf,
+  sigmav: sigmav,
+  sim: sim,
+  simdot: simdot,
+  sime: sime,
+  simeq: simeq,
+  simg: simg,
+  simgE: simgE,
+  siml: siml,
+  simlE: simlE,
+  simne: simne,
+  simplus: simplus,
+  simrarr: simrarr,
+  slarr: slarr,
+  SmallCircle: SmallCircle,
+  smallsetminus: smallsetminus,
+  smashp: smashp,
+  smeparsl: smeparsl,
+  smid: smid,
+  smile: smile,
+  smt: smt,
+  smte: smte,
+  smtes: smtes,
+  SOFTcy: SOFTcy,
+  softcy: softcy,
+  solbar: solbar,
+  solb: solb,
+  sol: sol,
+  Sopf: Sopf,
+  sopf: sopf,
+  spades: spades,
+  spadesuit: spadesuit,
+  spar: spar,
+  sqcap: sqcap,
+  sqcaps: sqcaps,
+  sqcup: sqcup,
+  sqcups: sqcups,
+  Sqrt: Sqrt,
+  sqsub: sqsub,
+  sqsube: sqsube,
+  sqsubset: sqsubset,
+  sqsubseteq: sqsubseteq,
+  sqsup: sqsup,
+  sqsupe: sqsupe,
+  sqsupset: sqsupset,
+  sqsupseteq: sqsupseteq,
+  square: square,
+  Square: Square,
+  SquareIntersection: SquareIntersection,
+  SquareSubset: SquareSubset,
+  SquareSubsetEqual: SquareSubsetEqual,
+  SquareSuperset: SquareSuperset,
+  SquareSupersetEqual: SquareSupersetEqual,
+  SquareUnion: SquareUnion,
+  squarf: squarf,
+  squ: squ,
+  squf: squf,
+  srarr: srarr,
+  Sscr: Sscr,
+  sscr: sscr,
+  ssetmn: ssetmn,
+  ssmile: ssmile,
+  sstarf: sstarf,
+  Star: Star,
+  star: star,
+  starf: starf,
+  straightepsilon: straightepsilon,
+  straightphi: straightphi,
+  strns: strns,
+  sub: sub,
+  Sub: Sub,
+  subdot: subdot,
+  subE: subE,
+  sube: sube,
+  subedot: subedot,
+  submult: submult,
+  subnE: subnE,
+  subne: subne,
+  subplus: subplus,
+  subrarr: subrarr,
+  subset: subset,
+  Subset: Subset,
+  subseteq: subseteq,
+  subseteqq: subseteqq,
+  SubsetEqual: SubsetEqual,
+  subsetneq: subsetneq,
+  subsetneqq: subsetneqq,
+  subsim: subsim,
+  subsub: subsub,
+  subsup: subsup,
+  succapprox: succapprox,
+  succ: succ,
+  succcurlyeq: succcurlyeq,
+  Succeeds: Succeeds,
+  SucceedsEqual: SucceedsEqual,
+  SucceedsSlantEqual: SucceedsSlantEqual,
+  SucceedsTilde: SucceedsTilde,
+  succeq: succeq,
+  succnapprox: succnapprox,
+  succneqq: succneqq,
+  succnsim: succnsim,
+  succsim: succsim,
+  SuchThat: SuchThat,
+  sum: sum,
+  Sum: Sum,
+  sung: sung,
+  sup1: sup1,
+  sup2: sup2,
+  sup3: sup3,
+  sup: sup,
+  Sup: Sup,
+  supdot: supdot,
+  supdsub: supdsub,
+  supE: supE,
+  supe: supe,
+  supedot: supedot,
+  Superset: Superset,
+  SupersetEqual: SupersetEqual,
+  suphsol: suphsol,
+  suphsub: suphsub,
+  suplarr: suplarr,
+  supmult: supmult,
+  supnE: supnE,
+  supne: supne,
+  supplus: supplus,
+  supset: supset,
+  Supset: Supset,
+  supseteq: supseteq,
+  supseteqq: supseteqq,
+  supsetneq: supsetneq,
+  supsetneqq: supsetneqq,
+  supsim: supsim,
+  supsub: supsub,
+  supsup: supsup,
+  swarhk: swarhk,
+  swarr: swarr,
+  swArr: swArr,
+  swarrow: swarrow,
+  swnwar: swnwar,
+  szlig: szlig,
+  Tab: Tab,
+  target: target,
+  Tau: Tau,
+  tau: tau,
+  tbrk: tbrk,
+  Tcaron: Tcaron,
+  tcaron: tcaron,
+  Tcedil: Tcedil,
+  tcedil: tcedil,
+  Tcy: Tcy,
+  tcy: tcy,
+  tdot: tdot,
+  telrec: telrec,
+  Tfr: Tfr,
+  tfr: tfr,
+  there4: there4,
+  therefore: therefore,
+  Therefore: Therefore,
+  Theta: Theta,
+  theta: theta,
+  thetasym: thetasym,
+  thetav: thetav,
+  thickapprox: thickapprox,
+  thicksim: thicksim,
+  ThickSpace: ThickSpace,
+  ThinSpace: ThinSpace,
+  thinsp: thinsp,
+  thkap: thkap,
+  thksim: thksim,
+  THORN: THORN,
+  thorn: thorn,
+  tilde: tilde,
+  Tilde: Tilde,
+  TildeEqual: TildeEqual,
+  TildeFullEqual: TildeFullEqual,
+  TildeTilde: TildeTilde,
+  timesbar: timesbar,
+  timesb: timesb,
+  times: times,
+  timesd: timesd,
+  tint: tint,
+  toea: toea,
+  topbot: topbot,
+  topcir: topcir,
+  top: top,
+  Topf: Topf,
+  topf: topf,
+  topfork: topfork,
+  tosa: tosa,
+  tprime: tprime,
+  trade: trade,
+  TRADE: TRADE,
+  triangle: triangle,
+  triangledown: triangledown,
+  triangleleft: triangleleft,
+  trianglelefteq: trianglelefteq,
+  triangleq: triangleq,
+  triangleright: triangleright,
+  trianglerighteq: trianglerighteq,
+  tridot: tridot,
+  trie: trie,
+  triminus: triminus,
+  TripleDot: TripleDot,
+  triplus: triplus,
+  trisb: trisb,
+  tritime: tritime,
+  trpezium: trpezium,
+  Tscr: Tscr,
+  tscr: tscr,
+  TScy: TScy,
+  tscy: tscy,
+  TSHcy: TSHcy,
+  tshcy: tshcy,
+  Tstrok: Tstrok,
+  tstrok: tstrok,
+  twixt: twixt,
+  twoheadleftarrow: twoheadleftarrow,
+  twoheadrightarrow: twoheadrightarrow,
+  Uacute: Uacute,
+  uacute: uacute,
+  uarr: uarr,
+  Uarr: Uarr,
+  uArr: uArr,
+  Uarrocir: Uarrocir,
+  Ubrcy: Ubrcy,
+  ubrcy: ubrcy,
+  Ubreve: Ubreve,
+  ubreve: ubreve,
+  Ucirc: Ucirc,
+  ucirc: ucirc,
+  Ucy: Ucy,
+  ucy: ucy,
+  udarr: udarr,
+  Udblac: Udblac,
+  udblac: udblac,
+  udhar: udhar,
+  ufisht: ufisht,
+  Ufr: Ufr,
+  ufr: ufr,
+  Ugrave: Ugrave,
+  ugrave: ugrave,
+  uHar: uHar,
+  uharl: uharl,
+  uharr: uharr,
+  uhblk: uhblk,
+  ulcorn: ulcorn,
+  ulcorner: ulcorner,
+  ulcrop: ulcrop,
+  ultri: ultri,
+  Umacr: Umacr,
+  umacr: umacr,
+  uml: uml,
+  UnderBar: UnderBar,
+  UnderBrace: UnderBrace,
+  UnderBracket: UnderBracket,
+  UnderParenthesis: UnderParenthesis,
+  Union: Union,
+  UnionPlus: UnionPlus,
+  Uogon: Uogon,
+  uogon: uogon,
+  Uopf: Uopf,
+  uopf: uopf,
+  UpArrowBar: UpArrowBar,
+  uparrow: uparrow,
+  UpArrow: UpArrow,
+  Uparrow: Uparrow,
+  UpArrowDownArrow: UpArrowDownArrow,
+  updownarrow: updownarrow,
+  UpDownArrow: UpDownArrow,
+  Updownarrow: Updownarrow,
+  UpEquilibrium: UpEquilibrium,
+  upharpoonleft: upharpoonleft,
+  upharpoonright: upharpoonright,
+  uplus: uplus,
+  UpperLeftArrow: UpperLeftArrow,
+  UpperRightArrow: UpperRightArrow,
+  upsi: upsi,
+  Upsi: Upsi,
+  upsih: upsih,
+  Upsilon: Upsilon,
+  upsilon: upsilon,
+  UpTeeArrow: UpTeeArrow,
+  UpTee: UpTee,
+  upuparrows: upuparrows,
+  urcorn: urcorn,
+  urcorner: urcorner,
+  urcrop: urcrop,
+  Uring: Uring,
+  uring: uring,
+  urtri: urtri,
+  Uscr: Uscr,
+  uscr: uscr,
+  utdot: utdot,
+  Utilde: Utilde,
+  utilde: utilde,
+  utri: utri,
+  utrif: utrif,
+  uuarr: uuarr,
+  Uuml: Uuml,
+  uuml: uuml,
+  uwangle: uwangle,
+  vangrt: vangrt,
+  varepsilon: varepsilon,
+  varkappa: varkappa,
+  varnothing: varnothing,
+  varphi: varphi,
+  varpi: varpi,
+  varpropto: varpropto,
+  varr: varr,
+  vArr: vArr,
+  varrho: varrho,
+  varsigma: varsigma,
+  varsubsetneq: varsubsetneq,
+  varsubsetneqq: varsubsetneqq,
+  varsupsetneq: varsupsetneq,
+  varsupsetneqq: varsupsetneqq,
+  vartheta: vartheta,
+  vartriangleleft: vartriangleleft,
+  vartriangleright: vartriangleright,
+  vBar: vBar,
+  Vbar: Vbar,
+  vBarv: vBarv,
+  Vcy: Vcy,
+  vcy: vcy,
+  vdash: vdash,
+  vDash: vDash,
+  Vdash: Vdash,
+  VDash: VDash,
+  Vdashl: Vdashl,
+  veebar: veebar,
+  vee: vee,
+  Vee: Vee,
+  veeeq: veeeq,
+  vellip: vellip,
+  verbar: verbar,
+  Verbar: Verbar,
+  vert: vert,
+  Vert: Vert,
+  VerticalBar: VerticalBar,
+  VerticalLine: VerticalLine,
+  VerticalSeparator: VerticalSeparator,
+  VerticalTilde: VerticalTilde,
+  VeryThinSpace: VeryThinSpace,
+  Vfr: Vfr,
+  vfr: vfr,
+  vltri: vltri,
+  vnsub: vnsub,
+  vnsup: vnsup,
+  Vopf: Vopf,
+  vopf: vopf,
+  vprop: vprop,
+  vrtri: vrtri,
+  Vscr: Vscr,
+  vscr: vscr,
+  vsubnE: vsubnE,
+  vsubne: vsubne,
+  vsupnE: vsupnE,
+  vsupne: vsupne,
+  Vvdash: Vvdash,
+  vzigzag: vzigzag,
+  Wcirc: Wcirc,
+  wcirc: wcirc,
+  wedbar: wedbar,
+  wedge: wedge,
+  Wedge: Wedge,
+  wedgeq: wedgeq,
+  weierp: weierp,
+  Wfr: Wfr,
+  wfr: wfr,
+  Wopf: Wopf,
+  wopf: wopf,
+  wp: wp,
+  wr: wr,
+  wreath: wreath,
+  Wscr: Wscr,
+  wscr: wscr,
+  xcap: xcap,
+  xcirc: xcirc,
+  xcup: xcup,
+  xdtri: xdtri,
+  Xfr: Xfr,
+  xfr: xfr,
+  xharr: xharr,
+  xhArr: xhArr,
+  Xi: Xi,
+  xi: xi,
+  xlarr: xlarr,
+  xlArr: xlArr,
+  xmap: xmap,
+  xnis: xnis,
+  xodot: xodot,
+  Xopf: Xopf,
+  xopf: xopf,
+  xoplus: xoplus,
+  xotime: xotime,
+  xrarr: xrarr,
+  xrArr: xrArr,
+  Xscr: Xscr,
+  xscr: xscr,
+  xsqcup: xsqcup,
+  xuplus: xuplus,
+  xutri: xutri,
+  xvee: xvee,
+  xwedge: xwedge,
+  Yacute: Yacute,
+  yacute: yacute,
+  YAcy: YAcy,
+  yacy: yacy,
+  Ycirc: Ycirc,
+  ycirc: ycirc,
+  Ycy: Ycy,
+  ycy: ycy,
+  yen: yen,
+  Yfr: Yfr,
+  yfr: yfr,
+  YIcy: YIcy,
+  yicy: yicy,
+  Yopf: Yopf,
+  yopf: yopf,
+  Yscr: Yscr,
+  yscr: yscr,
+  YUcy: YUcy,
+  yucy: yucy,
+  yuml: yuml,
+  Yuml: Yuml,
+  Zacute: Zacute,
+  zacute: zacute,
+  Zcaron: Zcaron,
+  zcaron: zcaron,
+  Zcy: Zcy,
+  zcy: zcy,
+  Zdot: Zdot,
+  zdot: zdot,
+  zeetrf: zeetrf,
+  ZeroWidthSpace: ZeroWidthSpace,
+  Zeta: Zeta,
+  zeta: zeta,
+  zfr: zfr,
+  Zfr: Zfr,
+  ZHcy: ZHcy,
+  zhcy: zhcy,
+  zigrarr: zigrarr,
+  zopf: zopf,
+  Zopf: Zopf,
+  Zscr: Zscr,
+  zscr: zscr,
+  zwj: zwj,
+  zwnj: zwnj
 };
-
 /*eslint quotes:0*/
 
-
 var entities = require$$0;
-
 var regex = /[!-#%-\*,-\/:;\?@\[-\]_\{\}\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u09FD\u0A76\u0AF0\u0C84\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E4E\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]|\uD800[\uDD00-\uDD02\uDF9F\uDFD0]|\uD801\uDD6F|\uD802[\uDC57\uDD1F\uDD3F\uDE50-\uDE58\uDE7F\uDEF0-\uDEF6\uDF39-\uDF3F\uDF99-\uDF9C]|\uD803[\uDF55-\uDF59]|\uD804[\uDC47-\uDC4D\uDCBB\uDCBC\uDCBE-\uDCC1\uDD40-\uDD43\uDD74\uDD75\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDDF\uDE38-\uDE3D\uDEA9]|\uD805[\uDC4B-\uDC4F\uDC5B\uDC5D\uDCC6\uDDC1-\uDDD7\uDE41-\uDE43\uDE60-\uDE6C\uDF3C-\uDF3E]|\uD806[\uDC3B\uDE3F-\uDE46\uDE9A-\uDE9C\uDE9E-\uDEA2]|\uD807[\uDC41-\uDC45\uDC70\uDC71\uDEF7\uDEF8]|\uD809[\uDC70-\uDC74]|\uD81A[\uDE6E\uDE6F\uDEF5\uDF37-\uDF3B\uDF44]|\uD81B[\uDE97-\uDE9A]|\uD82F\uDC9F|\uD836[\uDE87-\uDE8B]|\uD83A[\uDD5E\uDD5F]/;
-
 var encodeCache = {}; // Create a lookup array where anything but characters in `chars` string
 // and alphanumeric chars is percent-encoded.
 //
@@ -25288,7 +27511,6 @@ function encode(string, exclude, keepEscaped) {
 encode.defaultChars = ";/?:@&=+$,-_.!~*'()#";
 encode.componentChars = "-_.!~*'()";
 var encode_1 = encode;
-
 /* eslint-disable no-bitwise */
 
 var decodeCache = {};
@@ -25353,7 +27575,7 @@ function decode(string, exclude) {
           chr = b1 << 6 & 0x7C0 | b2 & 0x3F;
 
           if (chr < 0x80) {
-            result += '\ufffd\ufffd';
+            result += "\uFFFD\uFFFD";
           } else {
             result += String.fromCharCode(chr);
           }
@@ -25372,7 +27594,7 @@ function decode(string, exclude) {
           chr = b1 << 12 & 0xF000 | b2 << 6 & 0xFC0 | b3 & 0x3F;
 
           if (chr < 0x800 || chr >= 0xD800 && chr <= 0xDFFF) {
-            result += '\ufffd\ufffd\ufffd';
+            result += "\uFFFD\uFFFD\uFFFD";
           } else {
             result += String.fromCharCode(chr);
           }
@@ -25392,7 +27614,7 @@ function decode(string, exclude) {
           chr = b1 << 18 & 0x1C0000 | b2 << 12 & 0x3F000 | b3 << 6 & 0xFC0 | b4 & 0x3F;
 
           if (chr < 0x10000 || chr > 0x10FFFF) {
-            result += '\ufffd\ufffd\ufffd\ufffd';
+            result += "\uFFFD\uFFFD\uFFFD\uFFFD";
           } else {
             chr -= 0x10000;
             result += String.fromCharCode(0xD800 + (chr >> 10), 0xDC00 + (chr & 0x3FF));
@@ -25403,7 +27625,7 @@ function decode(string, exclude) {
         }
       }
 
-      result += '\ufffd';
+      result += "\uFFFD";
     }
 
     return result;
@@ -25432,9 +27654,7 @@ var format = function format(url) {
   result += url.search || '';
   result += url.hash || '';
   return result;
-};
-
-// Copyright Joyent, Inc. and other Node contributors.
+}; // Copyright Joyent, Inc. and other Node contributors.
 // Changes from joyent/node:
 //
 // 1. No leading slash in paths,
@@ -25454,6 +27674,7 @@ var format = function format(url) {
 // 6. Removed extraneous result properties: `host`, `path`, `query`, etc.,
 //    which can be constructed using other parts of the url.
 //
+
 
 function Url() {
   this.protocol = null;
@@ -25750,7 +27971,6 @@ Url.prototype.parseHost = function (host) {
 };
 
 var parse = urlParse;
-
 var encode$1 = encode_1;
 var decode$1 = decode_1;
 var format$1 = format;
@@ -25761,15 +27981,10 @@ var mdurl = {
   format: format$1,
   parse: parse$1
 };
-
 var regex$1 = /[\0-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
-
 var regex$2 = /[\0-\x1F\x7F-\x9F]/;
-
 var regex$3 = /[\xAD\u0600-\u0605\u061C\u06DD\u070F\u08E2\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]|\uD804[\uDCBD\uDCCD]|\uD82F[\uDCA0-\uDCA3]|\uD834[\uDD73-\uDD7A]|\uDB40[\uDC01\uDC20-\uDC7F]/;
-
 var regex$4 = /[ \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
-
 var Any = regex$1;
 var Cc = regex$2;
 var Cf = regex$3;
@@ -25782,9 +27997,7 @@ var uc_micro = {
   P: P,
   Z: Z
 };
-
 var utils$2 = createCommonjsModule(function (module, exports) {
-
   function _class(obj) {
     return Object.prototype.toString.call(obj);
   }
@@ -25810,7 +28023,7 @@ var utils$2 = createCommonjsModule(function (module, exports) {
         return;
       }
 
-      if (typeof source !== 'object') {
+      if (_typeof2(source) !== 'object') {
         throw new TypeError(source + 'must be object');
       }
 
@@ -26198,9 +28411,7 @@ var utils$2 = createCommonjsModule(function (module, exports) {
   exports.isPunctChar = isPunctChar;
   exports.escapeRE = escapeRE;
   exports.normalizeReference = normalizeReference;
-});
-
-// Parse link label
+}); // Parse link label
 
 var parse_link_label = function parseLinkLabel(state, start, disableNested) {
   var level,
@@ -26430,7 +28641,6 @@ var helpers = {
   parseLinkDestination: parseLinkDestination,
   parseLinkTitle: parseLinkTitle
 };
-
 var assign = utils$2.assign;
 var unescapeAll$2 = utils$2.unescapeAll;
 var escapeHtml = utils$2.escapeHtml; ////////////////////////////////////////////////////////////////////////////////
@@ -26743,7 +28953,6 @@ Renderer.prototype.render = function (tokens, options, env) {
 };
 
 var renderer = Renderer;
-
 /**
  * class Ruler
  *
@@ -26761,6 +28970,7 @@ var renderer = Renderer;
  * rules control use [[MarkdownIt.disable]], [[MarkdownIt.enable]] and
  * [[MarkdownIt.use]].
  **/
+
 /**
  * new Ruler()
  **/
@@ -27117,9 +29327,7 @@ Ruler.prototype.getRules = function (chainName) {
   return this.__cache__[chainName] || [];
 };
 
-var ruler = Ruler;
-
-// Normalize input string
+var ruler = Ruler; // Normalize input string
 
 var NEWLINES_RE = /\r\n?|\n/g;
 var NULL_RE = /\0/g;
@@ -27129,7 +29337,7 @@ var normalize = function normalize(state) {
 
   str = state.src.replace(NEWLINES_RE, '\n'); // Replace NULL characters
 
-  str = str.replace(NULL_RE, '\uFFFD');
+  str = str.replace(NULL_RE, "\uFFFD");
   state.src = str;
 };
 
@@ -27301,11 +29509,10 @@ var linkify = function linkify(state) {
       }
     }
   }
-};
-
-// Simple typographic replacements
+}; // Simple typographic replacements
 // - fractionals 1/2, 1/4, 3/4 -> ½, ¼, ¾
 // - miltiplication 2 x 4 -> 2 × 4
+
 
 var RARE_RE = /\+-|\.\.|\?\?\?\?|!!!!|,,|--/; // Workaround for phantomjs - need regex without /g flag,
 // or root check will fail every second time
@@ -27358,8 +29565,8 @@ function replace_rare(inlineTokens) {
         token.content = token.content.replace(/\+-/g, '±') // .., ..., ....... -> …
         // but ?..... & !..... -> ?.. & !..
         .replace(/\.{2,}/g, '…').replace(/([?!])…/g, '$1..').replace(/([?!]){4,}/g, '$1$1$1').replace(/,{2,}/g, ',') // em-dash
-        .replace(/(^|[^-])---(?=[^-]|$)/mg, '$1\u2014') // en-dash
-        .replace(/(^|\s)--(?=\s|$)/mg, '$1\u2013').replace(/(^|[^-\s])--(?=[^-\s]|$)/mg, '$1\u2013');
+        .replace(/(^|[^-])---(?=[^-]|$)/mg, "$1\u2014") // en-dash
+        .replace(/(^|\s)--(?=\s|$)/mg, "$1\u2013").replace(/(^|[^-\s])--(?=[^-\s]|$)/mg, "$1\u2013");
       }
     }
 
@@ -27400,7 +29607,7 @@ var isPunctChar = utils$2.isPunctChar;
 var isMdAsciiPunct = utils$2.isMdAsciiPunct;
 var QUOTE_TEST_RE = /['"]/;
 var QUOTE_RE = /['"]/g;
-var APOSTROPHE = '\u2019';
+var APOSTROPHE = "\u2019";
 /* ’ */
 
 function replaceAt(str, index, ch) {
@@ -27600,9 +29807,8 @@ var smartquotes = function smartquotes(state) {
 
     process_inlines(state.tokens[blkIdx].children, state);
   }
-};
+}; // Token class
 
-// Token class
 /**
  * class Token
  **/
@@ -27612,6 +29818,7 @@ var smartquotes = function smartquotes(state) {
  *
  * Create new token and fill passed properties.
  **/
+
 
 function Token(type, tag, nesting) {
   /**
@@ -27815,7 +30022,6 @@ function StateCore(src, md, env) {
 
 StateCore.prototype.Token = token;
 var state_core = StateCore;
-
 var _rules = [['normalize', normalize], ['block', block$1], ['inline', inline], ['linkify', linkify], ['replacements', replacements], ['smartquotes', smartquotes]];
 /**
  * new Core()
@@ -27851,7 +30057,6 @@ Core.prototype.process = function (state) {
 
 Core.prototype.State = state_core;
 var parser_core = Core;
-
 var isSpace = utils$2.isSpace;
 
 function getLine(state, line) {
@@ -28094,9 +30299,8 @@ var table = function table(state, startLine, endLine, silent) {
   tableLines[1] = tbodyLines[1] = nextLine;
   state.line = nextLine;
   return true;
-};
+}; // Code block (4 spaces padded)
 
-// Code block (4 spaces padded)
 
 var code = function code(state, startLine, endLine
 /*, silent*/
@@ -28129,9 +30333,8 @@ var code = function code(state, startLine, endLine
   token.content = state.getLines(startLine, last, 4 + state.blkIndent, true);
   token.map = [startLine, state.line];
   return true;
-};
+}; // fences (``` lang, ~~~ lang)
 
-// fences (``` lang, ~~~ lang)
 
 var fence = function fence(state, startLine, endLine, silent) {
   var marker,
@@ -29099,7 +31302,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
 
     if (ch === 0x0A) {
       lines++;
-    } else if (isSpace$4(ch)) ; else {
+    } else if (isSpace$4(ch)) ;else {
       break;
     }
   } // [label]:   destination   'title'
@@ -29132,7 +31335,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
 
     if (ch === 0x0A) {
       lines++;
-    } else if (isSpace$4(ch)) ; else {
+    } else if (isSpace$4(ch)) ;else {
       break;
     }
   } // [label]:   destination   'title'
@@ -29277,9 +31480,8 @@ var heading = function heading(state, startLine, endLine, silent) {
   token = state.push('heading_close', 'h' + String(level), -1);
   token.markup = '########'.slice(0, level);
   return true;
-};
+}; // lheading (---, ===)
 
-// lheading (---, ===)
 
 var lheading = function lheading(state, startLine, endLine
 /*, silent*/
@@ -29378,13 +31580,10 @@ var lheading = function lheading(state, startLine, endLine
   token.markup = String.fromCharCode(marker);
   state.parentType = oldParentType;
   return true;
-};
+}; // List of valid html blocks names, accorting to commonmark spec
 
-// List of valid html blocks names, accorting to commonmark spec
 
-var html_blocks = ['address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup', 'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'meta', 'nav', 'noframes', 'ol', 'optgroup', 'option', 'p', 'param', 'section', 'source', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'track', 'ul'];
-
-// Regexps to match html elements
+var html_blocks = ['address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup', 'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'meta', 'nav', 'noframes', 'ol', 'optgroup', 'option', 'p', 'param', 'section', 'source', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'track', 'ul']; // Regexps to match html elements
 
 var attr_name = '[a-zA-Z_:][a-zA-Z0-9:._-]*';
 var unquoted = '[^"\'=<>`\\x00-\\x20]+';
@@ -29406,7 +31605,6 @@ var html_re = {
   HTML_TAG_RE: HTML_TAG_RE_1,
   HTML_OPEN_CLOSE_TAG_RE: HTML_OPEN_CLOSE_TAG_RE_1
 };
-
 var HTML_OPEN_CLOSE_TAG_RE$1 = html_re.HTML_OPEN_CLOSE_TAG_RE; // An array of opening and corresponding closing sequences for html tags,
 // last argument defines whether it can terminate a paragraph or not
 //
@@ -29480,9 +31678,8 @@ var html_block = function html_block(state, startLine, endLine, silent) {
   token.map = [startLine, nextLine];
   token.content = state.getLines(startLine, nextLine, state.blkIndent, true);
   return true;
-};
+}; // Paragraph
 
-// Paragraph
 
 var paragraph = function paragraph(state, startLine
 /*, endLine*/
@@ -29786,7 +31983,6 @@ StateBlock.prototype.getLines = function getLines(begin, end, indent, keepLastLF
 
 StateBlock.prototype.Token = token;
 var state_block = StateBlock;
-
 var _rules$1 = [// First 2 params - rule name & source. Secondary array - list of rules,
 // which can be terminated by this one.
 ['table', table, ['paragraph', 'reference']], ['code', code], ['fence', fence, ['paragraph', 'reference', 'blockquote', 'list']], ['blockquote', blockquote, ['paragraph', 'reference', 'blockquote', 'list']], ['hr', hr, ['paragraph', 'reference', 'blockquote', 'list']], ['list', list, ['paragraph', 'reference', 'blockquote']], ['reference', reference], ['heading', heading, ['paragraph', 'reference', 'blockquote']], ['lheading', lheading], ['html_block', html_block, ['paragraph', 'reference', 'blockquote']], ['paragraph', paragraph]];
@@ -29890,9 +32086,7 @@ ParserBlock.prototype.parse = function (src, md, env, outTokens) {
 };
 
 ParserBlock.prototype.State = state_block;
-var parser_block = ParserBlock;
-
-// Skip text characters for text token, place those to pending buffer
+var parser_block = ParserBlock; // Skip text characters for text token, place those to pending buffer
 // '{}$%@~+=:' reserved for extentions
 // !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, :, ;, <, =, >, ?, @, [, \, ], ^, _, `, {, |, }, or ~
 // !!!! Don't confuse with "Markdown ASCII Punctuation" chars
@@ -29994,6 +32188,7 @@ var text = function text(state, silent) {
   state.pos = pos;
   return true;
 }; // Alternative implementation, for memory.
+
 
 var isSpace$7 = utils$2.isSpace;
 
@@ -30102,9 +32297,8 @@ var _escape$2 = function escape(state, silent) {
 
   state.pos++;
   return true;
-};
+}; // Parse backticks
 
-// Parse backticks
 
 var backticks = function backtick(state, silent) {
   var start,
@@ -30162,10 +32356,9 @@ var backticks = function backtick(state, silent) {
 
   state.pos += marker.length;
   return true;
-};
-
-// ~~strike through~~
+}; // ~~strike through~~
 //
+
 
 var tokenize = function strikethrough(state, silent) {
   var i,
@@ -30302,9 +32495,7 @@ var postProcess_1 = function strikethrough(state) {
 var strikethrough = {
   tokenize: tokenize,
   postProcess: postProcess_1
-};
-
-// Process *this* and _that_
+}; // Process *this* and _that_
 //
 
 var tokenize$1 = function emphasis(state, silent) {
@@ -30438,7 +32629,6 @@ var emphasis = {
   tokenize: tokenize$1,
   postProcess: postProcess_1$1
 };
-
 var normalizeReference$1 = utils$2.normalizeReference;
 var isSpace$9 = utils$2.isSpace;
 
@@ -30797,10 +32987,10 @@ var image$1 = function image(state, silent) {
   state.pos = pos;
   state.posMax = max;
   return true;
-};
+}; // Process autolinks '<protocol:...>'
 
-// Process autolinks '<protocol:...>'
 /*eslint max-len:0*/
+
 
 var EMAIL_RE = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/;
 var AUTOLINK_RE = /^<([a-zA-Z][a-zA-Z0-9+.\-]{1,31}):([^<>\x00-\x20]*)>/;
@@ -30998,9 +33188,8 @@ var entity = function entity(state, silent) {
 
   state.pos++;
   return true;
-};
+}; // For each opening emphasis-like marker find a matching closing one
 
-// For each opening emphasis-like marker find a matching closing one
 
 function processDelimiters(state, delimiters) {
   var closerIdx,
@@ -31095,9 +33284,8 @@ var balance_pairs = function link_pairs(state) {
       processDelimiters(state, tokens_meta[curr].delimiters);
     }
   }
-};
+}; // Clean up tokens after emphasis and strikethrough postprocessing:
 
-// Clean up tokens after emphasis and strikethrough postprocessing:
 
 var text_collapse = function text_collapse(state) {
   var curr,
@@ -31272,10 +33460,7 @@ StateInline.prototype.scanDelims = function (start, canSplitWord) {
 
 
 StateInline.prototype.Token = token;
-var state_inline = StateInline;
-
-// Parser rules
-
+var state_inline = StateInline; // Parser rules
 
 var _rules$2 = [['text', text], ['newline', newline], ['escape', _escape$2], ['backticks', backticks], ['strikethrough', strikethrough.tokenize], ['emphasis', emphasis.tokenize], ['link', link], ['image', image$1], ['autolink', autolink], ['html_inline', html_inline], ['entity', entity]];
 var _rules2 = [['balance_pairs', balance_pairs], ['strikethrough', strikethrough.postProcess], ['emphasis', emphasis.postProcess], ['text_collapse', text_collapse]];
@@ -31428,7 +33613,7 @@ ParserInline.prototype.parse = function (str, md, env, outTokens) {
 ParserInline.prototype.State = state_inline;
 var parser_inline = ParserInline;
 
-var re = function (opts) {
+var re = function re(opts) {
   var re = {}; // Use direct extract instead of `regenerate` to reduse browserified size
 
   re.src_Any = regex$1.source;
@@ -31441,7 +33626,7 @@ var re = function (opts) {
   re.src_ZCc = [re.src_Z, re.src_Cc].join('|'); // Experimental. List of chars, completely prohibited in links
   // because can separate it from other part of text
 
-  var text_separators = '[><\uff5c]'; // All possible word characters (everything without punctuation, spaces & controls)
+  var text_separators = "[><\uFF5C]"; // All possible word characters (everything without punctuation, spaces & controls)
   // Defined via punctuation & spaces to save space
   // Should be something like \p{\L\N\S\M} (\w but without `_`)
 
@@ -31496,14 +33681,12 @@ var re = function (opts) {
   re.tpl_email_fuzzy = '(^|' + text_separators + '|"|\\(|' + re.src_ZCc + ')' + '(' + re.src_email_name + '@' + re.tpl_host_fuzzy_strict + ')';
   re.tpl_link_fuzzy = // Fuzzy link can't be prepended with .:/\- and non punctuation.
   // but can start with > (markdown blockquote)
-  '(^|(?![.:/\\-_@])(?:[$+<=>^`|\uff5c]|' + re.src_ZPCc + '))' + '((?![$+<=>^`|\uff5c])' + re.tpl_host_port_fuzzy_strict + re.src_path + ')';
+  "(^|(?![.:/\\-_@])(?:[$+<=>^`|\uFF5C]|" + re.src_ZPCc + '))' + "((?![$+<=>^`|\uFF5C])" + re.tpl_host_port_fuzzy_strict + re.src_path + ')';
   re.tpl_link_no_ip_fuzzy = // Fuzzy link can't be prepended with .:/\- and non punctuation.
   // but can start with > (markdown blockquote)
-  '(^|(?![.:/\\-_@])(?:[$+<=>^`|\uff5c]|' + re.src_ZPCc + '))' + '((?![$+<=>^`|\uff5c])' + re.tpl_host_port_no_ip_fuzzy_strict + re.src_path + ')';
+  "(^|(?![.:/\\-_@])(?:[$+<=>^`|\uFF5C]|" + re.src_ZPCc + '))' + "((?![$+<=>^`|\uFF5C])" + re.tpl_host_port_no_ip_fuzzy_strict + re.src_path + ')';
   return re;
-};
-
-// Helpers
+}; // Helpers
 // Merge objects
 //
 
@@ -31563,7 +33746,7 @@ function isOptionsObj(obj) {
 
 var defaultSchemas = {
   'http:': {
-    validate: function (text, pos, self) {
+    validate: function validate(text, pos, self) {
       var tail = text.slice(pos);
 
       if (!self.re.http) {
@@ -31581,7 +33764,7 @@ var defaultSchemas = {
   'https:': 'http:',
   'ftp:': 'http:',
   '//': {
-    validate: function (text, pos, self) {
+    validate: function validate(text, pos, self) {
       var tail = text.slice(pos);
 
       if (!self.re.no_http) {
@@ -31608,7 +33791,7 @@ var defaultSchemas = {
     }
   },
   'mailto:': {
-    validate: function (text, pos, self) {
+    validate: function validate(text, pos, self) {
       var tail = text.slice(pos);
 
       if (!self.re.mailto) {
@@ -31758,8 +33941,8 @@ function compile(self) {
     return name.length > 0 && self.__compiled__[name];
   }).map(escapeRE).join('|'); // (?!_) cause 1.5x slowdown
 
-  self.re.schema_test = RegExp('(^|(?!_)(?:[><\uff5c]|' + re$1.src_ZPCc + '))(' + slist + ')', 'i');
-  self.re.schema_search = RegExp('(^|(?!_)(?:[><\uff5c]|' + re$1.src_ZPCc + '))(' + slist + ')', 'ig');
+  self.re.schema_test = RegExp("(^|(?!_)(?:[><\uFF5C]|" + re$1.src_ZPCc + '))(' + slist + ')', 'i');
+  self.re.schema_search = RegExp("(^|(?!_)(?:[><\uFF5C]|" + re$1.src_ZPCc + '))(' + slist + ')', 'ig');
   self.re.pretest = RegExp('(' + self.re.schema_test.source + ')|(' + self.re.host_fuzzy_test.source + ')|@', 'i'); //
   // Cleanup
   //
@@ -32130,9 +34313,7 @@ LinkifyIt.prototype.normalize = function normalize(match) {
 
 LinkifyIt.prototype.onCompile = function onCompile() {};
 
-var linkifyIt = LinkifyIt;
-
-// markdown-it default options
+var linkifyIt = LinkifyIt; // markdown-it default options
 
 var _default = {
   options: {
@@ -32153,7 +34334,7 @@ var _default = {
     //
     // For example, you can use '«»„“' for Russian, '„“‚‘' for German,
     // and ['«\xA0', '\xA0»', '‹\xA0', '\xA0›'] for French (including nbsp).
-    quotes: '\u201c\u201d\u2018\u2019',
+    quotes: "\u201C\u201D\u2018\u2019",
 
     /* “”‘’ */
     // Highlighter function. Should return escaped HTML,
@@ -32171,9 +34352,7 @@ var _default = {
     block: {},
     inline: {}
   }
-};
-
-// "Zero" preset, with nothing enabled. Useful for manual configuring of simple
+}; // "Zero" preset, with nothing enabled. Useful for manual configuring of simple
 
 var zero = {
   options: {
@@ -32194,7 +34373,7 @@ var zero = {
     //
     // For example, you can use '«»„“' for Russian, '„“‚‘' for German,
     // and ['«\xA0', '\xA0»', '‹\xA0', '\xA0›'] for French (including nbsp).
-    quotes: '\u201c\u201d\u2018\u2019',
+    quotes: "\u201C\u201D\u2018\u2019",
 
     /* “”‘’ */
     // Highlighter function. Should return escaped HTML,
@@ -32219,9 +34398,7 @@ var zero = {
       rules2: ['balance_pairs', 'text_collapse']
     }
   }
-};
-
-// Commonmark default options
+}; // Commonmark default options
 
 var commonmark = {
   options: {
@@ -32242,7 +34419,7 @@ var commonmark = {
     //
     // For example, you can use '«»„“' for Russian, '„“‚‘' for German,
     // and ['«\xA0', '\xA0»', '‹\xA0', '\xA0›'] for French (including nbsp).
-    quotes: '\u201c\u201d\u2018\u2019',
+    quotes: "\u201C\u201D\u2018\u2019",
 
     /* “”‘’ */
     // Highlighter function. Should return escaped HTML,
@@ -32268,7 +34445,6 @@ var commonmark = {
     }
   }
 };
-
 var config = {
   'default': _default,
   zero: zero,
@@ -32306,7 +34482,7 @@ function normalizeLink(url) {
     //
     if (!parsed.protocol || RECODE_HOSTNAME_FOR.indexOf(parsed.protocol) >= 0) {
       try {
-        parsed.hostname = punycode.toASCII(parsed.hostname);
+        parsed.hostname = _punycode.default.toASCII(parsed.hostname);
       } catch (er) {
         /**/
       }
@@ -32328,7 +34504,7 @@ function normalizeLinkText(url) {
     //
     if (!parsed.protocol || RECODE_HOSTNAME_FOR.indexOf(parsed.protocol) >= 0) {
       try {
-        parsed.hostname = punycode.toUnicode(parsed.hostname);
+        parsed.hostname = _punycode.default.toUnicode(parsed.hostname);
       } catch (er) {
         /**/
       }
@@ -32842,12 +35018,10 @@ MarkdownIt.prototype.renderInline = function (src, env) {
 };
 
 var lib$2 = MarkdownIt;
+var markdownIt = lib$2; // let viz = new Viz()
 
-var markdownIt = lib$2;
-
-// let viz = new Viz()
-
-hljsDefineSolidity(lib);
+console.log('hljsDefineSolidity', _highlightjsSolidity.default);
+(0, _highlightjsSolidity.default)(lib);
 
 function highlightRender(code, lang) {
   if (!lang || /no(-?)highlight|plain|text/.test(lang)) {
@@ -33147,9 +35321,8 @@ function finishView(view) {
   } catch (err) {
     console.warn(err);
   }
-}
+} // Process block-level custom containers
 
-// Process block-level custom containers
 
 var markdownItContainer = function container_plugin(md, name, options) {
   // Second param may be useful if you decide
@@ -33305,9 +35478,8 @@ var markdownItContainer = function container_plugin(md, name, options) {
   });
   md.renderer.rules['container_' + name + '_open'] = render;
   md.renderer.rules['container_' + name + '_close'] = render;
-};
+}; // https://github.com/hackmdio/codimd/blob/f0fbd09fa0a37672ced98576612d6eb472a51e31/public/js/lib/syncscroll.js
 
-// https://github.com/hackmdio/codimd/blob/f0fbd09fa0a37672ced98576612d6eb472a51e31/public/js/lib/syncscroll.js
 
 function injectLineNumber(md) {
   function addPart(tokens, idx) {
@@ -34929,1489 +37101,1487 @@ var yemen = "🇾🇪";
 var zambia = "🇿🇲";
 var zimbabwe = "🇿🇼";
 var emojies_defs = {
-	"100": "💯",
-	"1234": "🔢",
-	grinning: grinning,
-	smiley: smiley,
-	smile: smile$1,
-	grin: grin,
-	laughing: laughing,
-	satisfied: satisfied,
-	sweat_smile: sweat_smile,
-	joy: joy,
-	rofl: rofl,
-	relaxed: relaxed,
-	blush: blush,
-	innocent: innocent,
-	slightly_smiling_face: slightly_smiling_face,
-	upside_down_face: upside_down_face,
-	wink: wink,
-	relieved: relieved,
-	heart_eyes: heart_eyes,
-	kissing_heart: kissing_heart,
-	kissing: kissing,
-	kissing_smiling_eyes: kissing_smiling_eyes,
-	kissing_closed_eyes: kissing_closed_eyes,
-	yum: yum,
-	stuck_out_tongue_winking_eye: stuck_out_tongue_winking_eye,
-	stuck_out_tongue_closed_eyes: stuck_out_tongue_closed_eyes,
-	stuck_out_tongue: stuck_out_tongue,
-	money_mouth_face: money_mouth_face,
-	hugs: hugs,
-	nerd_face: nerd_face,
-	sunglasses: sunglasses,
-	clown_face: clown_face,
-	cowboy_hat_face: cowboy_hat_face,
-	smirk: smirk,
-	unamused: unamused,
-	disappointed: disappointed,
-	pensive: pensive,
-	worried: worried,
-	confused: confused,
-	slightly_frowning_face: slightly_frowning_face,
-	frowning_face: frowning_face,
-	persevere: persevere,
-	confounded: confounded,
-	tired_face: tired_face,
-	weary: weary,
-	triumph: triumph,
-	angry: angry,
-	rage: rage,
-	pout: pout,
-	no_mouth: no_mouth,
-	neutral_face: neutral_face,
-	expressionless: expressionless,
-	hushed: hushed,
-	frowning: frowning,
-	anguished: anguished,
-	open_mouth: open_mouth,
-	astonished: astonished,
-	dizzy_face: dizzy_face,
-	flushed: flushed,
-	scream: scream,
-	fearful: fearful,
-	cold_sweat: cold_sweat,
-	cry: cry,
-	disappointed_relieved: disappointed_relieved,
-	drooling_face: drooling_face,
-	sob: sob,
-	sweat: sweat,
-	sleepy: sleepy,
-	sleeping: sleeping,
-	roll_eyes: roll_eyes,
-	thinking: thinking,
-	lying_face: lying_face,
-	grimacing: grimacing,
-	zipper_mouth_face: zipper_mouth_face,
-	nauseated_face: nauseated_face,
-	sneezing_face: sneezing_face,
-	mask: mask,
-	face_with_thermometer: face_with_thermometer,
-	face_with_head_bandage: face_with_head_bandage,
-	smiling_imp: smiling_imp,
-	imp: imp,
-	japanese_ogre: japanese_ogre,
-	japanese_goblin: japanese_goblin,
-	hankey: hankey,
-	poop: poop,
-	shit: shit,
-	ghost: ghost,
-	skull: skull,
-	skull_and_crossbones: skull_and_crossbones,
-	alien: alien,
-	space_invader: space_invader,
-	robot: robot,
-	jack_o_lantern: jack_o_lantern,
-	smiley_cat: smiley_cat,
-	smile_cat: smile_cat,
-	joy_cat: joy_cat,
-	heart_eyes_cat: heart_eyes_cat,
-	smirk_cat: smirk_cat,
-	kissing_cat: kissing_cat,
-	scream_cat: scream_cat,
-	crying_cat_face: crying_cat_face,
-	pouting_cat: pouting_cat,
-	open_hands: open_hands,
-	raised_hands: raised_hands,
-	clap: clap,
-	pray: pray,
-	handshake: handshake,
-	"+1": "👍",
-	thumbsup: thumbsup,
-	"-1": "👎",
-	thumbsdown: thumbsdown,
-	fist_oncoming: fist_oncoming,
-	facepunch: facepunch,
-	punch: punch,
-	fist_raised: fist_raised,
-	fist: fist,
-	fist_left: fist_left,
-	fist_right: fist_right,
-	crossed_fingers: crossed_fingers,
-	v: v,
-	metal: metal,
-	ok_hand: ok_hand,
-	point_left: point_left,
-	point_right: point_right,
-	point_up_2: point_up_2,
-	point_down: point_down,
-	point_up: point_up,
-	hand: hand,
-	raised_hand: raised_hand,
-	raised_back_of_hand: raised_back_of_hand,
-	raised_hand_with_fingers_splayed: raised_hand_with_fingers_splayed,
-	vulcan_salute: vulcan_salute,
-	wave: wave,
-	call_me_hand: call_me_hand,
-	muscle: muscle,
-	middle_finger: middle_finger,
-	fu: fu,
-	writing_hand: writing_hand,
-	selfie: selfie,
-	nail_care: nail_care,
-	ring: ring$1,
-	lipstick: lipstick,
-	kiss: kiss,
-	lips: lips,
-	tongue: tongue,
-	ear: ear,
-	nose: nose,
-	footprints: footprints,
-	eye: eye,
-	eyes: eyes,
-	speaking_head: speaking_head,
-	bust_in_silhouette: bust_in_silhouette,
-	busts_in_silhouette: busts_in_silhouette,
-	baby: baby,
-	boy: boy,
-	girl: girl,
-	man: man,
-	woman: woman,
-	blonde_woman: blonde_woman,
-	blonde_man: blonde_man,
-	person_with_blond_hair: person_with_blond_hair,
-	older_man: older_man,
-	older_woman: older_woman,
-	man_with_gua_pi_mao: man_with_gua_pi_mao,
-	woman_with_turban: woman_with_turban,
-	man_with_turban: man_with_turban,
-	policewoman: policewoman,
-	policeman: policeman,
-	cop: cop,
-	construction_worker_woman: construction_worker_woman,
-	construction_worker_man: construction_worker_man,
-	construction_worker: construction_worker,
-	guardswoman: guardswoman,
-	guardsman: guardsman,
-	female_detective: female_detective,
-	male_detective: male_detective,
-	detective: detective,
-	woman_health_worker: woman_health_worker,
-	man_health_worker: man_health_worker,
-	woman_farmer: woman_farmer,
-	man_farmer: man_farmer,
-	woman_cook: woman_cook,
-	man_cook: man_cook,
-	woman_student: woman_student,
-	man_student: man_student,
-	woman_singer: woman_singer,
-	man_singer: man_singer,
-	woman_teacher: woman_teacher,
-	man_teacher: man_teacher,
-	woman_factory_worker: woman_factory_worker,
-	man_factory_worker: man_factory_worker,
-	woman_technologist: woman_technologist,
-	man_technologist: man_technologist,
-	woman_office_worker: woman_office_worker,
-	man_office_worker: man_office_worker,
-	woman_mechanic: woman_mechanic,
-	man_mechanic: man_mechanic,
-	woman_scientist: woman_scientist,
-	man_scientist: man_scientist,
-	woman_artist: woman_artist,
-	man_artist: man_artist,
-	woman_firefighter: woman_firefighter,
-	man_firefighter: man_firefighter,
-	woman_pilot: woman_pilot,
-	man_pilot: man_pilot,
-	woman_astronaut: woman_astronaut,
-	man_astronaut: man_astronaut,
-	woman_judge: woman_judge,
-	man_judge: man_judge,
-	mrs_claus: mrs_claus,
-	santa: santa,
-	princess: princess,
-	prince: prince,
-	bride_with_veil: bride_with_veil,
-	man_in_tuxedo: man_in_tuxedo,
-	angel: angel,
-	pregnant_woman: pregnant_woman,
-	bowing_woman: bowing_woman,
-	bowing_man: bowing_man,
-	bow: bow,
-	tipping_hand_woman: tipping_hand_woman,
-	information_desk_person: information_desk_person,
-	sassy_woman: sassy_woman,
-	tipping_hand_man: tipping_hand_man,
-	sassy_man: sassy_man,
-	no_good_woman: no_good_woman,
-	no_good: no_good,
-	ng_woman: ng_woman,
-	no_good_man: no_good_man,
-	ng_man: ng_man,
-	ok_woman: ok_woman,
-	ok_man: ok_man,
-	raising_hand_woman: raising_hand_woman,
-	raising_hand: raising_hand,
-	raising_hand_man: raising_hand_man,
-	woman_facepalming: woman_facepalming,
-	man_facepalming: man_facepalming,
-	woman_shrugging: woman_shrugging,
-	man_shrugging: man_shrugging,
-	pouting_woman: pouting_woman,
-	person_with_pouting_face: person_with_pouting_face,
-	pouting_man: pouting_man,
-	frowning_woman: frowning_woman,
-	person_frowning: person_frowning,
-	frowning_man: frowning_man,
-	haircut_woman: haircut_woman,
-	haircut: haircut,
-	haircut_man: haircut_man,
-	massage_woman: massage_woman,
-	massage: massage,
-	massage_man: massage_man,
-	business_suit_levitating: business_suit_levitating,
-	dancer: dancer,
-	man_dancing: man_dancing,
-	dancing_women: dancing_women,
-	dancers: dancers,
-	dancing_men: dancing_men,
-	walking_woman: walking_woman,
-	walking_man: walking_man,
-	walking: walking,
-	running_woman: running_woman,
-	running_man: running_man,
-	runner: runner,
-	running: running,
-	couple: couple,
-	two_women_holding_hands: two_women_holding_hands,
-	two_men_holding_hands: two_men_holding_hands,
-	couple_with_heart_woman_man: couple_with_heart_woman_man,
-	couple_with_heart: couple_with_heart,
-	couple_with_heart_woman_woman: couple_with_heart_woman_woman,
-	couple_with_heart_man_man: couple_with_heart_man_man,
-	couplekiss_man_woman: couplekiss_man_woman,
-	couplekiss_woman_woman: couplekiss_woman_woman,
-	couplekiss_man_man: couplekiss_man_man,
-	family_man_woman_boy: family_man_woman_boy,
-	family: family,
-	family_man_woman_girl: family_man_woman_girl,
-	family_man_woman_girl_boy: family_man_woman_girl_boy,
-	family_man_woman_boy_boy: family_man_woman_boy_boy,
-	family_man_woman_girl_girl: family_man_woman_girl_girl,
-	family_woman_woman_boy: family_woman_woman_boy,
-	family_woman_woman_girl: family_woman_woman_girl,
-	family_woman_woman_girl_boy: family_woman_woman_girl_boy,
-	family_woman_woman_boy_boy: family_woman_woman_boy_boy,
-	family_woman_woman_girl_girl: family_woman_woman_girl_girl,
-	family_man_man_boy: family_man_man_boy,
-	family_man_man_girl: family_man_man_girl,
-	family_man_man_girl_boy: family_man_man_girl_boy,
-	family_man_man_boy_boy: family_man_man_boy_boy,
-	family_man_man_girl_girl: family_man_man_girl_girl,
-	family_woman_boy: family_woman_boy,
-	family_woman_girl: family_woman_girl,
-	family_woman_girl_boy: family_woman_girl_boy,
-	family_woman_boy_boy: family_woman_boy_boy,
-	family_woman_girl_girl: family_woman_girl_girl,
-	family_man_boy: family_man_boy,
-	family_man_girl: family_man_girl,
-	family_man_girl_boy: family_man_girl_boy,
-	family_man_boy_boy: family_man_boy_boy,
-	family_man_girl_girl: family_man_girl_girl,
-	womans_clothes: womans_clothes,
-	shirt: shirt,
-	tshirt: tshirt,
-	jeans: jeans,
-	necktie: necktie,
-	dress: dress,
-	bikini: bikini,
-	kimono: kimono,
-	high_heel: high_heel,
-	sandal: sandal,
-	boot: boot,
-	mans_shoe: mans_shoe,
-	shoe: shoe,
-	athletic_shoe: athletic_shoe,
-	womans_hat: womans_hat,
-	tophat: tophat,
-	mortar_board: mortar_board,
-	crown: crown,
-	rescue_worker_helmet: rescue_worker_helmet,
-	school_satchel: school_satchel,
-	pouch: pouch,
-	purse: purse,
-	handbag: handbag,
-	briefcase: briefcase,
-	eyeglasses: eyeglasses,
-	dark_sunglasses: dark_sunglasses,
-	closed_umbrella: closed_umbrella,
-	open_umbrella: open_umbrella,
-	dog: dog,
-	cat: cat,
-	mouse: mouse,
-	hamster: hamster,
-	rabbit: rabbit,
-	fox_face: fox_face,
-	bear: bear,
-	panda_face: panda_face,
-	koala: koala,
-	tiger: tiger,
-	lion: lion,
-	cow: cow,
-	pig: pig,
-	pig_nose: pig_nose,
-	frog: frog,
-	monkey_face: monkey_face,
-	see_no_evil: see_no_evil,
-	hear_no_evil: hear_no_evil,
-	speak_no_evil: speak_no_evil,
-	monkey: monkey$1,
-	chicken: chicken,
-	penguin: penguin,
-	bird: bird,
-	baby_chick: baby_chick,
-	hatching_chick: hatching_chick,
-	hatched_chick: hatched_chick,
-	duck: duck,
-	eagle: eagle,
-	owl: owl,
-	bat: bat,
-	wolf: wolf,
-	boar: boar,
-	horse: horse,
-	unicorn: unicorn,
-	bee: bee,
-	honeybee: honeybee,
-	bug: bug,
-	butterfly: butterfly,
-	snail: snail,
-	shell: shell$1,
-	beetle: beetle,
-	ant: ant,
-	spider: spider,
-	spider_web: spider_web,
-	turtle: turtle,
-	snake: snake,
-	lizard: lizard,
-	scorpion: scorpion,
-	crab: crab,
-	squid: squid,
-	octopus: octopus,
-	shrimp: shrimp,
-	tropical_fish: tropical_fish,
-	fish: fish,
-	blowfish: blowfish,
-	dolphin: dolphin,
-	flipper: flipper,
-	shark: shark,
-	whale: whale,
-	whale2: whale2,
-	crocodile: crocodile,
-	leopard: leopard,
-	tiger2: tiger2,
-	water_buffalo: water_buffalo,
-	ox: ox,
-	cow2: cow2,
-	deer: deer,
-	dromedary_camel: dromedary_camel,
-	camel: camel,
-	elephant: elephant,
-	rhinoceros: rhinoceros,
-	gorilla: gorilla,
-	racehorse: racehorse,
-	pig2: pig2,
-	goat: goat,
-	ram: ram,
-	sheep: sheep,
-	dog2: dog2,
-	poodle: poodle,
-	cat2: cat2,
-	rooster: rooster,
-	turkey: turkey,
-	dove: dove,
-	rabbit2: rabbit2,
-	mouse2: mouse2,
-	rat: rat,
-	chipmunk: chipmunk,
-	feet: feet,
-	paw_prints: paw_prints,
-	dragon: dragon,
-	dragon_face: dragon_face,
-	cactus: cactus,
-	christmas_tree: christmas_tree,
-	evergreen_tree: evergreen_tree,
-	deciduous_tree: deciduous_tree,
-	palm_tree: palm_tree,
-	seedling: seedling,
-	herb: herb,
-	shamrock: shamrock,
-	four_leaf_clover: four_leaf_clover,
-	bamboo: bamboo,
-	tanabata_tree: tanabata_tree,
-	leaves: leaves,
-	fallen_leaf: fallen_leaf,
-	maple_leaf: maple_leaf,
-	mushroom: mushroom,
-	ear_of_rice: ear_of_rice,
-	bouquet: bouquet,
-	tulip: tulip,
-	rose: rose,
-	wilted_flower: wilted_flower,
-	sunflower: sunflower,
-	blossom: blossom,
-	cherry_blossom: cherry_blossom,
-	hibiscus: hibiscus,
-	earth_americas: earth_americas,
-	earth_africa: earth_africa,
-	earth_asia: earth_asia,
-	full_moon: full_moon,
-	waning_gibbous_moon: waning_gibbous_moon,
-	last_quarter_moon: last_quarter_moon,
-	waning_crescent_moon: waning_crescent_moon,
-	new_moon: new_moon,
-	waxing_crescent_moon: waxing_crescent_moon,
-	first_quarter_moon: first_quarter_moon,
-	moon: moon,
-	waxing_gibbous_moon: waxing_gibbous_moon,
-	new_moon_with_face: new_moon_with_face,
-	full_moon_with_face: full_moon_with_face,
-	sun_with_face: sun_with_face,
-	first_quarter_moon_with_face: first_quarter_moon_with_face,
-	last_quarter_moon_with_face: last_quarter_moon_with_face,
-	crescent_moon: crescent_moon,
-	dizzy: dizzy,
-	star: star$1,
-	star2: star2,
-	sparkles: sparkles,
-	zap: zap,
-	fire: fire,
-	boom: boom,
-	collision: collision,
-	comet: comet,
-	sunny: sunny,
-	sun_behind_small_cloud: sun_behind_small_cloud,
-	partly_sunny: partly_sunny,
-	sun_behind_large_cloud: sun_behind_large_cloud,
-	sun_behind_rain_cloud: sun_behind_rain_cloud,
-	rainbow: rainbow,
-	cloud: cloud,
-	cloud_with_rain: cloud_with_rain,
-	cloud_with_lightning_and_rain: cloud_with_lightning_and_rain,
-	cloud_with_lightning: cloud_with_lightning,
-	cloud_with_snow: cloud_with_snow,
-	snowman_with_snow: snowman_with_snow,
-	snowman: snowman,
-	snowflake: snowflake,
-	wind_face: wind_face,
-	dash: dash$1,
-	tornado: tornado,
-	fog: fog,
-	ocean: ocean,
-	droplet: droplet,
-	sweat_drops: sweat_drops,
-	umbrella: umbrella,
-	green_apple: green_apple,
-	apple: apple,
-	pear: pear,
-	tangerine: tangerine,
-	orange: orange,
-	mandarin: mandarin,
-	lemon: lemon,
-	banana: banana,
-	watermelon: watermelon,
-	grapes: grapes,
-	strawberry: strawberry,
-	melon: melon,
-	cherries: cherries,
-	peach: peach,
-	pineapple: pineapple,
-	kiwi_fruit: kiwi_fruit,
-	avocado: avocado,
-	tomato: tomato,
-	eggplant: eggplant,
-	cucumber: cucumber,
-	carrot: carrot,
-	corn: corn,
-	hot_pepper: hot_pepper,
-	potato: potato,
-	sweet_potato: sweet_potato,
-	chestnut: chestnut,
-	peanuts: peanuts,
-	honey_pot: honey_pot,
-	croissant: croissant,
-	bread: bread,
-	baguette_bread: baguette_bread,
-	cheese: cheese,
-	egg: egg,
-	fried_egg: fried_egg,
-	bacon: bacon,
-	pancakes: pancakes,
-	fried_shrimp: fried_shrimp,
-	poultry_leg: poultry_leg,
-	meat_on_bone: meat_on_bone,
-	pizza: pizza,
-	hotdog: hotdog,
-	hamburger: hamburger,
-	fries: fries,
-	stuffed_flatbread: stuffed_flatbread,
-	taco: taco,
-	burrito: burrito,
-	green_salad: green_salad,
-	shallow_pan_of_food: shallow_pan_of_food,
-	spaghetti: spaghetti,
-	ramen: ramen,
-	stew: stew,
-	fish_cake: fish_cake,
-	sushi: sushi,
-	bento: bento,
-	curry: curry,
-	rice: rice,
-	rice_ball: rice_ball,
-	rice_cracker: rice_cracker,
-	oden: oden,
-	dango: dango,
-	shaved_ice: shaved_ice,
-	ice_cream: ice_cream,
-	icecream: icecream,
-	cake: cake,
-	birthday: birthday,
-	custard: custard,
-	lollipop: lollipop,
-	candy: candy,
-	chocolate_bar: chocolate_bar,
-	popcorn: popcorn,
-	doughnut: doughnut,
-	cookie: cookie,
-	milk_glass: milk_glass,
-	baby_bottle: baby_bottle,
-	coffee: coffee,
-	tea: tea,
-	sake: sake,
-	beer: beer,
-	beers: beers,
-	clinking_glasses: clinking_glasses,
-	wine_glass: wine_glass,
-	tumbler_glass: tumbler_glass,
-	cocktail: cocktail,
-	tropical_drink: tropical_drink,
-	champagne: champagne,
-	spoon: spoon,
-	fork_and_knife: fork_and_knife,
-	plate_with_cutlery: plate_with_cutlery,
-	soccer: soccer,
-	basketball: basketball,
-	football: football,
-	baseball: baseball,
-	tennis: tennis,
-	volleyball: volleyball,
-	rugby_football: rugby_football,
-	"8ball": "🎱",
-	ping_pong: ping_pong,
-	badminton: badminton,
-	goal_net: goal_net,
-	ice_hockey: ice_hockey,
-	field_hockey: field_hockey,
-	cricket: cricket,
-	golf: golf,
-	bow_and_arrow: bow_and_arrow,
-	fishing_pole_and_fish: fishing_pole_and_fish,
-	boxing_glove: boxing_glove,
-	martial_arts_uniform: martial_arts_uniform,
-	ice_skate: ice_skate,
-	ski: ski,
-	skier: skier,
-	snowboarder: snowboarder,
-	weight_lifting_woman: weight_lifting_woman,
-	weight_lifting_man: weight_lifting_man,
-	person_fencing: person_fencing,
-	women_wrestling: women_wrestling,
-	men_wrestling: men_wrestling,
-	woman_cartwheeling: woman_cartwheeling,
-	man_cartwheeling: man_cartwheeling,
-	basketball_woman: basketball_woman,
-	basketball_man: basketball_man,
-	woman_playing_handball: woman_playing_handball,
-	man_playing_handball: man_playing_handball,
-	golfing_woman: golfing_woman,
-	golfing_man: golfing_man,
-	surfing_woman: surfing_woman,
-	surfing_man: surfing_man,
-	surfer: surfer,
-	swimming_woman: swimming_woman,
-	swimming_man: swimming_man,
-	swimmer: swimmer,
-	woman_playing_water_polo: woman_playing_water_polo,
-	man_playing_water_polo: man_playing_water_polo,
-	rowing_woman: rowing_woman,
-	rowing_man: rowing_man,
-	rowboat: rowboat,
-	horse_racing: horse_racing,
-	biking_woman: biking_woman,
-	biking_man: biking_man,
-	bicyclist: bicyclist,
-	mountain_biking_woman: mountain_biking_woman,
-	mountain_biking_man: mountain_biking_man,
-	mountain_bicyclist: mountain_bicyclist,
-	running_shirt_with_sash: running_shirt_with_sash,
-	medal_sports: medal_sports,
-	medal_military: medal_military,
-	"1st_place_medal": "🥇",
-	"2nd_place_medal": "🥈",
-	"3rd_place_medal": "🥉",
-	trophy: trophy,
-	rosette: rosette,
-	reminder_ribbon: reminder_ribbon,
-	ticket: ticket,
-	tickets: tickets,
-	circus_tent: circus_tent,
-	woman_juggling: woman_juggling,
-	man_juggling: man_juggling,
-	performing_arts: performing_arts,
-	art: art,
-	clapper: clapper,
-	microphone: microphone,
-	headphones: headphones,
-	musical_score: musical_score,
-	musical_keyboard: musical_keyboard,
-	drum: drum,
-	saxophone: saxophone,
-	trumpet: trumpet,
-	guitar: guitar,
-	violin: violin,
-	game_die: game_die,
-	dart: dart$1,
-	bowling: bowling,
-	video_game: video_game,
-	slot_machine: slot_machine,
-	car: car,
-	red_car: red_car,
-	taxi: taxi,
-	blue_car: blue_car,
-	bus: bus,
-	trolleybus: trolleybus,
-	racing_car: racing_car,
-	police_car: police_car,
-	ambulance: ambulance,
-	fire_engine: fire_engine,
-	minibus: minibus,
-	truck: truck,
-	articulated_lorry: articulated_lorry,
-	tractor: tractor,
-	kick_scooter: kick_scooter,
-	bike: bike,
-	motor_scooter: motor_scooter,
-	motorcycle: motorcycle,
-	rotating_light: rotating_light,
-	oncoming_police_car: oncoming_police_car,
-	oncoming_bus: oncoming_bus,
-	oncoming_automobile: oncoming_automobile,
-	oncoming_taxi: oncoming_taxi,
-	aerial_tramway: aerial_tramway,
-	mountain_cableway: mountain_cableway,
-	suspension_railway: suspension_railway,
-	railway_car: railway_car,
-	train: train,
-	mountain_railway: mountain_railway,
-	monorail: monorail,
-	bullettrain_side: bullettrain_side,
-	bullettrain_front: bullettrain_front,
-	light_rail: light_rail,
-	steam_locomotive: steam_locomotive,
-	train2: train2,
-	metro: metro,
-	tram: tram,
-	station: station,
-	helicopter: helicopter,
-	small_airplane: small_airplane,
-	airplane: airplane,
-	flight_departure: flight_departure,
-	flight_arrival: flight_arrival,
-	rocket: rocket,
-	artificial_satellite: artificial_satellite,
-	seat: seat,
-	canoe: canoe,
-	boat: boat,
-	sailboat: sailboat,
-	motor_boat: motor_boat,
-	speedboat: speedboat,
-	passenger_ship: passenger_ship,
-	ferry: ferry,
-	ship: ship,
-	anchor: anchor,
-	construction: construction,
-	fuelpump: fuelpump,
-	busstop: busstop,
-	vertical_traffic_light: vertical_traffic_light,
-	traffic_light: traffic_light,
-	world_map: world_map,
-	moyai: moyai,
-	statue_of_liberty: statue_of_liberty,
-	fountain: fountain,
-	tokyo_tower: tokyo_tower,
-	european_castle: european_castle,
-	japanese_castle: japanese_castle,
-	stadium: stadium,
-	ferris_wheel: ferris_wheel,
-	roller_coaster: roller_coaster,
-	carousel_horse: carousel_horse,
-	parasol_on_ground: parasol_on_ground,
-	beach_umbrella: beach_umbrella,
-	desert_island: desert_island,
-	mountain: mountain,
-	mountain_snow: mountain_snow,
-	mount_fuji: mount_fuji,
-	volcano: volcano,
-	desert: desert,
-	camping: camping,
-	tent: tent,
-	railway_track: railway_track,
-	motorway: motorway,
-	building_construction: building_construction,
-	factory: factory,
-	house: house,
-	house_with_garden: house_with_garden,
-	houses: houses,
-	derelict_house: derelict_house,
-	office: office,
-	department_store: department_store,
-	post_office: post_office,
-	european_post_office: european_post_office,
-	hospital: hospital,
-	bank: bank,
-	hotel: hotel,
-	convenience_store: convenience_store,
-	school: school,
-	love_hotel: love_hotel,
-	wedding: wedding,
-	classical_building: classical_building,
-	church: church,
-	mosque: mosque,
-	synagogue: synagogue,
-	kaaba: kaaba,
-	shinto_shrine: shinto_shrine,
-	japan: japan,
-	rice_scene: rice_scene,
-	national_park: national_park,
-	sunrise: sunrise,
-	sunrise_over_mountains: sunrise_over_mountains,
-	stars: stars,
-	sparkler: sparkler,
-	fireworks: fireworks,
-	city_sunrise: city_sunrise,
-	city_sunset: city_sunset,
-	cityscape: cityscape,
-	night_with_stars: night_with_stars,
-	milky_way: milky_way,
-	bridge_at_night: bridge_at_night,
-	foggy: foggy,
-	watch: watch,
-	iphone: iphone,
-	calling: calling,
-	computer: computer,
-	keyboard: keyboard,
-	desktop_computer: desktop_computer,
-	printer: printer,
-	computer_mouse: computer_mouse,
-	trackball: trackball,
-	joystick: joystick,
-	clamp: clamp,
-	minidisc: minidisc,
-	floppy_disk: floppy_disk,
-	cd: cd,
-	dvd: dvd,
-	vhs: vhs,
-	camera: camera,
-	camera_flash: camera_flash,
-	video_camera: video_camera,
-	movie_camera: movie_camera,
-	film_projector: film_projector,
-	film_strip: film_strip,
-	telephone_receiver: telephone_receiver,
-	phone: phone$1,
-	telephone: telephone,
-	pager: pager,
-	fax: fax,
-	tv: tv,
-	radio: radio,
-	studio_microphone: studio_microphone,
-	level_slider: level_slider,
-	control_knobs: control_knobs,
-	stopwatch: stopwatch,
-	timer_clock: timer_clock,
-	alarm_clock: alarm_clock,
-	mantelpiece_clock: mantelpiece_clock,
-	hourglass: hourglass,
-	hourglass_flowing_sand: hourglass_flowing_sand,
-	satellite: satellite,
-	battery: battery,
-	electric_plug: electric_plug,
-	bulb: bulb,
-	flashlight: flashlight,
-	candle: candle,
-	wastebasket: wastebasket,
-	oil_drum: oil_drum,
-	money_with_wings: money_with_wings,
-	dollar: dollar$1,
-	yen: yen$1,
-	euro: euro$1,
-	pound: pound$1,
-	moneybag: moneybag,
-	credit_card: credit_card,
-	gem: gem,
-	balance_scale: balance_scale,
-	wrench: wrench,
-	hammer: hammer,
-	hammer_and_pick: hammer_and_pick,
-	hammer_and_wrench: hammer_and_wrench,
-	pick: pick,
-	nut_and_bolt: nut_and_bolt,
-	gear: gear,
-	chains: chains,
-	gun: gun,
-	bomb: bomb,
-	hocho: hocho,
-	knife: knife,
-	dagger: dagger$1,
-	crossed_swords: crossed_swords,
-	shield: shield,
-	smoking: smoking,
-	coffin: coffin,
-	funeral_urn: funeral_urn,
-	amphora: amphora,
-	crystal_ball: crystal_ball,
-	prayer_beads: prayer_beads,
-	barber: barber,
-	alembic: alembic,
-	telescope: telescope,
-	microscope: microscope,
-	hole: hole,
-	pill: pill,
-	syringe: syringe,
-	thermometer: thermometer,
-	toilet: toilet,
-	potable_water: potable_water,
-	shower: shower,
-	bathtub: bathtub,
-	bath: bath,
-	bellhop_bell: bellhop_bell,
-	key: key,
-	old_key: old_key,
-	door: door,
-	couch_and_lamp: couch_and_lamp,
-	bed: bed,
-	sleeping_bed: sleeping_bed,
-	framed_picture: framed_picture,
-	shopping: shopping,
-	shopping_cart: shopping_cart,
-	gift: gift,
-	balloon: balloon,
-	flags: flags,
-	ribbon: ribbon,
-	confetti_ball: confetti_ball,
-	tada: tada,
-	dolls: dolls,
-	izakaya_lantern: izakaya_lantern,
-	lantern: lantern,
-	wind_chime: wind_chime,
-	email: email,
-	envelope: envelope,
-	envelope_with_arrow: envelope_with_arrow,
-	incoming_envelope: incoming_envelope,
-	"e-mail": "📧",
-	love_letter: love_letter,
-	inbox_tray: inbox_tray,
-	outbox_tray: outbox_tray,
-	"package": "📦",
-	label: label,
-	mailbox_closed: mailbox_closed,
-	mailbox: mailbox,
-	mailbox_with_mail: mailbox_with_mail,
-	mailbox_with_no_mail: mailbox_with_no_mail,
-	postbox: postbox,
-	postal_horn: postal_horn,
-	scroll: scroll,
-	page_with_curl: page_with_curl,
-	page_facing_up: page_facing_up,
-	bookmark_tabs: bookmark_tabs,
-	bar_chart: bar_chart,
-	chart_with_upwards_trend: chart_with_upwards_trend,
-	chart_with_downwards_trend: chart_with_downwards_trend,
-	spiral_notepad: spiral_notepad,
-	spiral_calendar: spiral_calendar,
-	calendar: calendar,
-	date: date,
-	card_index: card_index,
-	card_file_box: card_file_box,
-	ballot_box: ballot_box,
-	file_cabinet: file_cabinet,
-	clipboard: clipboard,
-	file_folder: file_folder,
-	open_file_folder: open_file_folder,
-	card_index_dividers: card_index_dividers,
-	newspaper_roll: newspaper_roll,
-	newspaper: newspaper,
-	notebook: notebook,
-	notebook_with_decorative_cover: notebook_with_decorative_cover,
-	ledger: ledger,
-	closed_book: closed_book,
-	green_book: green_book,
-	blue_book: blue_book,
-	orange_book: orange_book,
-	books: books,
-	book: book,
-	open_book: open_book,
-	bookmark: bookmark,
-	link: link$1,
-	paperclip: paperclip,
-	paperclips: paperclips,
-	triangular_ruler: triangular_ruler,
-	straight_ruler: straight_ruler,
-	pushpin: pushpin,
-	round_pushpin: round_pushpin,
-	scissors: scissors,
-	pen: pen,
-	fountain_pen: fountain_pen,
-	black_nib: black_nib,
-	paintbrush: paintbrush,
-	crayon: crayon,
-	memo: memo,
-	pencil: pencil,
-	pencil2: pencil2,
-	mag: mag,
-	mag_right: mag_right,
-	lock_with_ink_pen: lock_with_ink_pen,
-	closed_lock_with_key: closed_lock_with_key,
-	lock: lock,
-	unlock: unlock,
-	heart: heart,
-	yellow_heart: yellow_heart,
-	green_heart: green_heart,
-	blue_heart: blue_heart,
-	purple_heart: purple_heart,
-	black_heart: black_heart,
-	broken_heart: broken_heart,
-	heavy_heart_exclamation: heavy_heart_exclamation,
-	two_hearts: two_hearts,
-	revolving_hearts: revolving_hearts,
-	heartbeat: heartbeat,
-	heartpulse: heartpulse,
-	sparkling_heart: sparkling_heart,
-	cupid: cupid,
-	gift_heart: gift_heart,
-	heart_decoration: heart_decoration,
-	peace_symbol: peace_symbol,
-	latin_cross: latin_cross,
-	star_and_crescent: star_and_crescent,
-	om: om,
-	wheel_of_dharma: wheel_of_dharma,
-	star_of_david: star_of_david,
-	six_pointed_star: six_pointed_star,
-	menorah: menorah,
-	yin_yang: yin_yang,
-	orthodox_cross: orthodox_cross,
-	place_of_worship: place_of_worship,
-	ophiuchus: ophiuchus,
-	aries: aries,
-	taurus: taurus,
-	gemini: gemini,
-	cancer: cancer,
-	leo: leo,
-	virgo: virgo,
-	libra: libra,
-	scorpius: scorpius,
-	sagittarius: sagittarius,
-	capricorn: capricorn,
-	aquarius: aquarius,
-	pisces: pisces,
-	id: id,
-	atom_symbol: atom_symbol,
-	accept: accept,
-	radioactive: radioactive,
-	biohazard: biohazard,
-	mobile_phone_off: mobile_phone_off,
-	vibration_mode: vibration_mode,
-	eight_pointed_black_star: eight_pointed_black_star,
-	vs: vs,
-	white_flower: white_flower,
-	ideograph_advantage: ideograph_advantage,
-	secret: secret,
-	congratulations: congratulations,
-	u6e80: u6e80,
-	a: a,
-	b: b,
-	ab: ab,
-	cl: cl,
-	o2: o2,
-	sos: sos,
-	x: x,
-	o: o,
-	stop_sign: stop_sign,
-	no_entry: no_entry,
-	name_badge: name_badge,
-	no_entry_sign: no_entry_sign,
-	anger: anger,
-	hotsprings: hotsprings,
-	no_pedestrians: no_pedestrians,
-	do_not_litter: do_not_litter,
-	no_bicycles: no_bicycles,
-	"non-potable_water": "🚱",
-	underage: underage,
-	no_mobile_phones: no_mobile_phones,
-	no_smoking: no_smoking,
-	exclamation: exclamation,
-	heavy_exclamation_mark: heavy_exclamation_mark,
-	grey_exclamation: grey_exclamation,
-	question: question,
-	grey_question: grey_question,
-	bangbang: bangbang,
-	interrobang: interrobang,
-	low_brightness: low_brightness,
-	high_brightness: high_brightness,
-	part_alternation_mark: part_alternation_mark,
-	warning: warning,
-	children_crossing: children_crossing,
-	trident: trident,
-	fleur_de_lis: fleur_de_lis,
-	beginner: beginner,
-	recycle: recycle,
-	white_check_mark: white_check_mark,
-	chart: chart,
-	sparkle: sparkle,
-	eight_spoked_asterisk: eight_spoked_asterisk,
-	negative_squared_cross_mark: negative_squared_cross_mark,
-	globe_with_meridians: globe_with_meridians,
-	diamond_shape_with_a_dot_inside: diamond_shape_with_a_dot_inside,
-	m: m,
-	cyclone: cyclone,
-	zzz: zzz,
-	atm: atm,
-	wc: wc,
-	wheelchair: wheelchair,
-	parking: parking,
-	sa: sa,
-	passport_control: passport_control,
-	customs: customs,
-	baggage_claim: baggage_claim,
-	left_luggage: left_luggage,
-	mens: mens,
-	womens: womens,
-	baby_symbol: baby_symbol,
-	restroom: restroom,
-	put_litter_in_its_place: put_litter_in_its_place,
-	cinema: cinema,
-	signal_strength: signal_strength,
-	koko: koko,
-	symbols: symbols,
-	information_source: information_source,
-	abc: abc,
-	abcd: abcd,
-	capital_abcd: capital_abcd,
-	ng: ng,
-	ok: ok,
-	up: up,
-	cool: cool,
-	"new": "🆕",
-	free: free,
-	zero: zero$1,
-	one: one,
-	two: two,
-	three: three,
-	four: four,
-	five: five,
-	six: six,
-	seven: seven,
-	eight: eight,
-	nine: nine,
-	keycap_ten: keycap_ten,
-	hash: hash,
-	asterisk: asterisk,
-	arrow_forward: arrow_forward,
-	pause_button: pause_button,
-	play_or_pause_button: play_or_pause_button,
-	stop_button: stop_button,
-	record_button: record_button,
-	next_track_button: next_track_button,
-	previous_track_button: previous_track_button,
-	fast_forward: fast_forward,
-	rewind: rewind,
-	arrow_double_up: arrow_double_up,
-	arrow_double_down: arrow_double_down,
-	arrow_backward: arrow_backward,
-	arrow_up_small: arrow_up_small,
-	arrow_down_small: arrow_down_small,
-	arrow_right: arrow_right,
-	arrow_left: arrow_left,
-	arrow_up: arrow_up,
-	arrow_down: arrow_down,
-	arrow_upper_right: arrow_upper_right,
-	arrow_lower_right: arrow_lower_right,
-	arrow_lower_left: arrow_lower_left,
-	arrow_upper_left: arrow_upper_left,
-	arrow_up_down: arrow_up_down,
-	left_right_arrow: left_right_arrow,
-	arrow_right_hook: arrow_right_hook,
-	leftwards_arrow_with_hook: leftwards_arrow_with_hook,
-	arrow_heading_up: arrow_heading_up,
-	arrow_heading_down: arrow_heading_down,
-	twisted_rightwards_arrows: twisted_rightwards_arrows,
-	repeat: repeat,
-	repeat_one: repeat_one,
-	arrows_counterclockwise: arrows_counterclockwise,
-	arrows_clockwise: arrows_clockwise,
-	musical_note: musical_note,
-	notes: notes,
-	heavy_plus_sign: heavy_plus_sign,
-	heavy_minus_sign: heavy_minus_sign,
-	heavy_division_sign: heavy_division_sign,
-	heavy_multiplication_x: heavy_multiplication_x,
-	heavy_dollar_sign: heavy_dollar_sign,
-	currency_exchange: currency_exchange,
-	tm: tm,
-	copyright: copyright,
-	registered: registered,
-	wavy_dash: wavy_dash,
-	curly_loop: curly_loop,
-	loop: loop,
-	end: end,
-	back: back,
-	on: on,
-	top: top$1,
-	soon: soon,
-	heavy_check_mark: heavy_check_mark,
-	ballot_box_with_check: ballot_box_with_check,
-	radio_button: radio_button,
-	white_circle: white_circle,
-	black_circle: black_circle,
-	red_circle: red_circle,
-	large_blue_circle: large_blue_circle,
-	small_red_triangle: small_red_triangle,
-	small_red_triangle_down: small_red_triangle_down,
-	small_orange_diamond: small_orange_diamond,
-	small_blue_diamond: small_blue_diamond,
-	large_orange_diamond: large_orange_diamond,
-	large_blue_diamond: large_blue_diamond,
-	white_square_button: white_square_button,
-	black_square_button: black_square_button,
-	black_small_square: black_small_square,
-	white_small_square: white_small_square,
-	black_medium_small_square: black_medium_small_square,
-	white_medium_small_square: white_medium_small_square,
-	black_medium_square: black_medium_square,
-	white_medium_square: white_medium_square,
-	black_large_square: black_large_square,
-	white_large_square: white_large_square,
-	speaker: speaker,
-	mute: mute,
-	sound: sound,
-	loud_sound: loud_sound,
-	bell: bell,
-	no_bell: no_bell,
-	mega: mega,
-	loudspeaker: loudspeaker,
-	eye_speech_bubble: eye_speech_bubble,
-	speech_balloon: speech_balloon,
-	thought_balloon: thought_balloon,
-	right_anger_bubble: right_anger_bubble,
-	spades: spades$1,
-	clubs: clubs$1,
-	hearts: hearts$1,
-	diamonds: diamonds,
-	black_joker: black_joker,
-	flower_playing_cards: flower_playing_cards,
-	mahjong: mahjong,
-	clock1: clock1,
-	clock2: clock2,
-	clock3: clock3,
-	clock4: clock4,
-	clock5: clock5,
-	clock6: clock6,
-	clock7: clock7,
-	clock8: clock8,
-	clock9: clock9,
-	clock10: clock10,
-	clock11: clock11,
-	clock12: clock12,
-	clock130: clock130,
-	clock230: clock230,
-	clock330: clock330,
-	clock430: clock430,
-	clock530: clock530,
-	clock630: clock630,
-	clock730: clock730,
-	clock830: clock830,
-	clock930: clock930,
-	clock1030: clock1030,
-	clock1130: clock1130,
-	clock1230: clock1230,
-	white_flag: white_flag,
-	black_flag: black_flag,
-	checkered_flag: checkered_flag,
-	triangular_flag_on_post: triangular_flag_on_post,
-	rainbow_flag: rainbow_flag,
-	afghanistan: afghanistan,
-	aland_islands: aland_islands,
-	albania: albania,
-	algeria: algeria,
-	american_samoa: american_samoa,
-	andorra: andorra,
-	angola: angola,
-	anguilla: anguilla,
-	antarctica: antarctica,
-	antigua_barbuda: antigua_barbuda,
-	argentina: argentina,
-	armenia: armenia,
-	aruba: aruba,
-	australia: australia,
-	austria: austria,
-	azerbaijan: azerbaijan,
-	bahamas: bahamas,
-	bahrain: bahrain,
-	bangladesh: bangladesh,
-	barbados: barbados,
-	belarus: belarus,
-	belgium: belgium,
-	belize: belize,
-	benin: benin,
-	bermuda: bermuda,
-	bhutan: bhutan,
-	bolivia: bolivia,
-	caribbean_netherlands: caribbean_netherlands,
-	bosnia_herzegovina: bosnia_herzegovina,
-	botswana: botswana,
-	brazil: brazil,
-	british_indian_ocean_territory: british_indian_ocean_territory,
-	british_virgin_islands: british_virgin_islands,
-	brunei: brunei,
-	bulgaria: bulgaria,
-	burkina_faso: burkina_faso,
-	burundi: burundi,
-	cape_verde: cape_verde,
-	cambodia: cambodia,
-	cameroon: cameroon,
-	canada: canada,
-	canary_islands: canary_islands,
-	cayman_islands: cayman_islands,
-	central_african_republic: central_african_republic,
-	chad: chad,
-	chile: chile,
-	cn: cn,
-	christmas_island: christmas_island,
-	cocos_islands: cocos_islands,
-	colombia: colombia,
-	comoros: comoros,
-	congo_brazzaville: congo_brazzaville,
-	congo_kinshasa: congo_kinshasa,
-	cook_islands: cook_islands,
-	costa_rica: costa_rica,
-	cote_divoire: cote_divoire,
-	croatia: croatia,
-	cuba: cuba,
-	curacao: curacao,
-	cyprus: cyprus,
-	czech_republic: czech_republic,
-	denmark: denmark,
-	djibouti: djibouti,
-	dominica: dominica,
-	dominican_republic: dominican_republic,
-	ecuador: ecuador,
-	egypt: egypt,
-	el_salvador: el_salvador,
-	equatorial_guinea: equatorial_guinea,
-	eritrea: eritrea,
-	estonia: estonia,
-	ethiopia: ethiopia,
-	eu: eu,
-	european_union: european_union,
-	falkland_islands: falkland_islands,
-	faroe_islands: faroe_islands,
-	fiji: fiji,
-	finland: finland,
-	fr: fr,
-	french_guiana: french_guiana,
-	french_polynesia: french_polynesia,
-	french_southern_territories: french_southern_territories,
-	gabon: gabon,
-	gambia: gambia,
-	georgia: georgia,
-	de: de,
-	ghana: ghana,
-	gibraltar: gibraltar,
-	greece: greece,
-	greenland: greenland,
-	grenada: grenada,
-	guadeloupe: guadeloupe,
-	guam: guam,
-	guatemala: guatemala,
-	guernsey: guernsey,
-	guinea: guinea,
-	guinea_bissau: guinea_bissau,
-	guyana: guyana,
-	haiti: haiti,
-	honduras: honduras,
-	hong_kong: hong_kong,
-	hungary: hungary,
-	iceland: iceland,
-	india: india,
-	indonesia: indonesia,
-	iran: iran,
-	iraq: iraq,
-	ireland: ireland,
-	isle_of_man: isle_of_man,
-	israel: israel,
-	it: it$1,
-	jamaica: jamaica,
-	jp: jp,
-	crossed_flags: crossed_flags,
-	jersey: jersey,
-	jordan: jordan,
-	kazakhstan: kazakhstan,
-	kenya: kenya,
-	kiribati: kiribati,
-	kosovo: kosovo,
-	kuwait: kuwait,
-	kyrgyzstan: kyrgyzstan,
-	laos: laos,
-	latvia: latvia,
-	lebanon: lebanon,
-	lesotho: lesotho,
-	liberia: liberia,
-	libya: libya,
-	liechtenstein: liechtenstein,
-	lithuania: lithuania,
-	luxembourg: luxembourg,
-	macau: macau,
-	macedonia: macedonia,
-	madagascar: madagascar,
-	malawi: malawi,
-	malaysia: malaysia,
-	maldives: maldives,
-	mali: mali,
-	malta: malta,
-	marshall_islands: marshall_islands,
-	martinique: martinique,
-	mauritania: mauritania,
-	mauritius: mauritius,
-	mayotte: mayotte,
-	mexico: mexico,
-	micronesia: micronesia,
-	moldova: moldova,
-	monaco: monaco,
-	mongolia: mongolia,
-	montenegro: montenegro,
-	montserrat: montserrat,
-	morocco: morocco,
-	mozambique: mozambique,
-	myanmar: myanmar,
-	namibia: namibia,
-	nauru: nauru,
-	nepal: nepal,
-	netherlands: netherlands,
-	new_caledonia: new_caledonia,
-	new_zealand: new_zealand,
-	nicaragua: nicaragua,
-	niger: niger,
-	nigeria: nigeria,
-	niue: niue,
-	norfolk_island: norfolk_island,
-	northern_mariana_islands: northern_mariana_islands,
-	north_korea: north_korea,
-	norway: norway,
-	oman: oman,
-	pakistan: pakistan,
-	palau: palau,
-	palestinian_territories: palestinian_territories,
-	panama: panama,
-	papua_new_guinea: papua_new_guinea,
-	paraguay: paraguay,
-	peru: peru,
-	philippines: philippines,
-	pitcairn_islands: pitcairn_islands,
-	poland: poland,
-	portugal: portugal,
-	puerto_rico: puerto_rico,
-	qatar: qatar,
-	reunion: reunion,
-	romania: romania,
-	ru: ru,
-	rwanda: rwanda,
-	st_barthelemy: st_barthelemy,
-	st_helena: st_helena,
-	st_kitts_nevis: st_kitts_nevis,
-	st_lucia: st_lucia,
-	st_pierre_miquelon: st_pierre_miquelon,
-	st_vincent_grenadines: st_vincent_grenadines,
-	samoa: samoa,
-	san_marino: san_marino,
-	sao_tome_principe: sao_tome_principe,
-	saudi_arabia: saudi_arabia,
-	senegal: senegal,
-	serbia: serbia,
-	seychelles: seychelles,
-	sierra_leone: sierra_leone,
-	singapore: singapore,
-	sint_maarten: sint_maarten,
-	slovakia: slovakia,
-	slovenia: slovenia,
-	solomon_islands: solomon_islands,
-	somalia: somalia,
-	south_africa: south_africa,
-	south_georgia_south_sandwich_islands: south_georgia_south_sandwich_islands,
-	kr: kr,
-	south_sudan: south_sudan,
-	es: es,
-	sri_lanka: sri_lanka,
-	sudan: sudan,
-	suriname: suriname,
-	swaziland: swaziland,
-	sweden: sweden,
-	switzerland: switzerland,
-	syria: syria,
-	taiwan: taiwan,
-	tajikistan: tajikistan,
-	tanzania: tanzania,
-	thailand: thailand,
-	timor_leste: timor_leste,
-	togo: togo,
-	tokelau: tokelau,
-	tonga: tonga,
-	trinidad_tobago: trinidad_tobago,
-	tunisia: tunisia,
-	tr: tr,
-	turkmenistan: turkmenistan,
-	turks_caicos_islands: turks_caicos_islands,
-	tuvalu: tuvalu,
-	uganda: uganda,
-	ukraine: ukraine,
-	united_arab_emirates: united_arab_emirates,
-	gb: gb,
-	uk: uk,
-	us: us,
-	us_virgin_islands: us_virgin_islands,
-	uruguay: uruguay,
-	uzbekistan: uzbekistan,
-	vanuatu: vanuatu,
-	vatican_city: vatican_city,
-	venezuela: venezuela,
-	vietnam: vietnam,
-	wallis_futuna: wallis_futuna,
-	western_sahara: western_sahara,
-	yemen: yemen,
-	zambia: zambia,
-	zimbabwe: zimbabwe
-};
-
-// Emoticons -> Emoji mapping.
+  "100": "💯",
+  "1234": "🔢",
+  grinning: grinning,
+  smiley: smiley,
+  smile: smile$1,
+  grin: grin,
+  laughing: laughing,
+  satisfied: satisfied,
+  sweat_smile: sweat_smile,
+  joy: joy,
+  rofl: rofl,
+  relaxed: relaxed,
+  blush: blush,
+  innocent: innocent,
+  slightly_smiling_face: slightly_smiling_face,
+  upside_down_face: upside_down_face,
+  wink: wink,
+  relieved: relieved,
+  heart_eyes: heart_eyes,
+  kissing_heart: kissing_heart,
+  kissing: kissing,
+  kissing_smiling_eyes: kissing_smiling_eyes,
+  kissing_closed_eyes: kissing_closed_eyes,
+  yum: yum,
+  stuck_out_tongue_winking_eye: stuck_out_tongue_winking_eye,
+  stuck_out_tongue_closed_eyes: stuck_out_tongue_closed_eyes,
+  stuck_out_tongue: stuck_out_tongue,
+  money_mouth_face: money_mouth_face,
+  hugs: hugs,
+  nerd_face: nerd_face,
+  sunglasses: sunglasses,
+  clown_face: clown_face,
+  cowboy_hat_face: cowboy_hat_face,
+  smirk: smirk,
+  unamused: unamused,
+  disappointed: disappointed,
+  pensive: pensive,
+  worried: worried,
+  confused: confused,
+  slightly_frowning_face: slightly_frowning_face,
+  frowning_face: frowning_face,
+  persevere: persevere,
+  confounded: confounded,
+  tired_face: tired_face,
+  weary: weary,
+  triumph: triumph,
+  angry: angry,
+  rage: rage,
+  pout: pout,
+  no_mouth: no_mouth,
+  neutral_face: neutral_face,
+  expressionless: expressionless,
+  hushed: hushed,
+  frowning: frowning,
+  anguished: anguished,
+  open_mouth: open_mouth,
+  astonished: astonished,
+  dizzy_face: dizzy_face,
+  flushed: flushed,
+  scream: scream,
+  fearful: fearful,
+  cold_sweat: cold_sweat,
+  cry: cry,
+  disappointed_relieved: disappointed_relieved,
+  drooling_face: drooling_face,
+  sob: sob,
+  sweat: sweat,
+  sleepy: sleepy,
+  sleeping: sleeping,
+  roll_eyes: roll_eyes,
+  thinking: thinking,
+  lying_face: lying_face,
+  grimacing: grimacing,
+  zipper_mouth_face: zipper_mouth_face,
+  nauseated_face: nauseated_face,
+  sneezing_face: sneezing_face,
+  mask: mask,
+  face_with_thermometer: face_with_thermometer,
+  face_with_head_bandage: face_with_head_bandage,
+  smiling_imp: smiling_imp,
+  imp: imp,
+  japanese_ogre: japanese_ogre,
+  japanese_goblin: japanese_goblin,
+  hankey: hankey,
+  poop: poop,
+  shit: shit,
+  ghost: ghost,
+  skull: skull,
+  skull_and_crossbones: skull_and_crossbones,
+  alien: alien,
+  space_invader: space_invader,
+  robot: robot,
+  jack_o_lantern: jack_o_lantern,
+  smiley_cat: smiley_cat,
+  smile_cat: smile_cat,
+  joy_cat: joy_cat,
+  heart_eyes_cat: heart_eyes_cat,
+  smirk_cat: smirk_cat,
+  kissing_cat: kissing_cat,
+  scream_cat: scream_cat,
+  crying_cat_face: crying_cat_face,
+  pouting_cat: pouting_cat,
+  open_hands: open_hands,
+  raised_hands: raised_hands,
+  clap: clap,
+  pray: pray,
+  handshake: handshake,
+  "+1": "👍",
+  thumbsup: thumbsup,
+  "-1": "👎",
+  thumbsdown: thumbsdown,
+  fist_oncoming: fist_oncoming,
+  facepunch: facepunch,
+  punch: punch,
+  fist_raised: fist_raised,
+  fist: fist,
+  fist_left: fist_left,
+  fist_right: fist_right,
+  crossed_fingers: crossed_fingers,
+  v: v,
+  metal: metal,
+  ok_hand: ok_hand,
+  point_left: point_left,
+  point_right: point_right,
+  point_up_2: point_up_2,
+  point_down: point_down,
+  point_up: point_up,
+  hand: hand,
+  raised_hand: raised_hand,
+  raised_back_of_hand: raised_back_of_hand,
+  raised_hand_with_fingers_splayed: raised_hand_with_fingers_splayed,
+  vulcan_salute: vulcan_salute,
+  wave: wave,
+  call_me_hand: call_me_hand,
+  muscle: muscle,
+  middle_finger: middle_finger,
+  fu: fu,
+  writing_hand: writing_hand,
+  selfie: selfie,
+  nail_care: nail_care,
+  ring: ring$1,
+  lipstick: lipstick,
+  kiss: kiss,
+  lips: lips,
+  tongue: tongue,
+  ear: ear,
+  nose: nose,
+  footprints: footprints,
+  eye: eye,
+  eyes: eyes,
+  speaking_head: speaking_head,
+  bust_in_silhouette: bust_in_silhouette,
+  busts_in_silhouette: busts_in_silhouette,
+  baby: baby,
+  boy: boy,
+  girl: girl,
+  man: man,
+  woman: woman,
+  blonde_woman: blonde_woman,
+  blonde_man: blonde_man,
+  person_with_blond_hair: person_with_blond_hair,
+  older_man: older_man,
+  older_woman: older_woman,
+  man_with_gua_pi_mao: man_with_gua_pi_mao,
+  woman_with_turban: woman_with_turban,
+  man_with_turban: man_with_turban,
+  policewoman: policewoman,
+  policeman: policeman,
+  cop: cop,
+  construction_worker_woman: construction_worker_woman,
+  construction_worker_man: construction_worker_man,
+  construction_worker: construction_worker,
+  guardswoman: guardswoman,
+  guardsman: guardsman,
+  female_detective: female_detective,
+  male_detective: male_detective,
+  detective: detective,
+  woman_health_worker: woman_health_worker,
+  man_health_worker: man_health_worker,
+  woman_farmer: woman_farmer,
+  man_farmer: man_farmer,
+  woman_cook: woman_cook,
+  man_cook: man_cook,
+  woman_student: woman_student,
+  man_student: man_student,
+  woman_singer: woman_singer,
+  man_singer: man_singer,
+  woman_teacher: woman_teacher,
+  man_teacher: man_teacher,
+  woman_factory_worker: woman_factory_worker,
+  man_factory_worker: man_factory_worker,
+  woman_technologist: woman_technologist,
+  man_technologist: man_technologist,
+  woman_office_worker: woman_office_worker,
+  man_office_worker: man_office_worker,
+  woman_mechanic: woman_mechanic,
+  man_mechanic: man_mechanic,
+  woman_scientist: woman_scientist,
+  man_scientist: man_scientist,
+  woman_artist: woman_artist,
+  man_artist: man_artist,
+  woman_firefighter: woman_firefighter,
+  man_firefighter: man_firefighter,
+  woman_pilot: woman_pilot,
+  man_pilot: man_pilot,
+  woman_astronaut: woman_astronaut,
+  man_astronaut: man_astronaut,
+  woman_judge: woman_judge,
+  man_judge: man_judge,
+  mrs_claus: mrs_claus,
+  santa: santa,
+  princess: princess,
+  prince: prince,
+  bride_with_veil: bride_with_veil,
+  man_in_tuxedo: man_in_tuxedo,
+  angel: angel,
+  pregnant_woman: pregnant_woman,
+  bowing_woman: bowing_woman,
+  bowing_man: bowing_man,
+  bow: bow,
+  tipping_hand_woman: tipping_hand_woman,
+  information_desk_person: information_desk_person,
+  sassy_woman: sassy_woman,
+  tipping_hand_man: tipping_hand_man,
+  sassy_man: sassy_man,
+  no_good_woman: no_good_woman,
+  no_good: no_good,
+  ng_woman: ng_woman,
+  no_good_man: no_good_man,
+  ng_man: ng_man,
+  ok_woman: ok_woman,
+  ok_man: ok_man,
+  raising_hand_woman: raising_hand_woman,
+  raising_hand: raising_hand,
+  raising_hand_man: raising_hand_man,
+  woman_facepalming: woman_facepalming,
+  man_facepalming: man_facepalming,
+  woman_shrugging: woman_shrugging,
+  man_shrugging: man_shrugging,
+  pouting_woman: pouting_woman,
+  person_with_pouting_face: person_with_pouting_face,
+  pouting_man: pouting_man,
+  frowning_woman: frowning_woman,
+  person_frowning: person_frowning,
+  frowning_man: frowning_man,
+  haircut_woman: haircut_woman,
+  haircut: haircut,
+  haircut_man: haircut_man,
+  massage_woman: massage_woman,
+  massage: massage,
+  massage_man: massage_man,
+  business_suit_levitating: business_suit_levitating,
+  dancer: dancer,
+  man_dancing: man_dancing,
+  dancing_women: dancing_women,
+  dancers: dancers,
+  dancing_men: dancing_men,
+  walking_woman: walking_woman,
+  walking_man: walking_man,
+  walking: walking,
+  running_woman: running_woman,
+  running_man: running_man,
+  runner: runner,
+  running: running,
+  couple: couple,
+  two_women_holding_hands: two_women_holding_hands,
+  two_men_holding_hands: two_men_holding_hands,
+  couple_with_heart_woman_man: couple_with_heart_woman_man,
+  couple_with_heart: couple_with_heart,
+  couple_with_heart_woman_woman: couple_with_heart_woman_woman,
+  couple_with_heart_man_man: couple_with_heart_man_man,
+  couplekiss_man_woman: couplekiss_man_woman,
+  couplekiss_woman_woman: couplekiss_woman_woman,
+  couplekiss_man_man: couplekiss_man_man,
+  family_man_woman_boy: family_man_woman_boy,
+  family: family,
+  family_man_woman_girl: family_man_woman_girl,
+  family_man_woman_girl_boy: family_man_woman_girl_boy,
+  family_man_woman_boy_boy: family_man_woman_boy_boy,
+  family_man_woman_girl_girl: family_man_woman_girl_girl,
+  family_woman_woman_boy: family_woman_woman_boy,
+  family_woman_woman_girl: family_woman_woman_girl,
+  family_woman_woman_girl_boy: family_woman_woman_girl_boy,
+  family_woman_woman_boy_boy: family_woman_woman_boy_boy,
+  family_woman_woman_girl_girl: family_woman_woman_girl_girl,
+  family_man_man_boy: family_man_man_boy,
+  family_man_man_girl: family_man_man_girl,
+  family_man_man_girl_boy: family_man_man_girl_boy,
+  family_man_man_boy_boy: family_man_man_boy_boy,
+  family_man_man_girl_girl: family_man_man_girl_girl,
+  family_woman_boy: family_woman_boy,
+  family_woman_girl: family_woman_girl,
+  family_woman_girl_boy: family_woman_girl_boy,
+  family_woman_boy_boy: family_woman_boy_boy,
+  family_woman_girl_girl: family_woman_girl_girl,
+  family_man_boy: family_man_boy,
+  family_man_girl: family_man_girl,
+  family_man_girl_boy: family_man_girl_boy,
+  family_man_boy_boy: family_man_boy_boy,
+  family_man_girl_girl: family_man_girl_girl,
+  womans_clothes: womans_clothes,
+  shirt: shirt,
+  tshirt: tshirt,
+  jeans: jeans,
+  necktie: necktie,
+  dress: dress,
+  bikini: bikini,
+  kimono: kimono,
+  high_heel: high_heel,
+  sandal: sandal,
+  boot: boot,
+  mans_shoe: mans_shoe,
+  shoe: shoe,
+  athletic_shoe: athletic_shoe,
+  womans_hat: womans_hat,
+  tophat: tophat,
+  mortar_board: mortar_board,
+  crown: crown,
+  rescue_worker_helmet: rescue_worker_helmet,
+  school_satchel: school_satchel,
+  pouch: pouch,
+  purse: purse,
+  handbag: handbag,
+  briefcase: briefcase,
+  eyeglasses: eyeglasses,
+  dark_sunglasses: dark_sunglasses,
+  closed_umbrella: closed_umbrella,
+  open_umbrella: open_umbrella,
+  dog: dog,
+  cat: cat,
+  mouse: mouse,
+  hamster: hamster,
+  rabbit: rabbit,
+  fox_face: fox_face,
+  bear: bear,
+  panda_face: panda_face,
+  koala: koala,
+  tiger: tiger,
+  lion: lion,
+  cow: cow,
+  pig: pig,
+  pig_nose: pig_nose,
+  frog: frog,
+  monkey_face: monkey_face,
+  see_no_evil: see_no_evil,
+  hear_no_evil: hear_no_evil,
+  speak_no_evil: speak_no_evil,
+  monkey: monkey$1,
+  chicken: chicken,
+  penguin: penguin,
+  bird: bird,
+  baby_chick: baby_chick,
+  hatching_chick: hatching_chick,
+  hatched_chick: hatched_chick,
+  duck: duck,
+  eagle: eagle,
+  owl: owl,
+  bat: bat,
+  wolf: wolf,
+  boar: boar,
+  horse: horse,
+  unicorn: unicorn,
+  bee: bee,
+  honeybee: honeybee,
+  bug: bug,
+  butterfly: butterfly,
+  snail: snail,
+  shell: shell$1,
+  beetle: beetle,
+  ant: ant,
+  spider: spider,
+  spider_web: spider_web,
+  turtle: turtle,
+  snake: snake,
+  lizard: lizard,
+  scorpion: scorpion,
+  crab: crab,
+  squid: squid,
+  octopus: octopus,
+  shrimp: shrimp,
+  tropical_fish: tropical_fish,
+  fish: fish,
+  blowfish: blowfish,
+  dolphin: dolphin,
+  flipper: flipper,
+  shark: shark,
+  whale: whale,
+  whale2: whale2,
+  crocodile: crocodile,
+  leopard: leopard,
+  tiger2: tiger2,
+  water_buffalo: water_buffalo,
+  ox: ox,
+  cow2: cow2,
+  deer: deer,
+  dromedary_camel: dromedary_camel,
+  camel: camel,
+  elephant: elephant,
+  rhinoceros: rhinoceros,
+  gorilla: gorilla,
+  racehorse: racehorse,
+  pig2: pig2,
+  goat: goat,
+  ram: ram,
+  sheep: sheep,
+  dog2: dog2,
+  poodle: poodle,
+  cat2: cat2,
+  rooster: rooster,
+  turkey: turkey,
+  dove: dove,
+  rabbit2: rabbit2,
+  mouse2: mouse2,
+  rat: rat,
+  chipmunk: chipmunk,
+  feet: feet,
+  paw_prints: paw_prints,
+  dragon: dragon,
+  dragon_face: dragon_face,
+  cactus: cactus,
+  christmas_tree: christmas_tree,
+  evergreen_tree: evergreen_tree,
+  deciduous_tree: deciduous_tree,
+  palm_tree: palm_tree,
+  seedling: seedling,
+  herb: herb,
+  shamrock: shamrock,
+  four_leaf_clover: four_leaf_clover,
+  bamboo: bamboo,
+  tanabata_tree: tanabata_tree,
+  leaves: leaves,
+  fallen_leaf: fallen_leaf,
+  maple_leaf: maple_leaf,
+  mushroom: mushroom,
+  ear_of_rice: ear_of_rice,
+  bouquet: bouquet,
+  tulip: tulip,
+  rose: rose,
+  wilted_flower: wilted_flower,
+  sunflower: sunflower,
+  blossom: blossom,
+  cherry_blossom: cherry_blossom,
+  hibiscus: hibiscus,
+  earth_americas: earth_americas,
+  earth_africa: earth_africa,
+  earth_asia: earth_asia,
+  full_moon: full_moon,
+  waning_gibbous_moon: waning_gibbous_moon,
+  last_quarter_moon: last_quarter_moon,
+  waning_crescent_moon: waning_crescent_moon,
+  new_moon: new_moon,
+  waxing_crescent_moon: waxing_crescent_moon,
+  first_quarter_moon: first_quarter_moon,
+  moon: moon,
+  waxing_gibbous_moon: waxing_gibbous_moon,
+  new_moon_with_face: new_moon_with_face,
+  full_moon_with_face: full_moon_with_face,
+  sun_with_face: sun_with_face,
+  first_quarter_moon_with_face: first_quarter_moon_with_face,
+  last_quarter_moon_with_face: last_quarter_moon_with_face,
+  crescent_moon: crescent_moon,
+  dizzy: dizzy,
+  star: star$1,
+  star2: star2,
+  sparkles: sparkles,
+  zap: zap,
+  fire: fire,
+  boom: boom,
+  collision: collision,
+  comet: comet,
+  sunny: sunny,
+  sun_behind_small_cloud: sun_behind_small_cloud,
+  partly_sunny: partly_sunny,
+  sun_behind_large_cloud: sun_behind_large_cloud,
+  sun_behind_rain_cloud: sun_behind_rain_cloud,
+  rainbow: rainbow,
+  cloud: cloud,
+  cloud_with_rain: cloud_with_rain,
+  cloud_with_lightning_and_rain: cloud_with_lightning_and_rain,
+  cloud_with_lightning: cloud_with_lightning,
+  cloud_with_snow: cloud_with_snow,
+  snowman_with_snow: snowman_with_snow,
+  snowman: snowman,
+  snowflake: snowflake,
+  wind_face: wind_face,
+  dash: dash$1,
+  tornado: tornado,
+  fog: fog,
+  ocean: ocean,
+  droplet: droplet,
+  sweat_drops: sweat_drops,
+  umbrella: umbrella,
+  green_apple: green_apple,
+  apple: apple,
+  pear: pear,
+  tangerine: tangerine,
+  orange: orange,
+  mandarin: mandarin,
+  lemon: lemon,
+  banana: banana,
+  watermelon: watermelon,
+  grapes: grapes,
+  strawberry: strawberry,
+  melon: melon,
+  cherries: cherries,
+  peach: peach,
+  pineapple: pineapple,
+  kiwi_fruit: kiwi_fruit,
+  avocado: avocado,
+  tomato: tomato,
+  eggplant: eggplant,
+  cucumber: cucumber,
+  carrot: carrot,
+  corn: corn,
+  hot_pepper: hot_pepper,
+  potato: potato,
+  sweet_potato: sweet_potato,
+  chestnut: chestnut,
+  peanuts: peanuts,
+  honey_pot: honey_pot,
+  croissant: croissant,
+  bread: bread,
+  baguette_bread: baguette_bread,
+  cheese: cheese,
+  egg: egg,
+  fried_egg: fried_egg,
+  bacon: bacon,
+  pancakes: pancakes,
+  fried_shrimp: fried_shrimp,
+  poultry_leg: poultry_leg,
+  meat_on_bone: meat_on_bone,
+  pizza: pizza,
+  hotdog: hotdog,
+  hamburger: hamburger,
+  fries: fries,
+  stuffed_flatbread: stuffed_flatbread,
+  taco: taco,
+  burrito: burrito,
+  green_salad: green_salad,
+  shallow_pan_of_food: shallow_pan_of_food,
+  spaghetti: spaghetti,
+  ramen: ramen,
+  stew: stew,
+  fish_cake: fish_cake,
+  sushi: sushi,
+  bento: bento,
+  curry: curry,
+  rice: rice,
+  rice_ball: rice_ball,
+  rice_cracker: rice_cracker,
+  oden: oden,
+  dango: dango,
+  shaved_ice: shaved_ice,
+  ice_cream: ice_cream,
+  icecream: icecream,
+  cake: cake,
+  birthday: birthday,
+  custard: custard,
+  lollipop: lollipop,
+  candy: candy,
+  chocolate_bar: chocolate_bar,
+  popcorn: popcorn,
+  doughnut: doughnut,
+  cookie: cookie,
+  milk_glass: milk_glass,
+  baby_bottle: baby_bottle,
+  coffee: coffee,
+  tea: tea,
+  sake: sake,
+  beer: beer,
+  beers: beers,
+  clinking_glasses: clinking_glasses,
+  wine_glass: wine_glass,
+  tumbler_glass: tumbler_glass,
+  cocktail: cocktail,
+  tropical_drink: tropical_drink,
+  champagne: champagne,
+  spoon: spoon,
+  fork_and_knife: fork_and_knife,
+  plate_with_cutlery: plate_with_cutlery,
+  soccer: soccer,
+  basketball: basketball,
+  football: football,
+  baseball: baseball,
+  tennis: tennis,
+  volleyball: volleyball,
+  rugby_football: rugby_football,
+  "8ball": "🎱",
+  ping_pong: ping_pong,
+  badminton: badminton,
+  goal_net: goal_net,
+  ice_hockey: ice_hockey,
+  field_hockey: field_hockey,
+  cricket: cricket,
+  golf: golf,
+  bow_and_arrow: bow_and_arrow,
+  fishing_pole_and_fish: fishing_pole_and_fish,
+  boxing_glove: boxing_glove,
+  martial_arts_uniform: martial_arts_uniform,
+  ice_skate: ice_skate,
+  ski: ski,
+  skier: skier,
+  snowboarder: snowboarder,
+  weight_lifting_woman: weight_lifting_woman,
+  weight_lifting_man: weight_lifting_man,
+  person_fencing: person_fencing,
+  women_wrestling: women_wrestling,
+  men_wrestling: men_wrestling,
+  woman_cartwheeling: woman_cartwheeling,
+  man_cartwheeling: man_cartwheeling,
+  basketball_woman: basketball_woman,
+  basketball_man: basketball_man,
+  woman_playing_handball: woman_playing_handball,
+  man_playing_handball: man_playing_handball,
+  golfing_woman: golfing_woman,
+  golfing_man: golfing_man,
+  surfing_woman: surfing_woman,
+  surfing_man: surfing_man,
+  surfer: surfer,
+  swimming_woman: swimming_woman,
+  swimming_man: swimming_man,
+  swimmer: swimmer,
+  woman_playing_water_polo: woman_playing_water_polo,
+  man_playing_water_polo: man_playing_water_polo,
+  rowing_woman: rowing_woman,
+  rowing_man: rowing_man,
+  rowboat: rowboat,
+  horse_racing: horse_racing,
+  biking_woman: biking_woman,
+  biking_man: biking_man,
+  bicyclist: bicyclist,
+  mountain_biking_woman: mountain_biking_woman,
+  mountain_biking_man: mountain_biking_man,
+  mountain_bicyclist: mountain_bicyclist,
+  running_shirt_with_sash: running_shirt_with_sash,
+  medal_sports: medal_sports,
+  medal_military: medal_military,
+  "1st_place_medal": "🥇",
+  "2nd_place_medal": "🥈",
+  "3rd_place_medal": "🥉",
+  trophy: trophy,
+  rosette: rosette,
+  reminder_ribbon: reminder_ribbon,
+  ticket: ticket,
+  tickets: tickets,
+  circus_tent: circus_tent,
+  woman_juggling: woman_juggling,
+  man_juggling: man_juggling,
+  performing_arts: performing_arts,
+  art: art,
+  clapper: clapper,
+  microphone: microphone,
+  headphones: headphones,
+  musical_score: musical_score,
+  musical_keyboard: musical_keyboard,
+  drum: drum,
+  saxophone: saxophone,
+  trumpet: trumpet,
+  guitar: guitar,
+  violin: violin,
+  game_die: game_die,
+  dart: dart$1,
+  bowling: bowling,
+  video_game: video_game,
+  slot_machine: slot_machine,
+  car: car,
+  red_car: red_car,
+  taxi: taxi,
+  blue_car: blue_car,
+  bus: bus,
+  trolleybus: trolleybus,
+  racing_car: racing_car,
+  police_car: police_car,
+  ambulance: ambulance,
+  fire_engine: fire_engine,
+  minibus: minibus,
+  truck: truck,
+  articulated_lorry: articulated_lorry,
+  tractor: tractor,
+  kick_scooter: kick_scooter,
+  bike: bike,
+  motor_scooter: motor_scooter,
+  motorcycle: motorcycle,
+  rotating_light: rotating_light,
+  oncoming_police_car: oncoming_police_car,
+  oncoming_bus: oncoming_bus,
+  oncoming_automobile: oncoming_automobile,
+  oncoming_taxi: oncoming_taxi,
+  aerial_tramway: aerial_tramway,
+  mountain_cableway: mountain_cableway,
+  suspension_railway: suspension_railway,
+  railway_car: railway_car,
+  train: train,
+  mountain_railway: mountain_railway,
+  monorail: monorail,
+  bullettrain_side: bullettrain_side,
+  bullettrain_front: bullettrain_front,
+  light_rail: light_rail,
+  steam_locomotive: steam_locomotive,
+  train2: train2,
+  metro: metro,
+  tram: tram,
+  station: station,
+  helicopter: helicopter,
+  small_airplane: small_airplane,
+  airplane: airplane,
+  flight_departure: flight_departure,
+  flight_arrival: flight_arrival,
+  rocket: rocket,
+  artificial_satellite: artificial_satellite,
+  seat: seat,
+  canoe: canoe,
+  boat: boat,
+  sailboat: sailboat,
+  motor_boat: motor_boat,
+  speedboat: speedboat,
+  passenger_ship: passenger_ship,
+  ferry: ferry,
+  ship: ship,
+  anchor: anchor,
+  construction: construction,
+  fuelpump: fuelpump,
+  busstop: busstop,
+  vertical_traffic_light: vertical_traffic_light,
+  traffic_light: traffic_light,
+  world_map: world_map,
+  moyai: moyai,
+  statue_of_liberty: statue_of_liberty,
+  fountain: fountain,
+  tokyo_tower: tokyo_tower,
+  european_castle: european_castle,
+  japanese_castle: japanese_castle,
+  stadium: stadium,
+  ferris_wheel: ferris_wheel,
+  roller_coaster: roller_coaster,
+  carousel_horse: carousel_horse,
+  parasol_on_ground: parasol_on_ground,
+  beach_umbrella: beach_umbrella,
+  desert_island: desert_island,
+  mountain: mountain,
+  mountain_snow: mountain_snow,
+  mount_fuji: mount_fuji,
+  volcano: volcano,
+  desert: desert,
+  camping: camping,
+  tent: tent,
+  railway_track: railway_track,
+  motorway: motorway,
+  building_construction: building_construction,
+  factory: factory,
+  house: house,
+  house_with_garden: house_with_garden,
+  houses: houses,
+  derelict_house: derelict_house,
+  office: office,
+  department_store: department_store,
+  post_office: post_office,
+  european_post_office: european_post_office,
+  hospital: hospital,
+  bank: bank,
+  hotel: hotel,
+  convenience_store: convenience_store,
+  school: school,
+  love_hotel: love_hotel,
+  wedding: wedding,
+  classical_building: classical_building,
+  church: church,
+  mosque: mosque,
+  synagogue: synagogue,
+  kaaba: kaaba,
+  shinto_shrine: shinto_shrine,
+  japan: japan,
+  rice_scene: rice_scene,
+  national_park: national_park,
+  sunrise: sunrise,
+  sunrise_over_mountains: sunrise_over_mountains,
+  stars: stars,
+  sparkler: sparkler,
+  fireworks: fireworks,
+  city_sunrise: city_sunrise,
+  city_sunset: city_sunset,
+  cityscape: cityscape,
+  night_with_stars: night_with_stars,
+  milky_way: milky_way,
+  bridge_at_night: bridge_at_night,
+  foggy: foggy,
+  watch: watch,
+  iphone: iphone,
+  calling: calling,
+  computer: computer,
+  keyboard: keyboard,
+  desktop_computer: desktop_computer,
+  printer: printer,
+  computer_mouse: computer_mouse,
+  trackball: trackball,
+  joystick: joystick,
+  clamp: clamp,
+  minidisc: minidisc,
+  floppy_disk: floppy_disk,
+  cd: cd,
+  dvd: dvd,
+  vhs: vhs,
+  camera: camera,
+  camera_flash: camera_flash,
+  video_camera: video_camera,
+  movie_camera: movie_camera,
+  film_projector: film_projector,
+  film_strip: film_strip,
+  telephone_receiver: telephone_receiver,
+  phone: phone$1,
+  telephone: telephone,
+  pager: pager,
+  fax: fax,
+  tv: tv,
+  radio: radio,
+  studio_microphone: studio_microphone,
+  level_slider: level_slider,
+  control_knobs: control_knobs,
+  stopwatch: stopwatch,
+  timer_clock: timer_clock,
+  alarm_clock: alarm_clock,
+  mantelpiece_clock: mantelpiece_clock,
+  hourglass: hourglass,
+  hourglass_flowing_sand: hourglass_flowing_sand,
+  satellite: satellite,
+  battery: battery,
+  electric_plug: electric_plug,
+  bulb: bulb,
+  flashlight: flashlight,
+  candle: candle,
+  wastebasket: wastebasket,
+  oil_drum: oil_drum,
+  money_with_wings: money_with_wings,
+  dollar: dollar$1,
+  yen: yen$1,
+  euro: euro$1,
+  pound: pound$1,
+  moneybag: moneybag,
+  credit_card: credit_card,
+  gem: gem,
+  balance_scale: balance_scale,
+  wrench: wrench,
+  hammer: hammer,
+  hammer_and_pick: hammer_and_pick,
+  hammer_and_wrench: hammer_and_wrench,
+  pick: pick,
+  nut_and_bolt: nut_and_bolt,
+  gear: gear,
+  chains: chains,
+  gun: gun,
+  bomb: bomb,
+  hocho: hocho,
+  knife: knife,
+  dagger: dagger$1,
+  crossed_swords: crossed_swords,
+  shield: shield,
+  smoking: smoking,
+  coffin: coffin,
+  funeral_urn: funeral_urn,
+  amphora: amphora,
+  crystal_ball: crystal_ball,
+  prayer_beads: prayer_beads,
+  barber: barber,
+  alembic: alembic,
+  telescope: telescope,
+  microscope: microscope,
+  hole: hole,
+  pill: pill,
+  syringe: syringe,
+  thermometer: thermometer,
+  toilet: toilet,
+  potable_water: potable_water,
+  shower: shower,
+  bathtub: bathtub,
+  bath: bath,
+  bellhop_bell: bellhop_bell,
+  key: key,
+  old_key: old_key,
+  door: door,
+  couch_and_lamp: couch_and_lamp,
+  bed: bed,
+  sleeping_bed: sleeping_bed,
+  framed_picture: framed_picture,
+  shopping: shopping,
+  shopping_cart: shopping_cart,
+  gift: gift,
+  balloon: balloon,
+  flags: flags,
+  ribbon: ribbon,
+  confetti_ball: confetti_ball,
+  tada: tada,
+  dolls: dolls,
+  izakaya_lantern: izakaya_lantern,
+  lantern: lantern,
+  wind_chime: wind_chime,
+  email: email,
+  envelope: envelope,
+  envelope_with_arrow: envelope_with_arrow,
+  incoming_envelope: incoming_envelope,
+  "e-mail": "📧",
+  love_letter: love_letter,
+  inbox_tray: inbox_tray,
+  outbox_tray: outbox_tray,
+  "package": "📦",
+  label: label,
+  mailbox_closed: mailbox_closed,
+  mailbox: mailbox,
+  mailbox_with_mail: mailbox_with_mail,
+  mailbox_with_no_mail: mailbox_with_no_mail,
+  postbox: postbox,
+  postal_horn: postal_horn,
+  scroll: scroll,
+  page_with_curl: page_with_curl,
+  page_facing_up: page_facing_up,
+  bookmark_tabs: bookmark_tabs,
+  bar_chart: bar_chart,
+  chart_with_upwards_trend: chart_with_upwards_trend,
+  chart_with_downwards_trend: chart_with_downwards_trend,
+  spiral_notepad: spiral_notepad,
+  spiral_calendar: spiral_calendar,
+  calendar: calendar,
+  date: date,
+  card_index: card_index,
+  card_file_box: card_file_box,
+  ballot_box: ballot_box,
+  file_cabinet: file_cabinet,
+  clipboard: clipboard,
+  file_folder: file_folder,
+  open_file_folder: open_file_folder,
+  card_index_dividers: card_index_dividers,
+  newspaper_roll: newspaper_roll,
+  newspaper: newspaper,
+  notebook: notebook,
+  notebook_with_decorative_cover: notebook_with_decorative_cover,
+  ledger: ledger,
+  closed_book: closed_book,
+  green_book: green_book,
+  blue_book: blue_book,
+  orange_book: orange_book,
+  books: books,
+  book: book,
+  open_book: open_book,
+  bookmark: bookmark,
+  link: link$1,
+  paperclip: paperclip,
+  paperclips: paperclips,
+  triangular_ruler: triangular_ruler,
+  straight_ruler: straight_ruler,
+  pushpin: pushpin,
+  round_pushpin: round_pushpin,
+  scissors: scissors,
+  pen: pen,
+  fountain_pen: fountain_pen,
+  black_nib: black_nib,
+  paintbrush: paintbrush,
+  crayon: crayon,
+  memo: memo,
+  pencil: pencil,
+  pencil2: pencil2,
+  mag: mag,
+  mag_right: mag_right,
+  lock_with_ink_pen: lock_with_ink_pen,
+  closed_lock_with_key: closed_lock_with_key,
+  lock: lock,
+  unlock: unlock,
+  heart: heart,
+  yellow_heart: yellow_heart,
+  green_heart: green_heart,
+  blue_heart: blue_heart,
+  purple_heart: purple_heart,
+  black_heart: black_heart,
+  broken_heart: broken_heart,
+  heavy_heart_exclamation: heavy_heart_exclamation,
+  two_hearts: two_hearts,
+  revolving_hearts: revolving_hearts,
+  heartbeat: heartbeat,
+  heartpulse: heartpulse,
+  sparkling_heart: sparkling_heart,
+  cupid: cupid,
+  gift_heart: gift_heart,
+  heart_decoration: heart_decoration,
+  peace_symbol: peace_symbol,
+  latin_cross: latin_cross,
+  star_and_crescent: star_and_crescent,
+  om: om,
+  wheel_of_dharma: wheel_of_dharma,
+  star_of_david: star_of_david,
+  six_pointed_star: six_pointed_star,
+  menorah: menorah,
+  yin_yang: yin_yang,
+  orthodox_cross: orthodox_cross,
+  place_of_worship: place_of_worship,
+  ophiuchus: ophiuchus,
+  aries: aries,
+  taurus: taurus,
+  gemini: gemini,
+  cancer: cancer,
+  leo: leo,
+  virgo: virgo,
+  libra: libra,
+  scorpius: scorpius,
+  sagittarius: sagittarius,
+  capricorn: capricorn,
+  aquarius: aquarius,
+  pisces: pisces,
+  id: id,
+  atom_symbol: atom_symbol,
+  accept: accept,
+  radioactive: radioactive,
+  biohazard: biohazard,
+  mobile_phone_off: mobile_phone_off,
+  vibration_mode: vibration_mode,
+  eight_pointed_black_star: eight_pointed_black_star,
+  vs: vs,
+  white_flower: white_flower,
+  ideograph_advantage: ideograph_advantage,
+  secret: secret,
+  congratulations: congratulations,
+  u6e80: u6e80,
+  a: a,
+  b: b,
+  ab: ab,
+  cl: cl,
+  o2: o2,
+  sos: sos,
+  x: x,
+  o: o,
+  stop_sign: stop_sign,
+  no_entry: no_entry,
+  name_badge: name_badge,
+  no_entry_sign: no_entry_sign,
+  anger: anger,
+  hotsprings: hotsprings,
+  no_pedestrians: no_pedestrians,
+  do_not_litter: do_not_litter,
+  no_bicycles: no_bicycles,
+  "non-potable_water": "🚱",
+  underage: underage,
+  no_mobile_phones: no_mobile_phones,
+  no_smoking: no_smoking,
+  exclamation: exclamation,
+  heavy_exclamation_mark: heavy_exclamation_mark,
+  grey_exclamation: grey_exclamation,
+  question: question,
+  grey_question: grey_question,
+  bangbang: bangbang,
+  interrobang: interrobang,
+  low_brightness: low_brightness,
+  high_brightness: high_brightness,
+  part_alternation_mark: part_alternation_mark,
+  warning: warning,
+  children_crossing: children_crossing,
+  trident: trident,
+  fleur_de_lis: fleur_de_lis,
+  beginner: beginner,
+  recycle: recycle,
+  white_check_mark: white_check_mark,
+  chart: chart,
+  sparkle: sparkle,
+  eight_spoked_asterisk: eight_spoked_asterisk,
+  negative_squared_cross_mark: negative_squared_cross_mark,
+  globe_with_meridians: globe_with_meridians,
+  diamond_shape_with_a_dot_inside: diamond_shape_with_a_dot_inside,
+  m: m,
+  cyclone: cyclone,
+  zzz: zzz,
+  atm: atm,
+  wc: wc,
+  wheelchair: wheelchair,
+  parking: parking,
+  sa: sa,
+  passport_control: passport_control,
+  customs: customs,
+  baggage_claim: baggage_claim,
+  left_luggage: left_luggage,
+  mens: mens,
+  womens: womens,
+  baby_symbol: baby_symbol,
+  restroom: restroom,
+  put_litter_in_its_place: put_litter_in_its_place,
+  cinema: cinema,
+  signal_strength: signal_strength,
+  koko: koko,
+  symbols: symbols,
+  information_source: information_source,
+  abc: abc,
+  abcd: abcd,
+  capital_abcd: capital_abcd,
+  ng: ng,
+  ok: ok,
+  up: up,
+  cool: cool,
+  "new": "🆕",
+  free: free,
+  zero: zero$1,
+  one: one,
+  two: two,
+  three: three,
+  four: four,
+  five: five,
+  six: six,
+  seven: seven,
+  eight: eight,
+  nine: nine,
+  keycap_ten: keycap_ten,
+  hash: hash,
+  asterisk: asterisk,
+  arrow_forward: arrow_forward,
+  pause_button: pause_button,
+  play_or_pause_button: play_or_pause_button,
+  stop_button: stop_button,
+  record_button: record_button,
+  next_track_button: next_track_button,
+  previous_track_button: previous_track_button,
+  fast_forward: fast_forward,
+  rewind: rewind,
+  arrow_double_up: arrow_double_up,
+  arrow_double_down: arrow_double_down,
+  arrow_backward: arrow_backward,
+  arrow_up_small: arrow_up_small,
+  arrow_down_small: arrow_down_small,
+  arrow_right: arrow_right,
+  arrow_left: arrow_left,
+  arrow_up: arrow_up,
+  arrow_down: arrow_down,
+  arrow_upper_right: arrow_upper_right,
+  arrow_lower_right: arrow_lower_right,
+  arrow_lower_left: arrow_lower_left,
+  arrow_upper_left: arrow_upper_left,
+  arrow_up_down: arrow_up_down,
+  left_right_arrow: left_right_arrow,
+  arrow_right_hook: arrow_right_hook,
+  leftwards_arrow_with_hook: leftwards_arrow_with_hook,
+  arrow_heading_up: arrow_heading_up,
+  arrow_heading_down: arrow_heading_down,
+  twisted_rightwards_arrows: twisted_rightwards_arrows,
+  repeat: repeat,
+  repeat_one: repeat_one,
+  arrows_counterclockwise: arrows_counterclockwise,
+  arrows_clockwise: arrows_clockwise,
+  musical_note: musical_note,
+  notes: notes,
+  heavy_plus_sign: heavy_plus_sign,
+  heavy_minus_sign: heavy_minus_sign,
+  heavy_division_sign: heavy_division_sign,
+  heavy_multiplication_x: heavy_multiplication_x,
+  heavy_dollar_sign: heavy_dollar_sign,
+  currency_exchange: currency_exchange,
+  tm: tm,
+  copyright: copyright,
+  registered: registered,
+  wavy_dash: wavy_dash,
+  curly_loop: curly_loop,
+  loop: loop,
+  end: end,
+  back: back,
+  on: on,
+  top: top$1,
+  soon: soon,
+  heavy_check_mark: heavy_check_mark,
+  ballot_box_with_check: ballot_box_with_check,
+  radio_button: radio_button,
+  white_circle: white_circle,
+  black_circle: black_circle,
+  red_circle: red_circle,
+  large_blue_circle: large_blue_circle,
+  small_red_triangle: small_red_triangle,
+  small_red_triangle_down: small_red_triangle_down,
+  small_orange_diamond: small_orange_diamond,
+  small_blue_diamond: small_blue_diamond,
+  large_orange_diamond: large_orange_diamond,
+  large_blue_diamond: large_blue_diamond,
+  white_square_button: white_square_button,
+  black_square_button: black_square_button,
+  black_small_square: black_small_square,
+  white_small_square: white_small_square,
+  black_medium_small_square: black_medium_small_square,
+  white_medium_small_square: white_medium_small_square,
+  black_medium_square: black_medium_square,
+  white_medium_square: white_medium_square,
+  black_large_square: black_large_square,
+  white_large_square: white_large_square,
+  speaker: speaker,
+  mute: mute,
+  sound: sound,
+  loud_sound: loud_sound,
+  bell: bell,
+  no_bell: no_bell,
+  mega: mega,
+  loudspeaker: loudspeaker,
+  eye_speech_bubble: eye_speech_bubble,
+  speech_balloon: speech_balloon,
+  thought_balloon: thought_balloon,
+  right_anger_bubble: right_anger_bubble,
+  spades: spades$1,
+  clubs: clubs$1,
+  hearts: hearts$1,
+  diamonds: diamonds,
+  black_joker: black_joker,
+  flower_playing_cards: flower_playing_cards,
+  mahjong: mahjong,
+  clock1: clock1,
+  clock2: clock2,
+  clock3: clock3,
+  clock4: clock4,
+  clock5: clock5,
+  clock6: clock6,
+  clock7: clock7,
+  clock8: clock8,
+  clock9: clock9,
+  clock10: clock10,
+  clock11: clock11,
+  clock12: clock12,
+  clock130: clock130,
+  clock230: clock230,
+  clock330: clock330,
+  clock430: clock430,
+  clock530: clock530,
+  clock630: clock630,
+  clock730: clock730,
+  clock830: clock830,
+  clock930: clock930,
+  clock1030: clock1030,
+  clock1130: clock1130,
+  clock1230: clock1230,
+  white_flag: white_flag,
+  black_flag: black_flag,
+  checkered_flag: checkered_flag,
+  triangular_flag_on_post: triangular_flag_on_post,
+  rainbow_flag: rainbow_flag,
+  afghanistan: afghanistan,
+  aland_islands: aland_islands,
+  albania: albania,
+  algeria: algeria,
+  american_samoa: american_samoa,
+  andorra: andorra,
+  angola: angola,
+  anguilla: anguilla,
+  antarctica: antarctica,
+  antigua_barbuda: antigua_barbuda,
+  argentina: argentina,
+  armenia: armenia,
+  aruba: aruba,
+  australia: australia,
+  austria: austria,
+  azerbaijan: azerbaijan,
+  bahamas: bahamas,
+  bahrain: bahrain,
+  bangladesh: bangladesh,
+  barbados: barbados,
+  belarus: belarus,
+  belgium: belgium,
+  belize: belize,
+  benin: benin,
+  bermuda: bermuda,
+  bhutan: bhutan,
+  bolivia: bolivia,
+  caribbean_netherlands: caribbean_netherlands,
+  bosnia_herzegovina: bosnia_herzegovina,
+  botswana: botswana,
+  brazil: brazil,
+  british_indian_ocean_territory: british_indian_ocean_territory,
+  british_virgin_islands: british_virgin_islands,
+  brunei: brunei,
+  bulgaria: bulgaria,
+  burkina_faso: burkina_faso,
+  burundi: burundi,
+  cape_verde: cape_verde,
+  cambodia: cambodia,
+  cameroon: cameroon,
+  canada: canada,
+  canary_islands: canary_islands,
+  cayman_islands: cayman_islands,
+  central_african_republic: central_african_republic,
+  chad: chad,
+  chile: chile,
+  cn: cn,
+  christmas_island: christmas_island,
+  cocos_islands: cocos_islands,
+  colombia: colombia,
+  comoros: comoros,
+  congo_brazzaville: congo_brazzaville,
+  congo_kinshasa: congo_kinshasa,
+  cook_islands: cook_islands,
+  costa_rica: costa_rica,
+  cote_divoire: cote_divoire,
+  croatia: croatia,
+  cuba: cuba,
+  curacao: curacao,
+  cyprus: cyprus,
+  czech_republic: czech_republic,
+  denmark: denmark,
+  djibouti: djibouti,
+  dominica: dominica,
+  dominican_republic: dominican_republic,
+  ecuador: ecuador,
+  egypt: egypt,
+  el_salvador: el_salvador,
+  equatorial_guinea: equatorial_guinea,
+  eritrea: eritrea,
+  estonia: estonia,
+  ethiopia: ethiopia,
+  eu: eu,
+  european_union: european_union,
+  falkland_islands: falkland_islands,
+  faroe_islands: faroe_islands,
+  fiji: fiji,
+  finland: finland,
+  fr: fr,
+  french_guiana: french_guiana,
+  french_polynesia: french_polynesia,
+  french_southern_territories: french_southern_territories,
+  gabon: gabon,
+  gambia: gambia,
+  georgia: georgia,
+  de: de,
+  ghana: ghana,
+  gibraltar: gibraltar,
+  greece: greece,
+  greenland: greenland,
+  grenada: grenada,
+  guadeloupe: guadeloupe,
+  guam: guam,
+  guatemala: guatemala,
+  guernsey: guernsey,
+  guinea: guinea,
+  guinea_bissau: guinea_bissau,
+  guyana: guyana,
+  haiti: haiti,
+  honduras: honduras,
+  hong_kong: hong_kong,
+  hungary: hungary,
+  iceland: iceland,
+  india: india,
+  indonesia: indonesia,
+  iran: iran,
+  iraq: iraq,
+  ireland: ireland,
+  isle_of_man: isle_of_man,
+  israel: israel,
+  it: it$1,
+  jamaica: jamaica,
+  jp: jp,
+  crossed_flags: crossed_flags,
+  jersey: jersey,
+  jordan: jordan,
+  kazakhstan: kazakhstan,
+  kenya: kenya,
+  kiribati: kiribati,
+  kosovo: kosovo,
+  kuwait: kuwait,
+  kyrgyzstan: kyrgyzstan,
+  laos: laos,
+  latvia: latvia,
+  lebanon: lebanon,
+  lesotho: lesotho,
+  liberia: liberia,
+  libya: libya,
+  liechtenstein: liechtenstein,
+  lithuania: lithuania,
+  luxembourg: luxembourg,
+  macau: macau,
+  macedonia: macedonia,
+  madagascar: madagascar,
+  malawi: malawi,
+  malaysia: malaysia,
+  maldives: maldives,
+  mali: mali,
+  malta: malta,
+  marshall_islands: marshall_islands,
+  martinique: martinique,
+  mauritania: mauritania,
+  mauritius: mauritius,
+  mayotte: mayotte,
+  mexico: mexico,
+  micronesia: micronesia,
+  moldova: moldova,
+  monaco: monaco,
+  mongolia: mongolia,
+  montenegro: montenegro,
+  montserrat: montserrat,
+  morocco: morocco,
+  mozambique: mozambique,
+  myanmar: myanmar,
+  namibia: namibia,
+  nauru: nauru,
+  nepal: nepal,
+  netherlands: netherlands,
+  new_caledonia: new_caledonia,
+  new_zealand: new_zealand,
+  nicaragua: nicaragua,
+  niger: niger,
+  nigeria: nigeria,
+  niue: niue,
+  norfolk_island: norfolk_island,
+  northern_mariana_islands: northern_mariana_islands,
+  north_korea: north_korea,
+  norway: norway,
+  oman: oman,
+  pakistan: pakistan,
+  palau: palau,
+  palestinian_territories: palestinian_territories,
+  panama: panama,
+  papua_new_guinea: papua_new_guinea,
+  paraguay: paraguay,
+  peru: peru,
+  philippines: philippines,
+  pitcairn_islands: pitcairn_islands,
+  poland: poland,
+  portugal: portugal,
+  puerto_rico: puerto_rico,
+  qatar: qatar,
+  reunion: reunion,
+  romania: romania,
+  ru: ru,
+  rwanda: rwanda,
+  st_barthelemy: st_barthelemy,
+  st_helena: st_helena,
+  st_kitts_nevis: st_kitts_nevis,
+  st_lucia: st_lucia,
+  st_pierre_miquelon: st_pierre_miquelon,
+  st_vincent_grenadines: st_vincent_grenadines,
+  samoa: samoa,
+  san_marino: san_marino,
+  sao_tome_principe: sao_tome_principe,
+  saudi_arabia: saudi_arabia,
+  senegal: senegal,
+  serbia: serbia,
+  seychelles: seychelles,
+  sierra_leone: sierra_leone,
+  singapore: singapore,
+  sint_maarten: sint_maarten,
+  slovakia: slovakia,
+  slovenia: slovenia,
+  solomon_islands: solomon_islands,
+  somalia: somalia,
+  south_africa: south_africa,
+  south_georgia_south_sandwich_islands: south_georgia_south_sandwich_islands,
+  kr: kr,
+  south_sudan: south_sudan,
+  es: es,
+  sri_lanka: sri_lanka,
+  sudan: sudan,
+  suriname: suriname,
+  swaziland: swaziland,
+  sweden: sweden,
+  switzerland: switzerland,
+  syria: syria,
+  taiwan: taiwan,
+  tajikistan: tajikistan,
+  tanzania: tanzania,
+  thailand: thailand,
+  timor_leste: timor_leste,
+  togo: togo,
+  tokelau: tokelau,
+  tonga: tonga,
+  trinidad_tobago: trinidad_tobago,
+  tunisia: tunisia,
+  tr: tr,
+  turkmenistan: turkmenistan,
+  turks_caicos_islands: turks_caicos_islands,
+  tuvalu: tuvalu,
+  uganda: uganda,
+  ukraine: ukraine,
+  united_arab_emirates: united_arab_emirates,
+  gb: gb,
+  uk: uk,
+  us: us,
+  us_virgin_islands: us_virgin_islands,
+  uruguay: uruguay,
+  uzbekistan: uzbekistan,
+  vanuatu: vanuatu,
+  vatican_city: vatican_city,
+  venezuela: venezuela,
+  vietnam: vietnam,
+  wallis_futuna: wallis_futuna,
+  western_sahara: western_sahara,
+  yemen: yemen,
+  zambia: zambia,
+  zimbabwe: zimbabwe
+}; // Emoticons -> Emoji mapping.
 
 var shortcuts = {
   angry: ['>:(', '>:-('],
@@ -36447,9 +38617,8 @@ var render = function emoji_html(tokens, idx
 /*, options, env */
 ) {
   return tokens[idx].content;
-};
+}; // Emojies & shortcuts replacement logic.
 
-// Emojies & shortcuts replacement logic.
 
 var replace = function create_rule(md, emojies, shortcuts, scanRE, replaceRE) {
   var arrayReplaceAt = md.utils.arrayReplaceAt,
@@ -36535,9 +38704,8 @@ var replace = function create_rule(md, emojies, shortcuts, scanRE, replaceRE) {
       }
     }
   };
-};
+}; // Convert input options to more useable format
 
-// Convert input options to more useable format
 
 function quoteRE(str) {
   return str.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
@@ -36599,9 +38767,8 @@ var markdownItEmoji = function emoji_plugin(md, options) {
   var opts = normalize_opts(md.utils.assign({}, defaults, options || {}));
   md.renderer.rules.emoji = render;
   md.core.ruler.push('emoji', replace(md, opts.defs, opts.shortcuts, opts.scanRE, opts.replaceRE));
-};
+}; // Process ~subscript~
 
-// Process ~subscript~
 
 var UNESCAPE_RE = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
 
@@ -36669,9 +38836,8 @@ function subscript(state, silent) {
 
 var markdownItSub = function sub_plugin(md) {
   md.inline.ruler.after('emphasis', 'sub', subscript);
-};
+}; // Process ^superscript^
 
-// Process ^superscript^
 
 var UNESCAPE_RE$1 = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
 
@@ -36739,9 +38905,8 @@ function superscript(state, silent) {
 
 var markdownItSup = function sup_plugin(md) {
   md.inline.ruler.after('emphasis', 'sup', superscript);
-};
+}; // Process definition lists
 
-// Process definition lists
 
 var markdownItDeflist = function deflist_plugin(md) {
   var isSpace = md.utils.isSpace; // Search `[:~][\n ]`, returns next pos after marker on success
@@ -36987,9 +39152,8 @@ var markdownItDeflist = function deflist_plugin(md) {
   md.block.ruler.before('paragraph', 'deflist', deflist, {
     alt: ['paragraph', 'reference']
   });
-};
+}; // Enclose abbreviations in <abbr> tags
 
-// Enclose abbreviations in <abbr> tags
 
 var markdownItAbbr = function sub_plugin(md) {
   var escapeRE = md.utils.escapeRE,
@@ -37176,10 +39340,9 @@ var markdownItAbbr = function sub_plugin(md) {
     alt: ['paragraph', 'reference']
   });
   md.core.ruler.after('linkify', 'abbr_replace', abbr_replace);
-};
-
-// Process footnotes
+}; // Process footnotes
 // Renderer partials
+
 
 function render_footnote_anchor_name(tokens, idx, options, env
 /*, slf*/
@@ -37249,7 +39412,7 @@ function render_footnote_anchor(tokens, idx, options, env, slf) {
   /* ↩ with escape code to prevent display as Apple Emoji on iOS */
 
 
-  return ' <a href="#fnref' + id + '" class="footnote-backref">\u21a9\uFE0E</a>';
+  return ' <a href="#fnref' + id + "\" class=\"footnote-backref\">\u21A9\uFE0E</a>";
 }
 
 var markdownItFootnote = function footnote_plugin(md) {
@@ -37936,17 +40099,17 @@ var markdownItMark = function ins_plugin(md) {
       }
     }
   });
-};
-
-// Markdown-it plugin to render GitHub-style task lists; see
+}; // Markdown-it plugin to render GitHub-style task lists; see
 //
 // https://github.com/blog/1375-task-lists-in-gfm-issues-pulls-comments
 // https://github.com/blog/1825-task-lists-in-all-markdown-documents
+
+
 var disableCheckboxes = true;
 var useLabelWrapper = false;
 var useLabelAfter = false;
 
-var markdownItTaskLists = function (md, options) {
+var markdownItTaskLists = function markdownItTaskLists(md, options) {
   if (options) {
     disableCheckboxes = !options.enabled;
     useLabelWrapper = !!options.label;
@@ -38070,12 +40233,14 @@ var n = {
   true: "unshift"
 },
     e = Object.prototype.hasOwnProperty,
-    r$1 = function (n, r, t) {
+    r$1 = function r$1(n, r, t) {
   var i = n,
       u = 2;
   if (t && e.call(r, i)) throw Error("User defined id attribute '" + n + "' is NOT unique. Please fix it in your markdown to continue.");
 
-  for (; e.call(r, i);) i = n + "-" + u++;
+  for (; e.call(r, i);) {
+    i = n + "-" + u++;
+  }
 
   return r[i] = !0, i;
 },
@@ -38112,11 +40277,11 @@ var n = {
 
 t.defaults = {
   level: 1,
-  slugify: function (n) {
+  slugify: function slugify(n) {
     return encodeURIComponent(String(n).trim().toLowerCase().replace(/\s+/g, "-"));
   },
   permalink: !1,
-  renderPermalink: function (e, r, t, i) {
+  renderPermalink: function renderPermalink(e, r, t, i) {
     var u,
         o = [Object.assign(new t.Token("link_open", "a", 1), {
       attrs: [["class", r.permalinkClass], ["href", r.permalinkHref(e, t)]].concat(Object.entries(r.permalinkAttrs(e, t)))
@@ -38131,20 +40296,22 @@ t.defaults = {
   permalinkSpace: !0,
   permalinkSymbol: "¶",
   permalinkBefore: !1,
-  permalinkHref: function (n) {
+  permalinkHref: function permalinkHref(n) {
     return "#" + n;
   },
-  permalinkAttrs: function (n) {
+  permalinkAttrs: function permalinkAttrs(n) {
     return {};
   }
 };
 
-const slugify = s => encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'));
+var slugify = function slugify(s) {
+  return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'));
+};
 
-const defaults = {
+var defaults = {
   includeLevel: [1, 2],
   containerClass: 'table-of-contents',
-  slugify,
+  slugify: slugify,
   markerPattern: /^\[\[toc\]\]/im,
   listType: 'ul',
   format: undefined,
@@ -38154,10 +40321,10 @@ const defaults = {
   transformLink: undefined
 };
 
-var markdownItTableOfContents = (md, o) => {
-  const options = Object.assign({}, defaults, o);
-  const tocRegexp = options.markerPattern;
-  let gstate;
+var markdownItTableOfContents = function markdownItTableOfContents(md, o) {
+  var options = Object.assign({}, defaults, o);
+  var tocRegexp = options.markerPattern;
+  var gstate;
 
   function toc(state, silent) {
     var token;
@@ -38202,7 +40369,7 @@ var markdownItTableOfContents = (md, o) => {
   }
 
   md.renderer.rules.toc_open = function (tokens, index) {
-    var tocOpenHtml = `<div class="${options.containerClass}">`;
+    var tocOpenHtml = "<div class=\"".concat(options.containerClass, "\">");
 
     if (options.containerHeaderHtml) {
       tocOpenHtml += options.containerHeaderHtml;
@@ -38218,7 +40385,7 @@ var markdownItTableOfContents = (md, o) => {
       tocFooterHtml = options.containerFooterHtml;
     }
 
-    return tocFooterHtml + `</div>`;
+    return tocFooterHtml + "</div>";
   };
 
   md.renderer.rules.toc_body = function (tokens, index) {
@@ -38283,14 +40450,14 @@ var markdownItTableOfContents = (md, o) => {
 
         if (level < currentLevel) {
           // Finishing the sub headings
-          buffer += `</li>`;
+          buffer += "</li>";
           headings.push(buffer);
-          return [i, `<${options.listType}>${headings.join('')}</${options.listType}>`];
+          return [i, "<".concat(options.listType, ">").concat(headings.join(''), "</").concat(options.listType, ">")];
         }
 
         if (level == currentLevel) {
           // Finishing the sub headings
-          buffer += `</li>`;
+          buffer += "</li>";
           headings.push(buffer);
         }
       }
@@ -38302,15 +40469,15 @@ var markdownItTableOfContents = (md, o) => {
         link = options.transformLink(link);
       }
 
-      buffer = `<li><a href="${link}">`;
+      buffer = "<li><a href=\"".concat(link, "\">");
       buffer += typeof options.format === 'function' ? options.format(heading.content) : heading.content;
-      buffer += `</a>`;
+      buffer += "</a>";
       i++;
     }
 
-    buffer += buffer === '' ? '' : `</li>`;
+    buffer += buffer === '' ? '' : "</li>";
     headings.push(buffer);
-    return [i, `<${options.listType}>${headings.join('')}</${options.listType}>`];
+    return [i, "<".concat(options.listType, ">").concat(headings.join(''), "</").concat(options.listType, ">")];
   } // Catch all the tokens for iteration later
 
 
@@ -38320,7 +40487,6 @@ var markdownItTableOfContents = (md, o) => {
 
   md.inline.ruler.after('emphasis', 'toc', toc);
 };
-
 /**
  * @Author: HuaChao Chen <chc>
  * @Date:   2017-06-12T21:06:58+08:00
@@ -38331,7 +40497,9 @@ var markdownItTableOfContents = (md, o) => {
  * @License: MIT
  * @Copyright: 2017
  */
-var markdownItImagesPreview = function (md, config) {
+
+
+var markdownItImagesPreview = function markdownItImagesPreview(md, config) {
   md.image_add = function (src, data) {
     if (!(md.__image instanceof Object)) md.__image = {};
     md.__image[src] = data;
@@ -38363,7 +40531,6 @@ var markdownItImagesPreview = function (md, config) {
 };
 
 var markdownItMathjax = createCommonjsModule(function (module, exports) {
-
   (function (root, factory) {
     {
       module.exports = factory();
@@ -38541,10 +40708,11 @@ var markdownItMathjax = createCommonjsModule(function (module, exports) {
       };
     };
   });
-});
+}); // import hljsLangs from '../core/hljs/lang.hljs.js'
 
-// import hljsLangs from '../core/hljs/lang.hljs.js'
 var markdown$1 = md; // let mihe = require('markdown-it-highlightjs-external');
+
+exports.markdown = markdown$1;
 
 var defaultRender = markdown$1.renderer.rules.link_open || function (tokens, idx, options, env, self) {
   return self.renderToken(tokens, idx, options);
@@ -38591,7 +40759,228 @@ markdown$1.use(markdownItEmoji).use(markdownItSup).use(markdownItSub).use(markdo
 
 });
 injectLineNumber(markdown$1);
-
 console.log('markdown render version ' + version);
+},{"highlightjs-solidity":"../node_modules/highlightjs-solidity/solidity.js","util":"../../../.config/yarn/global/node_modules/util/util.js","punycode":"../../../.config/yarn/global/node_modules/punycode/punycode.js"}],"index.js":[function(require,module,exports) {
+"use strict";
 
-export { finishView, markdown$1 as markdown };
+var _markdownRenderJs = require("../dist/markdown-render-js");
+
+window.onload = function () {
+  var md = window.localStorage.getItem('md');
+
+  var content = _markdownRenderJs.markdown.render(md); // console.log('content', content)
+
+
+  var containerDom = document.querySelector('#container');
+  containerDom.innerHTML = content;
+  setTimeout(function () {
+    (0, _markdownRenderJs.finishView)($('#container'));
+    console.log('done');
+  }, 500);
+};
+},{"../dist/markdown-render-js":"../dist/markdown-render-js.js"}],"../../../.config/yarn/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var global = arguments[3];
+var OVERLAY_ID = '__parcel__error__overlay__';
+var OldModule = module.bundle.Module;
+
+function Module(moduleName) {
+  OldModule.call(this, moduleName);
+  this.hot = {
+    data: module.bundle.hotData,
+    _acceptCallbacks: [],
+    _disposeCallbacks: [],
+    accept: function (fn) {
+      this._acceptCallbacks.push(fn || function () {});
+    },
+    dispose: function (fn) {
+      this._disposeCallbacks.push(fn);
+    }
+  };
+  module.bundle.hotData = null;
+}
+
+module.bundle.Module = Module;
+var checkedAssets, assetsToAccept;
+var parent = module.bundle.parent;
+
+if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
+  var hostname = "" || location.hostname;
+  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58731" + '/');
+
+  ws.onmessage = function (event) {
+    checkedAssets = {};
+    assetsToAccept = [];
+    var data = JSON.parse(event.data);
+
+    if (data.type === 'update') {
+      var handled = false;
+      data.assets.forEach(function (asset) {
+        if (!asset.isNew) {
+          var didAccept = hmrAcceptCheck(global.parcelRequire, asset.id);
+
+          if (didAccept) {
+            handled = true;
+          }
+        }
+      }); // Enable HMR for CSS by default.
+
+      handled = handled || data.assets.every(function (asset) {
+        return asset.type === 'css' && asset.generated.js;
+      });
+
+      if (handled) {
+        console.clear();
+        data.assets.forEach(function (asset) {
+          hmrApply(global.parcelRequire, asset);
+        });
+        assetsToAccept.forEach(function (v) {
+          hmrAcceptRun(v[0], v[1]);
+        });
+      } else if (location.reload) {
+        // `location` global exists in a web worker context but lacks `.reload()` function.
+        location.reload();
+      }
+    }
+
+    if (data.type === 'reload') {
+      ws.close();
+
+      ws.onclose = function () {
+        location.reload();
+      };
+    }
+
+    if (data.type === 'error-resolved') {
+      console.log('[parcel] ✨ Error resolved');
+      removeErrorOverlay();
+    }
+
+    if (data.type === 'error') {
+      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
+      removeErrorOverlay();
+      var overlay = createErrorOverlay(data);
+      document.body.appendChild(overlay);
+    }
+  };
+}
+
+function removeErrorOverlay() {
+  var overlay = document.getElementById(OVERLAY_ID);
+
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+function createErrorOverlay(data) {
+  var overlay = document.createElement('div');
+  overlay.id = OVERLAY_ID; // html encode message and stack trace
+
+  var message = document.createElement('div');
+  var stackTrace = document.createElement('pre');
+  message.innerText = data.error.message;
+  stackTrace.innerText = data.error.stack;
+  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
+  return overlay;
+}
+
+function getParents(bundle, id) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return [];
+  }
+
+  var parents = [];
+  var k, d, dep;
+
+  for (k in modules) {
+    for (d in modules[k][1]) {
+      dep = modules[k][1][d];
+
+      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
+        parents.push(k);
+      }
+    }
+  }
+
+  if (bundle.parent) {
+    parents = parents.concat(getParents(bundle.parent, id));
+  }
+
+  return parents;
+}
+
+function hmrApply(bundle, asset) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return;
+  }
+
+  if (modules[asset.id] || !bundle.parent) {
+    var fn = new Function('require', 'module', 'exports', asset.generated.js);
+    asset.isNew = !modules[asset.id];
+    modules[asset.id] = [fn, asset.deps];
+  } else if (bundle.parent) {
+    hmrApply(bundle.parent, asset);
+  }
+}
+
+function hmrAcceptCheck(bundle, id) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return;
+  }
+
+  if (!modules[id] && bundle.parent) {
+    return hmrAcceptCheck(bundle.parent, id);
+  }
+
+  if (checkedAssets[id]) {
+    return;
+  }
+
+  checkedAssets[id] = true;
+  var cached = bundle.cache[id];
+  assetsToAccept.push([bundle, id]);
+
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    return true;
+  }
+
+  return getParents(global.parcelRequire, id).some(function (id) {
+    return hmrAcceptCheck(global.parcelRequire, id);
+  });
+}
+
+function hmrAcceptRun(bundle, id) {
+  var cached = bundle.cache[id];
+  bundle.hotData = {};
+
+  if (cached) {
+    cached.hot.data = bundle.hotData;
+  }
+
+  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
+    cached.hot._disposeCallbacks.forEach(function (cb) {
+      cb(bundle.hotData);
+    });
+  }
+
+  delete bundle.cache[id];
+  bundle(id);
+  cached = bundle.cache[id];
+
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    cached.hot._acceptCallbacks.forEach(function (cb) {
+      cb();
+    });
+
+    return true;
+  }
+}
+},{}]},{},["../../../.config/yarn/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
+//# sourceMappingURL=/test.e31bb0bc.js.map

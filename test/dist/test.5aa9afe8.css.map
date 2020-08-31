@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.less"],"names":[],"mappings":"AAAA;EACE,gBAAA;EACA,cAAA;;AAFF,UAIE;AAJF,UAKE;EACE,eAAA","file":"test.5aa9afe8.css","sourceRoot":"..","sourcesContent":[".container {\n  max-width: 800px;\n  margin: 0 auto;\n\n  img,\n  iframe {\n    max-width: 100%;\n  }\n}"]}

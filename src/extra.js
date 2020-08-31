@@ -1,4 +1,6 @@
 import hljs from 'highlight.js'
+import hljsDefineSolidity from 'highlightjs-solidity';
+
 import unescapeHTML from 'lodash/unescape'
 import Prism from 'prismjs'
 import escapeHTML from 'lodash/escape'
@@ -11,6 +13,7 @@ import mdIt from "markdown-it";
 // import flowchart from 'flowchart.js'
 // let viz = new Viz()
 
+hljsDefineSolidity(hljs);
 
 function highlightRender (code, lang) {
   if (!lang || /no(-?)highlight|plain|text/.test(lang)) { return }

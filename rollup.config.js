@@ -18,7 +18,7 @@ export default {
       ],
     }
   ],
-  external: ['jquery'],
+  external: ['jquery', 'highlightjs-solidity'],
   plugins: [
     json(),
     resolve({
@@ -28,7 +28,7 @@ export default {
     }),
     commonjs(),
     babel({
-      babelHelpers: 'bundled'
+      babelHelpers: 'bundled',
     }),
   ],
   // https://stackoverflow.com/questions/61827807/svelte-i18n-svelte-rollup-compiler-warning-this-has-been-rewritten-to-unde
