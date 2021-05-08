@@ -89,6 +89,9 @@ markdown
   .use(sup)
   .use(sub)
   .use(container)
+  .use(container, 'hljs-left') /* align left */
+  .use(container, 'hljs-center')/* align center */
+  .use(container, 'hljs-right')/* align right */
   // 下面三个和原来库保持一致
   .use(deflist)
   .use(abbr)

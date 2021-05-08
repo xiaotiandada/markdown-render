@@ -2,7 +2,7 @@ import hljsDefineSolidity from 'highlightjs-solidity';
 import util from 'util';
 import punycode from 'punycode';
 
-var version = "1.0.4";
+var version$1 = "1.0.5";
 
 // https://github.com/substack/deep-freeze/blob/master/index.js
 
@@ -229,7 +229,7 @@ function mergeStreams(original, highlighted, value) {
   return result + escapeHTML(value.substr(processed));
 }
 
-var utils = /*#__PURE__*/Object.freeze({
+var utils$2 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   escapeHTML: escapeHTML,
   inherit: inherit,
@@ -523,7 +523,7 @@ class TokenTreeEmitter extends TokenTree {
  * */
 
 
-function escape$1(value) {
+function escape$2(value) {
   return new RegExp(value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'm');
 }
 /**
@@ -532,7 +532,7 @@ function escape$1(value) {
  */
 
 
-function source(re) {
+function source$6(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -543,8 +543,8 @@ function source(re) {
  */
 
 
-function concat(...args) {
-  const joined = args.map(x => source(x)).join("");
+function concat$6(...args) {
+  const joined = args.map(x => source$6(x)).join("");
   return joined;
 }
 /**
@@ -594,7 +594,7 @@ function join(regexps, separator = "|") {
   for (var i = 0; i < regexps.length; i++) {
     numCaptures += 1;
     var offset = numCaptures;
-    var re = source(regexps[i]);
+    var re = source$6(regexps[i]);
 
     if (i > 0) {
       ret += separator;
@@ -632,7 +632,7 @@ function join(regexps, separator = "|") {
 } // Common regexps
 
 
-const IDENT_RE = '[a-zA-Z]\\w*';
+const IDENT_RE$2 = '[a-zA-Z]\\w*';
 const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
 const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
 const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
@@ -648,7 +648,7 @@ const SHEBANG = (opts = {}) => {
   const beginShebang = /^#![ ]*\//;
 
   if (opts.binary) {
-    opts.begin = concat(beginShebang, /.*\b/, opts.binary, /\b.*/);
+    opts.begin = concat$6(beginShebang, /.*\b/, opts.binary, /\b.*/);
   }
 
   return inherit({
@@ -757,7 +757,7 @@ const REGEXP_MODE = {
 };
 const TITLE_MODE = {
   className: 'title',
-  begin: IDENT_RE,
+  begin: IDENT_RE$2,
   relevance: 0
 };
 const UNDERSCORE_TITLE_MODE = {
@@ -794,7 +794,7 @@ const END_SAME_AS_BEGIN = function (mode) {
 
 var MODES = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  IDENT_RE: IDENT_RE,
+  IDENT_RE: IDENT_RE$2,
   UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
   NUMBER_RE: NUMBER_RE,
   C_NUMBER_RE: C_NUMBER_RE,
@@ -839,7 +839,7 @@ function compileLanguage(language) {
    * @param {boolean} [global]
    */
   function langRe(value, global) {
-    return new RegExp(source(value), 'm' + (language.case_insensitive ? 'i' : '') + (global ? 'g' : ''));
+    return new RegExp(source$6(value), 'm' + (language.case_insensitive ? 'i' : '') + (global ? 'g' : ''));
   }
   /**
     Stores multiple regular expressions and allows you to quickly search for
@@ -1119,7 +1119,7 @@ function compileLanguage(language) {
       if (mode.endSameAsBegin) mode.end = mode.begin;
       if (!mode.end && !mode.endsWithParent) mode.end = /\B|\b/;
       if (mode.end) cmode.endRe = langRe(mode.end);
-      cmode.terminator_end = source(mode.end) || '';
+      cmode.terminator_end = source$6(mode.end) || '';
 
       if (mode.endsWithParent && parent.terminator_end) {
         cmode.terminator_end += (mode.end ? '|' : '') + parent.terminator_end;
@@ -1294,7 +1294,7 @@ function commonKeyword(keyword) {
   return COMMON_KEYWORDS.includes(keyword.toLowerCase());
 }
 
-var version$1 = "10.1.2";
+var version = "10.1.2";
 /*
 Syntax highlighting with language autodetection.
 https://highlightjs.org/
@@ -1305,7 +1305,7 @@ const inherit$1 = inherit;
 const {
   nodeStream: nodeStream$1,
   mergeStreams: mergeStreams$1
-} = utils;
+} = utils$2;
 const NO_MATCH = Symbol("nomatch");
 /**
  * @param {any} hljs - object that is extended (legacy)
@@ -1610,7 +1610,7 @@ const HLJS = function (hljs) {
       }
 
       if (new_mode && new_mode.endSameAsBegin) {
-        new_mode.endRe = escape$1(lexeme);
+        new_mode.endRe = escape$2(lexeme);
       }
 
       if (new_mode.skip) {
@@ -2230,7 +2230,7 @@ const HLJS = function (hljs) {
     SAFE_MODE = true;
   };
 
-  hljs.versionString = version$1;
+  hljs.versionString = version;
 
   for (const key in MODES) {
     // @ts-ignore
@@ -4749,18 +4749,18 @@ function cmake(hljs) {
 
 var cmake_1 = cmake;
 
-const KEYWORDS = ["as", // for exports
+const KEYWORDS$3 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+const LITERALS$3 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+const TYPES$3 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+const ERROR_TYPES$3 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+const BUILT_IN_GLOBALS$3 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+const BUILT_IN_VARIABLES$3 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS = [].concat(BUILT_IN_GLOBALS, BUILT_IN_VARIABLES, TYPES, ERROR_TYPES);
+const BUILT_INS$3 = [].concat(BUILT_IN_GLOBALS$3, BUILT_IN_VARIABLES$3, TYPES$3, ERROR_TYPES$3);
 /*
 Language: CoffeeScript
 Author: Dmytrii Nagirniak <dnagir@gmail.com>
@@ -4781,9 +4781,9 @@ function coffeescript(hljs) {
   var excluding = list => kw => !list.includes(kw);
 
   var KEYWORDS$1 = {
-    keyword: KEYWORDS.concat(COFFEE_KEYWORDS).filter(excluding(NOT_VALID_KEYWORDS)).join(" "),
-    literal: LITERALS.concat(COFFEE_LITERALS).join(" "),
-    built_in: BUILT_INS.concat(COFFEE_BUILT_INS).join(" ")
+    keyword: KEYWORDS$3.concat(COFFEE_KEYWORDS).filter(excluding(NOT_VALID_KEYWORDS)).join(" "),
+    literal: LITERALS$3.concat(COFFEE_LITERALS).join(" "),
+    built_in: BUILT_INS$3.concat(COFFEE_BUILT_INS).join(" ")
   };
   var JS_IDENT_RE = '[A-Za-z$_][0-9A-Za-z$_]*';
   var SUBST = {
@@ -5943,7 +5943,7 @@ Author: John Crepezzi <john.crepezzi@gmail.com>
 Website: https://daringfireball.net/projects/markdown/
 Category: common, markup
 */
-function markdown(hljs) {
+function markdown$1(hljs) {
   const INLINE_HTML = {
     begin: '<',
     end: '>',
@@ -6087,7 +6087,7 @@ function markdown(hljs) {
   };
 }
 
-var markdown_1 = markdown;
+var markdown_1 = markdown$1;
 
 /*
 Language: Dart
@@ -6097,7 +6097,7 @@ Description: Dart a modern, object-oriented language developed by Google. For mo
 Website: https://dart.dev
 Category: scripting
 */
-function dart(hljs) {
+function dart$1(hljs) {
   const SUBST = {
     className: 'subst',
     variants: [{
@@ -6191,7 +6191,7 @@ function dart(hljs) {
   };
 }
 
-var dart_1 = dart;
+var dart_1 = dart$1;
 
 /*
 Language: Delphi
@@ -8153,7 +8153,7 @@ var gradle_1 = gradle;
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$1(re) {
+function source$5(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -8164,8 +8164,8 @@ function source$1(re) {
  */
 
 
-function lookahead(re) {
-  return concat$1('(?=', re, ')');
+function lookahead$2(re) {
+  return concat$5('(?=', re, ')');
 }
 /**
  * @param {...(RegExp | string) } args
@@ -8173,8 +8173,8 @@ function lookahead(re) {
  */
 
 
-function concat$1(...args) {
-  const joined = args.map(x => source$1(x)).join("");
+function concat$5(...args) {
+  const joined = args.map(x => source$5(x)).join("");
   return joined;
 }
 /*
@@ -8255,7 +8255,7 @@ function groovy(hljs) {
     }, {
       // highlight labeled statements
       className: 'symbol',
-      begin: '^[ \t]*' + lookahead(IDENT_RE + ':'),
+      begin: '^[ \t]*' + lookahead$2(IDENT_RE + ':'),
       excludeBegin: true,
       end: IDENT_RE + ':',
       relevance: 0
@@ -8361,7 +8361,7 @@ var haml_1 = haml;
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$2(re) {
+function source$4(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -8372,8 +8372,8 @@ function source$2(re) {
  */
 
 
-function concat$2(...args) {
-  const joined = args.map(x => source$2(x)).join("");
+function concat$4(...args) {
+  const joined = args.map(x => source$4(x)).join("");
   return joined;
 }
 /*
@@ -8386,7 +8386,7 @@ Category: template
 */
 
 
-function handlebars(hljs) {
+function handlebars$1(hljs) {
   const BUILT_INS = {
     'builtin-name': ['action', 'bindattr', 'collection', 'component', 'concat', 'debugger', 'each', 'each-in', 'get', 'hash', 'if', 'in', 'input', 'link-to', 'loc', 'log', 'lookup', 'mut', 'outlet', 'partial', 'query-params', 'render', 'template', 'textarea', 'unbound', 'unless', 'view', 'with', 'yield'].join(" ")
   };
@@ -8401,9 +8401,9 @@ function handlebars(hljs) {
   const BRACKET_QUOTED_ID_REGEX = /\[.*?\]/;
   const PLAIN_ID_REGEX = /[^\s!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]+/;
   const PATH_DELIMITER_REGEX = /\.|\//;
-  const IDENTIFIER_REGEX = concat$2('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
+  const IDENTIFIER_REGEX = concat$4('(', SINGLE_QUOTED_ID_REGEX, '|', DOUBLE_QUOTED_ID_REGEX, '|', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, '|', PATH_DELIMITER_REGEX, ')+'); // identifier followed by a equal-sign (without the equal sign)
 
-  const HASH_PARAM_REGEX = concat$2('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
+  const HASH_PARAM_REGEX = concat$4('(', BRACKET_QUOTED_ID_REGEX, '|', PLAIN_ID_REGEX, ')(?==)');
   const HELPER_NAME_OR_PATH_EXPRESSION = {
     begin: IDENTIFIER_REGEX,
     lexemes: /[\w.\/]+/
@@ -8537,7 +8537,7 @@ function handlebars(hljs) {
   };
 }
 
-var handlebars_1 = handlebars;
+var handlebars_1 = handlebars$1;
 
 /*
 Language: Haskell
@@ -8853,7 +8853,7 @@ Category: template
 */
 
 
-function handlebars$1(hljs) {
+function handlebars(hljs) {
   const BUILT_INS = {
     'builtin-name': ['action', 'bindattr', 'collection', 'component', 'concat', 'debugger', 'each', 'each-in', 'get', 'hash', 'if', 'in', 'input', 'link-to', 'loc', 'log', 'lookup', 'mut', 'outlet', 'partial', 'query-params', 'render', 'template', 'textarea', 'unbound', 'unless', 'view', 'with', 'yield'].join(" ")
   };
@@ -9013,7 +9013,7 @@ function handlebars$1(hljs) {
 
 
 function htmlbars(hljs) {
-  const definition = handlebars$1(hljs);
+  const definition = handlebars(hljs);
   definition.name = "HTMLbars"; // HACK: This lets handlebars do the auto-detection if it's been loaded (by
   // default the build script will load in alphabetical order) and if not (perhaps
   // an install is only using `htmlbars`, not `handlebars`) then this will still
@@ -9230,7 +9230,7 @@ var inform7_1 = inform7;
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$4(re) {
+function source$2(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -9242,7 +9242,7 @@ function source$4(re) {
 
 
 function lookahead$1(re) {
-  return concat$4('(?=', re, ')');
+  return concat$2('(?=', re, ')');
 }
 /**
  * @param {...(RegExp | string) } args
@@ -9250,8 +9250,8 @@ function lookahead$1(re) {
  */
 
 
-function concat$4(...args) {
-  const joined = args.map(x => source$4(x)).join("");
+function concat$2(...args) {
+  const joined = args.map(x => source$2(x)).join("");
   return joined;
 }
 /**
@@ -9263,8 +9263,8 @@ function concat$4(...args) {
  */
 
 
-function either(...args) {
-  const joined = '(' + args.map(x => source$4(x)).join("|") + ")";
+function either$1(...args) {
+  const joined = '(' + args.map(x => source$2(x)).join("|") + ")";
   return joined;
 }
 /*
@@ -9334,8 +9334,8 @@ function ini(hljs) {
   var BARE_KEY = /[A-Za-z0-9_-]+/;
   var QUOTED_KEY_DOUBLE_QUOTE = /"(\\"|[^"])*"/;
   var QUOTED_KEY_SINGLE_QUOTE = /'[^']*'/;
-  var ANY_KEY = either(BARE_KEY, QUOTED_KEY_DOUBLE_QUOTE, QUOTED_KEY_SINGLE_QUOTE);
-  var DOTTED_KEY = concat$4(ANY_KEY, '(\\s*\\.\\s*', ANY_KEY, ')*', lookahead$1(/\s*=\s*[^#\s]/));
+  var ANY_KEY = either$1(BARE_KEY, QUOTED_KEY_DOUBLE_QUOTE, QUOTED_KEY_SINGLE_QUOTE);
+  var DOTTED_KEY = concat$2(ANY_KEY, '(\\s*\\.\\s*', ANY_KEY, ')*', lookahead$1(/\s*=\s*[^#\s]/));
   return {
     name: 'TOML, also INI',
     aliases: ['toml'],
@@ -9802,7 +9802,7 @@ var isbl_1 = isbl;
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$5(re) {
+function source$1(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -9814,7 +9814,7 @@ function source$5(re) {
 
 
 function optional(re) {
-  return concat$5('(', re, ')?');
+  return concat$1('(', re, ')?');
 }
 /**
  * @param {...(RegExp | string) } args
@@ -9822,8 +9822,8 @@ function optional(re) {
  */
 
 
-function concat$5(...args) {
-  const joined = args.map(x => source$5(x)).join("");
+function concat$1(...args) {
+  const joined = args.map(x => source$1(x)).join("");
   return joined;
 }
 /**
@@ -9835,8 +9835,8 @@ function concat$5(...args) {
  */
 
 
-function either$1(...args) {
-  const joined = '(' + args.map(x => source$5(x)).join("|") + ")";
+function either(...args) {
+  const joined = '(' + args.map(x => source$1(x)).join("|") + ")";
   return joined;
 }
 /*
@@ -9865,7 +9865,7 @@ function java(hljs) {
    * A given sequence, possibly with underscores
    * @type {(s: string | RegExp) => string}  */
 
-  var SEQUENCE_ALLOWING_UNDERSCORES = seq => concat$5('[', seq, ']+([', seq, '_]*[', seq, ']+)?');
+  var SEQUENCE_ALLOWING_UNDERSCORES = seq => concat$1('[', seq, ']+([', seq, '_]*[', seq, ']+)?');
 
   var JAVA_NUMBER_MODE = {
     className: 'number',
@@ -9876,16 +9876,16 @@ function java(hljs) {
       begin: `\\b(0${SEQUENCE_ALLOWING_UNDERSCORES('0-7')})[dDfFlL]?`
     }, // octal
     {
-      begin: concat$5(/\b0[xX]/, either$1(concat$5(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9')), concat$5(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\.?/), concat$5(/\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'))), /([pP][+-]?(\d+))?/, /[fFdDlL]?/ // decimal & fp mixed for simplicity
+      begin: concat$1(/\b0[xX]/, either(concat$1(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9')), concat$1(SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'), /\.?/), concat$1(/\./, SEQUENCE_ALLOWING_UNDERSCORES('a-fA-F0-9'))), /([pP][+-]?(\d+))?/, /[fFdDlL]?/ // decimal & fp mixed for simplicity
       )
     }, // scientific notation
     {
-      begin: concat$5(/\b/, either$1(concat$5(/\d*\./, SEQUENCE_ALLOWING_UNDERSCORES("\\d")), // .3, 3.3, 3.3_3
+      begin: concat$1(/\b/, either(concat$1(/\d*\./, SEQUENCE_ALLOWING_UNDERSCORES("\\d")), // .3, 3.3, 3.3_3
       SEQUENCE_ALLOWING_UNDERSCORES("\\d") // 3, 3_3
       ), /[eE][+-]?[\d]+[dDfF]?/)
     }, // decimal & fp mixed for simplicity
     {
-      begin: concat$5(/\b/, SEQUENCE_ALLOWING_UNDERSCORES(/\d/), optional(/\.?/), optional(SEQUENCE_ALLOWING_UNDERSCORES(/\d/)), /[dDfFlL]?/)
+      begin: concat$1(/\b/, SEQUENCE_ALLOWING_UNDERSCORES(/\d/), optional(/\.?/), optional(SEQUENCE_ALLOWING_UNDERSCORES(/\d/)), /[dDfFlL]?/)
     }],
     relevance: 0
   };
@@ -9946,18 +9946,18 @@ function java(hljs) {
 var java_1 = java;
 
 const IDENT_RE$1 = '[A-Za-z$_][0-9A-Za-z$_]*';
-const KEYWORDS$1 = ["as", // for exports
+const KEYWORDS$2 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$1 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$1 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$1 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$1 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$1 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+const LITERALS$2 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+const TYPES$2 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+const ERROR_TYPES$2 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+const BUILT_IN_GLOBALS$2 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+const BUILT_IN_VARIABLES$2 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$1 = [].concat(BUILT_IN_GLOBALS$1, BUILT_IN_VARIABLES$1, TYPES$1, ERROR_TYPES$1);
+const BUILT_INS$2 = [].concat(BUILT_IN_GLOBALS$2, BUILT_IN_VARIABLES$2, TYPES$2, ERROR_TYPES$2);
 /**
  * @param {string} value
  * @returns {RegExp}
@@ -9968,7 +9968,7 @@ const BUILT_INS$1 = [].concat(BUILT_IN_GLOBALS$1, BUILT_IN_VARIABLES$1, TYPES$1,
  * @returns {string}
  */
 
-function source$6(re) {
+function source(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
   return re.source;
@@ -9979,8 +9979,8 @@ function source$6(re) {
  */
 
 
-function lookahead$2(re) {
-  return concat$6('(?=', re, ')');
+function lookahead(re) {
+  return concat('(?=', re, ')');
 }
 /**
  * @param {...(RegExp | string) } args
@@ -9988,8 +9988,8 @@ function lookahead$2(re) {
  */
 
 
-function concat$6(...args) {
-  const joined = args.map(x => source$6(x)).join("");
+function concat(...args) {
+  const joined = args.map(x => source(x)).join("");
   return joined;
 }
 /*
@@ -10010,11 +10010,11 @@ function javascript(hljs) {
     begin: /<[A-Za-z0-9\\._:-]+/,
     end: /\/[A-Za-z0-9\\._:-]+>|\/>/
   };
-  var KEYWORDS$1$1 = {
+  var KEYWORDS$1 = {
     $pattern: IDENT_RE$1,
-    keyword: KEYWORDS$1.join(" "),
-    literal: LITERALS$1.join(" "),
-    built_in: BUILT_INS$1.join(" ")
+    keyword: KEYWORDS$2.join(" "),
+    literal: LITERALS$2.join(" "),
+    built_in: BUILT_INS$2.join(" ")
   };
   var NUMBER = {
     className: 'number',
@@ -10031,7 +10031,7 @@ function javascript(hljs) {
     className: 'subst',
     begin: '\\$\\{',
     end: '\\}',
-    keywords: KEYWORDS$1$1,
+    keywords: KEYWORDS$1,
     contains: [] // defined later
 
   };
@@ -10079,7 +10079,7 @@ function javascript(hljs) {
   return {
     name: 'JavaScript',
     aliases: ['js', 'jsx', 'mjs', 'cjs'],
-    keywords: KEYWORDS$1$1,
+    keywords: KEYWORDS$1,
     contains: [hljs.SHEBANG({
       binary: "node",
       relevance: 5
@@ -10111,7 +10111,7 @@ function javascript(hljs) {
       }]
     }), hljs.C_BLOCK_COMMENT_MODE, NUMBER, {
       // object attr container
-      begin: concat$6(/[{,\n]\s*/, // we need to look ahead to make sure that we actually have an
+      begin: concat(/[{,\n]\s*/, // we need to look ahead to make sure that we actually have an
       // attribute coming up so we don't steal a comma from a potential
       // "value" container
       //
@@ -10121,13 +10121,13 @@ function javascript(hljs) {
       // fails to find any actual attrs. But this still does the job because
       // it prevents the value contain rule from grabbing this instead and
       // prevening this rule from firing when we actually DO have keys.
-      lookahead$2(concat$6( // we also need to allow for multiple possible comments inbetween
+      lookahead(concat( // we also need to allow for multiple possible comments inbetween
       // the first key:value pairing
       /(((\/\/.*)|(\/\*(.|\n)*\*\/))\s*)*/, IDENT_RE$1$1 + '\\s*:'))),
       relevance: 0,
       contains: [{
         className: 'attr',
-        begin: IDENT_RE$1$1 + lookahead$2('\\s*:'),
+        begin: IDENT_RE$1$1 + lookahead('\\s*:'),
         relevance: 0
       }]
     }, {
@@ -10155,7 +10155,7 @@ function javascript(hljs) {
             end: /\)/,
             excludeBegin: true,
             excludeEnd: true,
-            keywords: KEYWORDS$1$1,
+            keywords: KEYWORDS$1,
             contains: PARAMS_CONTAINS
           }]
         }]
@@ -11314,18 +11314,18 @@ function livecodeserver(hljs) {
 
 var livecodeserver_1 = livecodeserver;
 
-const KEYWORDS$2 = ["as", // for exports
+const KEYWORDS$1 = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$2 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$2 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$2 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$2 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$2 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+const LITERALS$1 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+const TYPES$1 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+const ERROR_TYPES$1 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+const BUILT_IN_GLOBALS$1 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+const BUILT_IN_VARIABLES$1 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$2 = [].concat(BUILT_IN_GLOBALS$2, BUILT_IN_VARIABLES$2, TYPES$2, ERROR_TYPES$2);
+const BUILT_INS$1 = [].concat(BUILT_IN_GLOBALS$1, BUILT_IN_VARIABLES$1, TYPES$1, ERROR_TYPES$1);
 /*
 Language: LiveScript
 Author: Taneli Vatanen <taneli.vatanen@gmail.com>
@@ -11340,10 +11340,10 @@ function livescript(hljs) {
   var LIVESCRIPT_BUILT_INS = ['npm', 'print'];
   var LIVESCRIPT_LITERALS = ['yes', 'no', 'on', 'off', 'it', 'that', 'void'];
   var LIVESCRIPT_KEYWORDS = ['then', 'unless', 'until', 'loop', 'of', 'by', 'when', 'and', 'or', 'is', 'isnt', 'not', 'it', 'that', 'otherwise', 'from', 'to', 'til', 'fallthrough', 'case', 'enum', 'native', 'list', 'map', '__hasProp', '__extends', '__slice', '__bind', '__indexOf'];
-  var KEYWORDS$1 = {
-    keyword: KEYWORDS$2.concat(LIVESCRIPT_KEYWORDS).join(" "),
-    literal: LITERALS$2.concat(LIVESCRIPT_LITERALS).join(" "),
-    built_in: BUILT_INS$2.concat(LIVESCRIPT_BUILT_INS).join(" ")
+  var KEYWORDS$1$1 = {
+    keyword: KEYWORDS$1.concat(LIVESCRIPT_KEYWORDS).join(" "),
+    literal: LITERALS$1.concat(LIVESCRIPT_LITERALS).join(" "),
+    built_in: BUILT_INS$1.concat(LIVESCRIPT_BUILT_INS).join(" ")
   };
   var JS_IDENT_RE = '[A-Za-z$_](?:\-[0-9A-Za-z$_]|[0-9A-Za-z$_])*';
   var TITLE = hljs.inherit(hljs.TITLE_MODE, {
@@ -11353,13 +11353,13 @@ function livescript(hljs) {
     className: 'subst',
     begin: /#\{/,
     end: /}/,
-    keywords: KEYWORDS$1
+    keywords: KEYWORDS$1$1
   };
   var SUBST_SIMPLE = {
     className: 'subst',
     begin: /#[A-Za-z$_]/,
     end: /(?:\-[0-9A-Za-z$_]|[0-9A-Za-z$_])*/,
-    keywords: KEYWORDS$1
+    keywords: KEYWORDS$1$1
   };
   var EXPRESSIONS = [hljs.BINARY_NUMBER_MODE, {
     className: 'number',
@@ -11424,7 +11424,7 @@ function livescript(hljs) {
     contains: [{
       begin: /\(/,
       end: /\)/,
-      keywords: KEYWORDS$1,
+      keywords: KEYWORDS$1$1,
       contains: ['self'].concat(EXPRESSIONS)
     }]
   };
@@ -11434,7 +11434,7 @@ function livescript(hljs) {
   return {
     name: 'LiveScript',
     aliases: ['ls'],
-    keywords: KEYWORDS$1,
+    keywords: KEYWORDS$1$1,
     illegal: /\/\*/,
     contains: EXPRESSIONS.concat([hljs.COMMENT('\\/\\*', '\\*\\/'), hljs.HASH_COMMENT_MODE, SYMBOLS, // relevance booster
     {
@@ -12262,7 +12262,7 @@ Description: Monkey2 is an easy to use, cross platform, games oriented programmi
 Author: Arthur Bikmullin <devolonter@gmail.com>
 Website: https://blitzresearch.itch.io/monkey2
 */
-function monkey(hljs) {
+function monkey$1(hljs) {
   var NUMBER = {
     className: 'number',
     relevance: 0,
@@ -12315,7 +12315,7 @@ function monkey(hljs) {
   };
 }
 
-var monkey_1 = monkey;
+var monkey_1 = monkey$1;
 
 /*
 Language: MoonScript
@@ -13905,7 +13905,7 @@ Author: Erik Paluka <erik.paluka@gmail.com>
 Website: https://processing.org
 Category: graphics
 */
-function processing(hljs) {
+function processing$1(hljs) {
   return {
     name: 'Processing',
     keywords: {
@@ -13919,7 +13919,7 @@ function processing(hljs) {
   };
 }
 
-var processing_1 = processing;
+var processing_1 = processing$1;
 
 /*
 Language: Python profiler
@@ -14645,7 +14645,7 @@ Author: Joe Cheng <joe@rstudio.org>
 Website: https://www.r-project.org
 Category: scientific
 */
-function r(hljs) {
+function r$1(hljs) {
   var IDENT_RE = '([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*';
   return {
     name: 'R',
@@ -14701,7 +14701,7 @@ function r(hljs) {
   };
 }
 
-var r_1 = r;
+var r_1 = r$1;
 
 /*
 Language: ReasonML
@@ -15650,7 +15650,7 @@ function scss(hljs) {
     className: 'number',
     begin: '#[0-9A-Fa-f]+'
   };
-  var DEF_INTERNALS = {
+  ({
     className: 'attribute',
     begin: '[A-Z\\_\\.\\-]+',
     end: ':',
@@ -15664,7 +15664,7 @@ function scss(hljs) {
         begin: '!important'
       }]
     }
-  };
+  });
   return {
     name: 'SCSS',
     case_insensitive: true,
@@ -15738,7 +15738,7 @@ Requires: bash.js
 Author: TSUYUSATO Kitsune <make.just.on@gmail.com>
 Category: common
 */
-function shell(hljs) {
+function shell$1(hljs) {
   return {
     name: 'Shell Session',
     aliases: ['console'],
@@ -15753,7 +15753,7 @@ function shell(hljs) {
   };
 }
 
-var shell_1 = shell;
+var shell_1 = shell$1;
 
 /*
 Language: Smali
@@ -16924,19 +16924,19 @@ function twig(hljs) {
 
 var twig_1 = twig;
 
-const IDENT_RE$2 = '[A-Za-z$_][0-9A-Za-z$_]*';
-const KEYWORDS$3 = ["as", // for exports
+const IDENT_RE = '[A-Za-z$_][0-9A-Za-z$_]*';
+const KEYWORDS = ["as", // for exports
 "in", "of", "if", "for", "while", "finally", "var", "new", "function", "do", "return", "void", "else", "break", "catch", "instanceof", "with", "throw", "case", "default", "try", "switch", "continue", "typeof", "delete", "let", "yield", "const", "class", // JS handles these with a special rule
 // "get",
 // "set",
 "debugger", "async", "await", "static", "import", "from", "export", "extends"];
-const LITERALS$3 = ["true", "false", "null", "undefined", "NaN", "Infinity"];
-const TYPES$3 = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
-const ERROR_TYPES$3 = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-const BUILT_IN_GLOBALS$3 = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
-const BUILT_IN_VARIABLES$3 = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
+const LITERALS = ["true", "false", "null", "undefined", "NaN", "Infinity"];
+const TYPES = ["Intl", "DataView", "Number", "Math", "Date", "String", "RegExp", "Object", "Function", "Boolean", "Error", "Symbol", "Set", "Map", "WeakSet", "WeakMap", "Proxy", "Reflect", "JSON", "Promise", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Float32Array", "Array", "Uint8Array", "Uint8ClampedArray", "ArrayBuffer"];
+const ERROR_TYPES = ["EvalError", "InternalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+const BUILT_IN_GLOBALS = ["setInterval", "setTimeout", "clearInterval", "clearTimeout", "require", "exports", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "unescape"];
+const BUILT_IN_VARIABLES = ["arguments", "this", "super", "console", "window", "document", "localStorage", "module", "global" // Node.js
 ];
-const BUILT_INS$3 = [].concat(BUILT_IN_GLOBALS$3, BUILT_IN_VARIABLES$3, TYPES$3, ERROR_TYPES$3);
+const BUILT_INS = [].concat(BUILT_IN_GLOBALS, BUILT_IN_VARIABLES, TYPES, ERROR_TYPES);
 /*
 Language: TypeScript
 Author: Panu Horsmalahti <panu.horsmalahti@iki.fi>
@@ -16947,14 +16947,14 @@ Category: common, scripting
 */
 
 function typescript(hljs) {
-  var IDENT_RE$1 = IDENT_RE$2;
+  var IDENT_RE$1 = IDENT_RE;
   var TYPES = ["any", "void", "number", "boolean", "string", "object", "never", "enum"];
   var TS_SPECIFIC_KEYWORDS = ["type", "namespace", "typedef", "interface", "public", "private", "protected", "implements", "declare", "abstract", "readonly"];
   var KEYWORDS$1 = {
-    $pattern: IDENT_RE$2,
-    keyword: KEYWORDS$3.concat(TS_SPECIFIC_KEYWORDS).join(" "),
-    literal: LITERALS$3.join(" "),
-    built_in: BUILT_INS$3.concat(TYPES).join(" ")
+    $pattern: IDENT_RE,
+    keyword: KEYWORDS.concat(TS_SPECIFIC_KEYWORDS).join(" "),
+    literal: LITERALS.join(" "),
+    built_in: BUILT_INS.concat(TYPES).join(" ")
   };
   var DECORATOR = {
     className: 'meta',
@@ -18006,7 +18006,7 @@ core.registerLanguage('x86asm', x86asm_1);
 core.registerLanguage('xl', xl_1);
 core.registerLanguage('xquery', xquery_1);
 core.registerLanguage('zephir', zephir_1);
-var lib = core;
+var lib$2 = core;
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -18097,20 +18097,20 @@ var isArray_1 = isArray;
 
 /** Used for built-in method references. */
 
-var objectProto = Object.prototype;
+var objectProto$1 = Object.prototype;
 /** Used to check objects for own properties. */
 
-var hasOwnProperty = objectProto.hasOwnProperty;
+var hasOwnProperty = objectProto$1.hasOwnProperty;
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
 
-var nativeObjectToString = objectProto.toString;
+var nativeObjectToString$1 = objectProto$1.toString;
 /** Built-in value references. */
 
-var symToStringTag = _Symbol ? _Symbol.toStringTag : undefined;
+var symToStringTag$1 = _Symbol ? _Symbol.toStringTag : undefined;
 /**
  * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
  *
@@ -18120,21 +18120,21 @@ var symToStringTag = _Symbol ? _Symbol.toStringTag : undefined;
  */
 
 function getRawTag(value) {
-  var isOwn = hasOwnProperty.call(value, symToStringTag),
-      tag = value[symToStringTag];
+  var isOwn = hasOwnProperty.call(value, symToStringTag$1),
+      tag = value[symToStringTag$1];
 
   try {
-    value[symToStringTag] = undefined;
+    value[symToStringTag$1] = undefined;
     var unmasked = true;
   } catch (e) {}
 
-  var result = nativeObjectToString.call(value);
+  var result = nativeObjectToString$1.call(value);
 
   if (unmasked) {
     if (isOwn) {
-      value[symToStringTag] = tag;
+      value[symToStringTag$1] = tag;
     } else {
-      delete value[symToStringTag];
+      delete value[symToStringTag$1];
     }
   }
 
@@ -18144,14 +18144,14 @@ function getRawTag(value) {
 var _getRawTag = getRawTag;
 
 /** Used for built-in method references. */
-var objectProto$1 = Object.prototype;
+var objectProto = Object.prototype;
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
 
-var nativeObjectToString$1 = objectProto$1.toString;
+var nativeObjectToString = objectProto.toString;
 /**
  * Converts `value` to a string using `Object.prototype.toString`.
  *
@@ -18161,7 +18161,7 @@ var nativeObjectToString$1 = objectProto$1.toString;
  */
 
 function objectToString(value) {
-  return nativeObjectToString$1.call(value);
+  return nativeObjectToString.call(value);
 }
 
 var _objectToString = objectToString;
@@ -18172,7 +18172,7 @@ var nullTag = '[object Null]',
     undefinedTag = '[object Undefined]';
 /** Built-in value references. */
 
-var symToStringTag$1 = _Symbol ? _Symbol.toStringTag : undefined;
+var symToStringTag = _Symbol ? _Symbol.toStringTag : undefined;
 /**
  * The base implementation of `getTag` without fallbacks for buggy environments.
  *
@@ -18186,7 +18186,7 @@ function baseGetTag(value) {
     return value === undefined ? undefinedTag : nullTag;
   }
 
-  return symToStringTag$1 && symToStringTag$1 in Object(value) ? _getRawTag(value) : _objectToString(value);
+  return symToStringTag && symToStringTag in Object(value) ? _getRawTag(value) : _objectToString(value);
 }
 
 var _baseGetTag = baseGetTag;
@@ -19547,7 +19547,7 @@ var prism = createCommonjsModule(function (module) {
     return _;
   }(_self);
 
-  if ( module.exports) {
+  if (module.exports) {
     module.exports = Prism;
   } // hack for components to work correctly in node.js
 
@@ -20103,12 +20103,12 @@ var reUnescapedHtml = /[&<>"']/g,
  * // => 'fred, barney, &amp; pebbles'
  */
 
-function escape$2(string) {
+function escape$1(string) {
   string = toString_1(string);
   return string && reHasUnescapedHtml.test(string) ? string.replace(reUnescapedHtml, _escapeHtmlChar) : string;
 }
 
-var _escape = escape$2;
+var _escape$2 = escape$1;
 
 var pdfobject = createCommonjsModule(function (module) {
   /*global ActiveXObject, window, console, define, module, jQuery */
@@ -20122,7 +20122,7 @@ var pdfobject = createCommonjsModule(function (module) {
       UMD module pattern from https://github.com/umdjs/umd/blob/master/templates/returnExports.js
   */
   (function (root, factory) {
-    if ( module.exports) {
+    if (module.exports) {
       // Node. Does not work with strict CommonJS, but
       // only CommonJS-like environments that support module.exports,
       // like Node.
@@ -21061,7 +21061,7 @@ var blank = "␣";
 var blk12 = "▒";
 var blk14 = "░";
 var blk34 = "▓";
-var block = "█";
+var block$1 = "█";
 var bne = "=⃥";
 var bnequiv = "≡⃥";
 var bNot = "⫭";
@@ -21196,7 +21196,7 @@ var cirscir = "⧂";
 var ClockwiseContourIntegral = "∲";
 var CloseCurlyDoubleQuote = "”";
 var CloseCurlyQuote = "’";
-var clubs = "♣";
+var clubs$1 = "♣";
 var clubsuit = "♣";
 var colon = ":";
 var Colon = "∷";
@@ -21262,13 +21262,13 @@ var cuwed = "⋏";
 var cwconint = "∲";
 var cwint = "∱";
 var cylcty = "⌭";
-var dagger = "†";
+var dagger$1 = "†";
 var Dagger = "‡";
 var daleth = "ℸ";
 var darr = "↓";
 var Darr = "↡";
 var dArr = "⇓";
-var dash = "‐";
+var dash$1 = "‐";
 var Dashv = "⫤";
 var dashv = "⊣";
 var dbkarow = "⤏";
@@ -21316,7 +21316,7 @@ var DJcy = "Ђ";
 var djcy = "ђ";
 var dlcorn = "⌞";
 var dlcrop = "⌍";
-var dollar = "$";
+var dollar$1 = "$";
 var Dopf = "𝔻";
 var dopf = "𝕕";
 var Dot = "¨";
@@ -21460,7 +21460,7 @@ var ETH = "Ð";
 var eth = "ð";
 var Euml = "Ë";
 var euml = "ë";
-var euro = "€";
+var euro$1 = "€";
 var excl = "!";
 var exist = "∃";
 var Exists = "∃";
@@ -21605,7 +21605,7 @@ var Hat = "^";
 var hbar = "ℏ";
 var Hcirc = "Ĥ";
 var hcirc = "ĥ";
-var hearts = "♥";
+var hearts$1 = "♥";
 var heartsuit = "♥";
 var hellip = "…";
 var hercon = "⊹";
@@ -21656,7 +21656,7 @@ var IJlig = "Ĳ";
 var ijlig = "ĳ";
 var Imacr = "Ī";
 var imacr = "ī";
-var image = "ℑ";
+var image$1 = "ℑ";
 var ImaginaryI = "ⅈ";
 var imagline = "ℐ";
 var imagpart = "ℑ";
@@ -21698,7 +21698,7 @@ var isinE = "⋹";
 var isins = "⋴";
 var isinsv = "⋳";
 var isinv = "∈";
-var it = "⁢";
+var it$1 = "⁢";
 var Itilde = "Ĩ";
 var itilde = "ĩ";
 var Iukcy = "І";
@@ -22326,7 +22326,7 @@ var Phi = "Φ";
 var phi = "φ";
 var phiv = "ϕ";
 var phmmat = "ℳ";
-var phone = "☎";
+var phone$1 = "☎";
 var Pi = "Π";
 var pi = "π";
 var pitchfork = "⋔";
@@ -22350,7 +22350,7 @@ var Poincareplane = "ℌ";
 var pointint = "⨕";
 var popf = "𝕡";
 var Popf = "ℙ";
-var pound = "£";
+var pound$1 = "£";
 var prap = "⪷";
 var Pr = "⪻";
 var pr = "≺";
@@ -22512,7 +22512,7 @@ var RightUpVectorBar = "⥔";
 var RightUpVector = "↾";
 var RightVectorBar = "⥓";
 var RightVector = "⇀";
-var ring = "˚";
+var ring$1 = "˚";
 var risingdotseq = "≓";
 var rlarr = "⇄";
 var rlhar = "⇌";
@@ -22622,7 +22622,7 @@ var smallsetminus = "∖";
 var smashp = "⨳";
 var smeparsl = "⧤";
 var smid = "∣";
-var smile = "⌣";
+var smile$1 = "⌣";
 var smt = "⪪";
 var smte = "⪬";
 var smtes = "⪬︀";
@@ -22633,7 +22633,7 @@ var solb = "⧄";
 var sol = "/";
 var Sopf = "𝕊";
 var sopf = "𝕤";
-var spades = "♠";
+var spades$1 = "♠";
 var spadesuit = "♠";
 var spar = "∥";
 var sqcap = "⊓";
@@ -22667,7 +22667,7 @@ var ssetmn = "∖";
 var ssmile = "⌣";
 var sstarf = "⋆";
 var Star = "⋆";
-var star = "☆";
+var star$1 = "☆";
 var starf = "★";
 var straightepsilon = "ϵ";
 var straightphi = "ϕ";
@@ -22787,7 +22787,7 @@ var tint = "∭";
 var toea = "⤨";
 var topbot = "⌶";
 var topcir = "⫱";
-var top = "⊤";
+var top$1 = "⊤";
 var Topf = "𝕋";
 var topf = "𝕥";
 var topfork = "⫚";
@@ -23015,7 +23015,7 @@ var Ycirc = "Ŷ";
 var ycirc = "ŷ";
 var Ycy = "Ы";
 var ycy = "ы";
-var yen = "¥";
+var yen$1 = "¥";
 var Yfr = "𝔜";
 var yfr = "𝔶";
 var YIcy = "Ї";
@@ -23185,7 +23185,7 @@ var require$$0 = {
 	blk12: blk12,
 	blk14: blk14,
 	blk34: blk34,
-	block: block,
+	block: block$1,
 	bne: bne,
 	bnequiv: bnequiv,
 	bNot: bNot,
@@ -23320,7 +23320,7 @@ var require$$0 = {
 	ClockwiseContourIntegral: ClockwiseContourIntegral,
 	CloseCurlyDoubleQuote: CloseCurlyDoubleQuote,
 	CloseCurlyQuote: CloseCurlyQuote,
-	clubs: clubs,
+	clubs: clubs$1,
 	clubsuit: clubsuit,
 	colon: colon,
 	Colon: Colon,
@@ -23386,13 +23386,13 @@ var require$$0 = {
 	cwconint: cwconint,
 	cwint: cwint,
 	cylcty: cylcty,
-	dagger: dagger,
+	dagger: dagger$1,
 	Dagger: Dagger,
 	daleth: daleth,
 	darr: darr,
 	Darr: Darr,
 	dArr: dArr,
-	dash: dash,
+	dash: dash$1,
 	Dashv: Dashv,
 	dashv: dashv,
 	dbkarow: dbkarow,
@@ -23440,7 +23440,7 @@ var require$$0 = {
 	djcy: djcy,
 	dlcorn: dlcorn,
 	dlcrop: dlcrop,
-	dollar: dollar,
+	dollar: dollar$1,
 	Dopf: Dopf,
 	dopf: dopf,
 	Dot: Dot,
@@ -23584,7 +23584,7 @@ var require$$0 = {
 	eth: eth,
 	Euml: Euml,
 	euml: euml,
-	euro: euro,
+	euro: euro$1,
 	excl: excl,
 	exist: exist,
 	Exists: Exists,
@@ -23729,7 +23729,7 @@ var require$$0 = {
 	hbar: hbar,
 	Hcirc: Hcirc,
 	hcirc: hcirc,
-	hearts: hearts,
+	hearts: hearts$1,
 	heartsuit: heartsuit,
 	hellip: hellip,
 	hercon: hercon,
@@ -23780,7 +23780,7 @@ var require$$0 = {
 	ijlig: ijlig,
 	Imacr: Imacr,
 	imacr: imacr,
-	image: image,
+	image: image$1,
 	ImaginaryI: ImaginaryI,
 	imagline: imagline,
 	imagpart: imagpart,
@@ -23823,7 +23823,7 @@ var require$$0 = {
 	isins: isins,
 	isinsv: isinsv,
 	isinv: isinv,
-	it: it,
+	it: it$1,
 	Itilde: Itilde,
 	itilde: itilde,
 	Iukcy: Iukcy,
@@ -24452,7 +24452,7 @@ var require$$0 = {
 	phi: phi,
 	phiv: phiv,
 	phmmat: phmmat,
-	phone: phone,
+	phone: phone$1,
 	Pi: Pi,
 	pi: pi,
 	pitchfork: pitchfork,
@@ -24476,7 +24476,7 @@ var require$$0 = {
 	pointint: pointint,
 	popf: popf,
 	Popf: Popf,
-	pound: pound,
+	pound: pound$1,
 	prap: prap,
 	Pr: Pr,
 	pr: pr,
@@ -24638,7 +24638,7 @@ var require$$0 = {
 	RightUpVector: RightUpVector,
 	RightVectorBar: RightVectorBar,
 	RightVector: RightVector,
-	ring: ring,
+	ring: ring$1,
 	risingdotseq: risingdotseq,
 	rlarr: rlarr,
 	rlhar: rlhar,
@@ -24748,7 +24748,7 @@ var require$$0 = {
 	smashp: smashp,
 	smeparsl: smeparsl,
 	smid: smid,
-	smile: smile,
+	smile: smile$1,
 	smt: smt,
 	smte: smte,
 	smtes: smtes,
@@ -24759,7 +24759,7 @@ var require$$0 = {
 	sol: sol,
 	Sopf: Sopf,
 	sopf: sopf,
-	spades: spades,
+	spades: spades$1,
 	spadesuit: spadesuit,
 	spar: spar,
 	sqcap: sqcap,
@@ -24793,7 +24793,7 @@ var require$$0 = {
 	ssmile: ssmile,
 	sstarf: sstarf,
 	Star: Star,
-	star: star,
+	star: star$1,
 	starf: starf,
 	straightepsilon: straightepsilon,
 	straightphi: straightphi,
@@ -24913,7 +24913,7 @@ var require$$0 = {
 	toea: toea,
 	topbot: topbot,
 	topcir: topcir,
-	top: top,
+	top: top$1,
 	Topf: Topf,
 	topf: topf,
 	topfork: topfork,
@@ -25141,7 +25141,7 @@ var require$$0 = {
 	ycirc: ycirc,
 	Ycy: Ycy,
 	ycy: ycy,
-	yen: yen,
+	yen: yen$1,
 	Yfr: Yfr,
 	yfr: yfr,
 	YIcy: YIcy,
@@ -25184,7 +25184,7 @@ var require$$0 = {
 
 var entities = require$$0;
 
-var regex = /[!-#%-\*,-\/:;\?@\[-\]_\{\}\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u09FD\u0A76\u0AF0\u0C84\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E4E\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]|\uD800[\uDD00-\uDD02\uDF9F\uDFD0]|\uD801\uDD6F|\uD802[\uDC57\uDD1F\uDD3F\uDE50-\uDE58\uDE7F\uDEF0-\uDEF6\uDF39-\uDF3F\uDF99-\uDF9C]|\uD803[\uDF55-\uDF59]|\uD804[\uDC47-\uDC4D\uDCBB\uDCBC\uDCBE-\uDCC1\uDD40-\uDD43\uDD74\uDD75\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDDF\uDE38-\uDE3D\uDEA9]|\uD805[\uDC4B-\uDC4F\uDC5B\uDC5D\uDCC6\uDDC1-\uDDD7\uDE41-\uDE43\uDE60-\uDE6C\uDF3C-\uDF3E]|\uD806[\uDC3B\uDE3F-\uDE46\uDE9A-\uDE9C\uDE9E-\uDEA2]|\uD807[\uDC41-\uDC45\uDC70\uDC71\uDEF7\uDEF8]|\uD809[\uDC70-\uDC74]|\uD81A[\uDE6E\uDE6F\uDEF5\uDF37-\uDF3B\uDF44]|\uD81B[\uDE97-\uDE9A]|\uD82F\uDC9F|\uD836[\uDE87-\uDE8B]|\uD83A[\uDD5E\uDD5F]/;
+var regex$4 = /[!-#%-\*,-\/:;\?@\[-\]_\{\}\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u09FD\u0A76\u0AF0\u0C84\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E4E\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]|\uD800[\uDD00-\uDD02\uDF9F\uDFD0]|\uD801\uDD6F|\uD802[\uDC57\uDD1F\uDD3F\uDE50-\uDE58\uDE7F\uDEF0-\uDEF6\uDF39-\uDF3F\uDF99-\uDF9C]|\uD803[\uDF55-\uDF59]|\uD804[\uDC47-\uDC4D\uDCBB\uDCBC\uDCBE-\uDCC1\uDD40-\uDD43\uDD74\uDD75\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDDF\uDE38-\uDE3D\uDEA9]|\uD805[\uDC4B-\uDC4F\uDC5B\uDC5D\uDCC6\uDDC1-\uDDD7\uDE41-\uDE43\uDE60-\uDE6C\uDF3C-\uDF3E]|\uD806[\uDC3B\uDE3F-\uDE46\uDE9A-\uDE9C\uDE9E-\uDEA2]|\uD807[\uDC41-\uDC45\uDC70\uDC71\uDEF7\uDEF8]|\uD809[\uDC70-\uDC74]|\uD81A[\uDE6E\uDE6F\uDEF5\uDF37-\uDF3B\uDF44]|\uD81B[\uDE97-\uDE9A]|\uD82F\uDC9F|\uD836[\uDE87-\uDE8B]|\uD83A[\uDD5E\uDD5F]/;
 
 var encodeCache = {}; // Create a lookup array where anything but characters in `chars` string
 // and alphanumeric chars is percent-encoded.
@@ -25226,7 +25226,7 @@ function getEncodeCache(exclude) {
 //
 
 
-function encode(string, exclude, keepEscaped) {
+function encode$1(string, exclude, keepEscaped) {
   var i,
       l,
       code,
@@ -25237,7 +25237,7 @@ function encode(string, exclude, keepEscaped) {
   if (typeof exclude !== 'string') {
     // encode(string, keepEscaped)
     keepEscaped = exclude;
-    exclude = encode.defaultChars;
+    exclude = encode$1.defaultChars;
   }
 
   if (typeof keepEscaped === 'undefined') {
@@ -25285,9 +25285,9 @@ function encode(string, exclude, keepEscaped) {
   return result;
 }
 
-encode.defaultChars = ";/?:@&=+$,-_.!~*'()#";
-encode.componentChars = "-_.!~*'()";
-var encode_1 = encode;
+encode$1.defaultChars = ";/?:@&=+$,-_.!~*'()#";
+encode$1.componentChars = "-_.!~*'()";
+var encode_1 = encode$1;
 
 /* eslint-disable no-bitwise */
 
@@ -25319,11 +25319,11 @@ function getDecodeCache(exclude) {
 //
 
 
-function decode(string, exclude) {
+function decode$1(string, exclude) {
   var cache;
 
   if (typeof exclude !== 'string') {
-    exclude = decode.defaultChars;
+    exclude = decode$1.defaultChars;
   }
 
   cache = getDecodeCache(exclude);
@@ -25410,11 +25410,11 @@ function decode(string, exclude) {
   });
 }
 
-decode.defaultChars = ';/?:@&=+$,#';
-decode.componentChars = '';
-var decode_1 = decode;
+decode$1.defaultChars = ';/?:@&=+$,#';
+decode$1.componentChars = '';
+var decode_1 = decode$1;
 
-var format = function format(url) {
+var format$1 = function format(url) {
   var result = '';
   result += url.protocol || '';
   result += url.slashes ? '//' : '';
@@ -25749,32 +25749,32 @@ Url.prototype.parseHost = function (host) {
   }
 };
 
-var parse = urlParse;
+var parse$1 = urlParse;
 
-var encode$1 = encode_1;
-var decode$1 = decode_1;
-var format$1 = format;
-var parse$1 = parse;
+var encode = encode_1;
+var decode = decode_1;
+var format = format$1;
+var parse = parse$1;
 var mdurl = {
-  encode: encode$1,
-  decode: decode$1,
-  format: format$1,
-  parse: parse$1
+  encode: encode,
+  decode: decode,
+  format: format,
+  parse: parse
 };
 
-var regex$1 = /[\0-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+var regex$3 = /[\0-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
 
 var regex$2 = /[\0-\x1F\x7F-\x9F]/;
 
-var regex$3 = /[\xAD\u0600-\u0605\u061C\u06DD\u070F\u08E2\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]|\uD804[\uDCBD\uDCCD]|\uD82F[\uDCA0-\uDCA3]|\uD834[\uDD73-\uDD7A]|\uDB40[\uDC01\uDC20-\uDC7F]/;
+var regex$1 = /[\xAD\u0600-\u0605\u061C\u06DD\u070F\u08E2\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]|\uD804[\uDCBD\uDCCD]|\uD82F[\uDCA0-\uDCA3]|\uD834[\uDD73-\uDD7A]|\uDB40[\uDC01\uDC20-\uDC7F]/;
 
-var regex$4 = /[ \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
+var regex = /[ \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
 
-var Any = regex$1;
+var Any = regex$3;
 var Cc = regex$2;
-var Cf = regex$3;
-var P = regex;
-var Z = regex$4;
+var Cf = regex$1;
+var P = regex$4;
+var Z = regex;
 var uc_micro = {
   Any: Any,
   Cc: Cc,
@@ -25783,7 +25783,7 @@ var uc_micro = {
   Z: Z
 };
 
-var utils$2 = createCommonjsModule(function (module, exports) {
+var utils = createCommonjsModule(function (module, exports) {
 
   function _class(obj) {
     return Object.prototype.toString.call(obj);
@@ -26008,7 +26008,7 @@ var utils$2 = createCommonjsModule(function (module, exports) {
 
 
   function isPunctChar(ch) {
-    return regex.test(ch);
+    return regex$4.test(ch);
   } // Markdown ASCII punctuation characters.
   //
   // !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, :, ;, <, =, >, ?, @, [, \, ], ^, _, `, {, |, }, or ~
@@ -26252,7 +26252,7 @@ var parse_link_label = function parseLinkLabel(state, start, disableNested) {
   return labelEnd;
 };
 
-var unescapeAll = utils$2.unescapeAll;
+var unescapeAll$2 = utils.unescapeAll;
 
 var parse_link_destination = function parseLinkDestination(str, pos, max) {
   var code,
@@ -26284,7 +26284,7 @@ var parse_link_destination = function parseLinkDestination(str, pos, max) {
         /* > */
         ) {
             result.pos = pos + 1;
-            result.str = unescapeAll(str.slice(start + 1, pos));
+            result.str = unescapeAll$2(str.slice(start + 1, pos));
             result.ok = true;
             return result;
           }
@@ -26352,14 +26352,14 @@ var parse_link_destination = function parseLinkDestination(str, pos, max) {
     return result;
   }
 
-  result.str = unescapeAll(str.slice(start, pos));
+  result.str = unescapeAll$2(str.slice(start, pos));
   result.lines = lines;
   result.pos = pos;
   result.ok = true;
   return result;
 };
 
-var unescapeAll$1 = utils$2.unescapeAll;
+var unescapeAll$1 = utils.unescapeAll;
 
 var parse_link_title = function parseLinkTitle(str, pos, max) {
   var code,
@@ -26431,9 +26431,9 @@ var helpers = {
   parseLinkTitle: parseLinkTitle
 };
 
-var assign = utils$2.assign;
-var unescapeAll$2 = utils$2.unescapeAll;
-var escapeHtml = utils$2.escapeHtml; ////////////////////////////////////////////////////////////////////////////////
+var assign$1 = utils.assign;
+var unescapeAll = utils.unescapeAll;
+var escapeHtml = utils.escapeHtml; ////////////////////////////////////////////////////////////////////////////////
 
 var default_rules = {};
 
@@ -26449,7 +26449,7 @@ default_rules.code_block = function (tokens, idx, options, env, slf) {
 
 default_rules.fence = function (tokens, idx, options, env, slf) {
   var token = tokens[idx],
-      info = token.info ? unescapeAll$2(token.info).trim() : '',
+      info = token.info ? unescapeAll(token.info).trim() : '',
       langName = '',
       highlighted,
       i,
@@ -26568,7 +26568,7 @@ function Renderer() {
    * See [source code](https://github.com/markdown-it/markdown-it/blob/master/lib/renderer.js)
    * for more details and examples.
    **/
-  this.rules = assign({}, default_rules);
+  this.rules = assign$1({}, default_rules);
 }
 /**
  * Renderer.renderAttrs(token) -> String
@@ -27133,7 +27133,7 @@ var normalize = function normalize(state) {
   state.src = str;
 };
 
-var block$1 = function block(state) {
+var block = function block(state) {
   var token;
 
   if (state.inlineMode) {
@@ -27162,7 +27162,7 @@ var inline = function inline(state) {
   }
 };
 
-var arrayReplaceAt = utils$2.arrayReplaceAt;
+var arrayReplaceAt = utils.arrayReplaceAt;
 
 function isLinkOpen(str) {
   return /^<a[>\s]/i.test(str);
@@ -27395,9 +27395,9 @@ var replacements = function replace(state) {
   }
 };
 
-var isWhiteSpace = utils$2.isWhiteSpace;
-var isPunctChar = utils$2.isPunctChar;
-var isMdAsciiPunct = utils$2.isMdAsciiPunct;
+var isWhiteSpace$1 = utils.isWhiteSpace;
+var isPunctChar$1 = utils.isPunctChar;
+var isMdAsciiPunct$1 = utils.isMdAsciiPunct;
 var QUOTE_TEST_RE = /['"]/;
 var QUOTE_RE = /['"]/g;
 var APOSTROPHE = '\u2019';
@@ -27477,10 +27477,10 @@ function process_inlines(tokens, state) {
         }
       }
 
-      isLastPunctChar = isMdAsciiPunct(lastChar) || isPunctChar(String.fromCharCode(lastChar));
-      isNextPunctChar = isMdAsciiPunct(nextChar) || isPunctChar(String.fromCharCode(nextChar));
-      isLastWhiteSpace = isWhiteSpace(lastChar);
-      isNextWhiteSpace = isWhiteSpace(nextChar);
+      isLastPunctChar = isMdAsciiPunct$1(lastChar) || isPunctChar$1(String.fromCharCode(lastChar));
+      isNextPunctChar = isMdAsciiPunct$1(nextChar) || isPunctChar$1(String.fromCharCode(nextChar));
+      isLastWhiteSpace = isWhiteSpace$1(lastChar);
+      isNextWhiteSpace = isWhiteSpace$1(nextChar);
 
       if (isNextWhiteSpace) {
         canOpen = false;
@@ -27816,7 +27816,7 @@ function StateCore(src, md, env) {
 StateCore.prototype.Token = token;
 var state_core = StateCore;
 
-var _rules = [['normalize', normalize], ['block', block$1], ['inline', inline], ['linkify', linkify], ['replacements', replacements], ['smartquotes', smartquotes]];
+var _rules$2 = [['normalize', normalize], ['block', block], ['inline', inline], ['linkify', linkify], ['replacements', replacements], ['smartquotes', smartquotes]];
 /**
  * new Core()
  **/
@@ -27829,8 +27829,8 @@ function Core() {
    **/
   this.ruler = new ruler();
 
-  for (var i = 0; i < _rules.length; i++) {
-    this.ruler.push(_rules[i][0], _rules[i][1]);
+  for (var i = 0; i < _rules$2.length; i++) {
+    this.ruler.push(_rules$2[i][0], _rules$2[i][1]);
   }
 }
 /**
@@ -27852,7 +27852,7 @@ Core.prototype.process = function (state) {
 Core.prototype.State = state_core;
 var parser_core = Core;
 
-var isSpace = utils$2.isSpace;
+var isSpace$a = utils.isSpace;
 
 function getLine(state, line) {
   var pos = state.bMarks[line] + state.blkIndent,
@@ -27962,7 +27962,7 @@ var table = function table(state, startLine, endLine, silent) {
     /* - */
     && ch !== 0x3A
     /* : */
-    && !isSpace(ch)) {
+    && !isSpace$a(ch)) {
       return false;
     }
 
@@ -28248,7 +28248,7 @@ var fence = function fence(state, startLine, endLine, silent) {
   return true;
 };
 
-var isSpace$1 = utils$2.isSpace;
+var isSpace$9 = utils.isSpace;
 
 var blockquote = function blockquote(state, startLine, endLine, silent) {
   var adjustTab,
@@ -28333,7 +28333,7 @@ var blockquote = function blockquote(state, startLine, endLine, silent) {
   while (pos < max) {
     ch = state.src.charCodeAt(pos);
 
-    if (isSpace$1(ch)) {
+    if (isSpace$9(ch)) {
       if (ch === 0x09) {
         offset += 4 - (offset + state.bsCount[startLine] + (adjustTab ? 1 : 0)) % 4;
       } else {
@@ -28438,7 +28438,7 @@ var blockquote = function blockquote(state, startLine, endLine, silent) {
       while (pos < max) {
         ch = state.src.charCodeAt(pos);
 
-        if (isSpace$1(ch)) {
+        if (isSpace$9(ch)) {
           if (ch === 0x09) {
             offset += 4 - (offset + state.bsCount[nextLine] + (adjustTab ? 1 : 0)) % 4;
           } else {
@@ -28530,7 +28530,7 @@ var blockquote = function blockquote(state, startLine, endLine, silent) {
   return true;
 };
 
-var isSpace$2 = utils$2.isSpace;
+var isSpace$8 = utils.isSpace;
 
 var hr = function hr(state, startLine, endLine, silent) {
   var marker,
@@ -28562,7 +28562,7 @@ var hr = function hr(state, startLine, endLine, silent) {
   while (pos < max) {
     ch = state.src.charCodeAt(pos++);
 
-    if (ch !== marker && !isSpace$2(ch)) {
+    if (ch !== marker && !isSpace$8(ch)) {
       return false;
     }
 
@@ -28586,7 +28586,7 @@ var hr = function hr(state, startLine, endLine, silent) {
   return true;
 };
 
-var isSpace$3 = utils$2.isSpace; // Search `[-+*][\n ]`, returns next pos after marker on success
+var isSpace$7 = utils.isSpace; // Search `[-+*][\n ]`, returns next pos after marker on success
 // or -1 on fail.
 
 function skipBulletListMarker(state, startLine) {
@@ -28608,7 +28608,7 @@ function skipBulletListMarker(state, startLine) {
   if (pos < max) {
     ch = state.src.charCodeAt(pos);
 
-    if (!isSpace$3(ch)) {
+    if (!isSpace$7(ch)) {
       // " -test " - is not a list item
       return -1;
     }
@@ -28676,7 +28676,7 @@ function skipOrderedListMarker(state, startLine) {
   if (pos < max) {
     ch = state.src.charCodeAt(pos);
 
-    if (!isSpace$3(ch)) {
+    if (!isSpace$7(ch)) {
       // " 1.test " - is not a list item
       return -1;
     }
@@ -28966,8 +28966,8 @@ var list = function list(state, startLine, endLine, silent) {
   return true;
 };
 
-var normalizeReference = utils$2.normalizeReference;
-var isSpace$4 = utils$2.isSpace;
+var normalizeReference$2 = utils.normalizeReference;
+var isSpace$6 = utils.isSpace;
 
 var reference = function reference(state, startLine, _endLine, silent) {
   var ch,
@@ -29099,7 +29099,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
 
     if (ch === 0x0A) {
       lines++;
-    } else if (isSpace$4(ch)) ; else {
+    } else if (isSpace$6(ch)) ; else {
       break;
     }
   } // [label]:   destination   'title'
@@ -29132,7 +29132,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
 
     if (ch === 0x0A) {
       lines++;
-    } else if (isSpace$4(ch)) ; else {
+    } else if (isSpace$6(ch)) ; else {
       break;
     }
   } // [label]:   destination   'title'
@@ -29155,7 +29155,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
   while (pos < max) {
     ch = str.charCodeAt(pos);
 
-    if (!isSpace$4(ch)) {
+    if (!isSpace$6(ch)) {
       break;
     }
 
@@ -29173,7 +29173,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
       while (pos < max) {
         ch = str.charCodeAt(pos);
 
-        if (!isSpace$4(ch)) {
+        if (!isSpace$6(ch)) {
           break;
         }
 
@@ -29187,7 +29187,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
     return false;
   }
 
-  label = normalizeReference(str.slice(1, labelEnd));
+  label = normalizeReference$2(str.slice(1, labelEnd));
 
   if (!label) {
     // CommonMark 0.20 disallows empty labels
@@ -29217,7 +29217,7 @@ var reference = function reference(state, startLine, _endLine, silent) {
   return true;
 };
 
-var isSpace$5 = utils$2.isSpace;
+var isSpace$5 = utils.isSpace;
 
 var heading = function heading(state, startLine, endLine, silent) {
   var ch,
@@ -29395,23 +29395,23 @@ var attribute = '(?:\\s+' + attr_name + '(?:\\s*=\\s*' + attr_value + ')?)';
 var open_tag = '<[A-Za-z][A-Za-z0-9\\-]*' + attribute + '*\\s*\\/?>';
 var close_tag = '<\\/[A-Za-z][A-Za-z0-9\\-]*\\s*>';
 var comment = '<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->';
-var processing$1 = '<[?].*?[?]>';
+var processing = '<[?].*?[?]>';
 var declaration = '<![A-Z]+\\s+[^>]*>';
 var cdata = '<!\\[CDATA\\[[\\s\\S]*?\\]\\]>';
-var HTML_TAG_RE = new RegExp('^(?:' + open_tag + '|' + close_tag + '|' + comment + '|' + processing$1 + '|' + declaration + '|' + cdata + ')');
-var HTML_OPEN_CLOSE_TAG_RE = new RegExp('^(?:' + open_tag + '|' + close_tag + ')');
-var HTML_TAG_RE_1 = HTML_TAG_RE;
-var HTML_OPEN_CLOSE_TAG_RE_1 = HTML_OPEN_CLOSE_TAG_RE;
+var HTML_TAG_RE$1 = new RegExp('^(?:' + open_tag + '|' + close_tag + '|' + comment + '|' + processing + '|' + declaration + '|' + cdata + ')');
+var HTML_OPEN_CLOSE_TAG_RE$1 = new RegExp('^(?:' + open_tag + '|' + close_tag + ')');
+var HTML_TAG_RE_1 = HTML_TAG_RE$1;
+var HTML_OPEN_CLOSE_TAG_RE_1 = HTML_OPEN_CLOSE_TAG_RE$1;
 var html_re = {
   HTML_TAG_RE: HTML_TAG_RE_1,
   HTML_OPEN_CLOSE_TAG_RE: HTML_OPEN_CLOSE_TAG_RE_1
 };
 
-var HTML_OPEN_CLOSE_TAG_RE$1 = html_re.HTML_OPEN_CLOSE_TAG_RE; // An array of opening and corresponding closing sequences for html tags,
+var HTML_OPEN_CLOSE_TAG_RE = html_re.HTML_OPEN_CLOSE_TAG_RE; // An array of opening and corresponding closing sequences for html tags,
 // last argument defines whether it can terminate a paragraph or not
 //
 
-var HTML_SEQUENCES = [[/^<(script|pre|style)(?=(\s|>|$))/i, /<\/(script|pre|style)>/i, true], [/^<!--/, /-->/, true], [/^<\?/, /\?>/, true], [/^<![A-Z]/, />/, true], [/^<!\[CDATA\[/, /\]\]>/, true], [new RegExp('^</?(' + html_blocks.join('|') + ')(?=(\\s|/?>|$))', 'i'), /^$/, true], [new RegExp(HTML_OPEN_CLOSE_TAG_RE$1.source + '\\s*$'), /^$/, false]];
+var HTML_SEQUENCES = [[/^<(script|pre|style)(?=(\s|>|$))/i, /<\/(script|pre|style)>/i, true], [/^<!--/, /-->/, true], [/^<\?/, /\?>/, true], [/^<![A-Z]/, />/, true], [/^<!\[CDATA\[/, /\]\]>/, true], [new RegExp('^</?(' + html_blocks.join('|') + ')(?=(\\s|/?>|$))', 'i'), /^$/, true], [new RegExp(HTML_OPEN_CLOSE_TAG_RE.source + '\\s*$'), /^$/, false]];
 
 var html_block = function html_block(state, startLine, endLine, silent) {
   var i,
@@ -29539,7 +29539,7 @@ var paragraph = function paragraph(state, startLine
   return true;
 };
 
-var isSpace$6 = utils$2.isSpace;
+var isSpace$4 = utils.isSpace;
 
 function StateBlock(src, md, env, tokens) {
   var ch, s, start, pos, len, indent, offset, indent_found;
@@ -29599,7 +29599,7 @@ function StateBlock(src, md, env, tokens) {
     ch = s.charCodeAt(pos);
 
     if (!indent_found) {
-      if (isSpace$6(ch)) {
+      if (isSpace$4(ch)) {
         indent++;
 
         if (ch === 0x09) {
@@ -29675,7 +29675,7 @@ StateBlock.prototype.skipSpaces = function skipSpaces(pos) {
   for (var max = this.src.length; pos < max; pos++) {
     ch = this.src.charCodeAt(pos);
 
-    if (!isSpace$6(ch)) {
+    if (!isSpace$4(ch)) {
       break;
     }
   }
@@ -29690,7 +29690,7 @@ StateBlock.prototype.skipSpacesBack = function skipSpacesBack(pos, min) {
   }
 
   while (pos > min) {
-    if (!isSpace$6(this.src.charCodeAt(--pos))) {
+    if (!isSpace$4(this.src.charCodeAt(--pos))) {
       return pos + 1;
     }
   }
@@ -29755,7 +29755,7 @@ StateBlock.prototype.getLines = function getLines(begin, end, indent, keepLastLF
     while (first < last && lineIndent < indent) {
       ch = this.src.charCodeAt(first);
 
-      if (isSpace$6(ch)) {
+      if (isSpace$4(ch)) {
         if (ch === 0x09) {
           lineIndent += 4 - (lineIndent + this.bsCount[line]) % 4;
         } else {
@@ -29995,7 +29995,7 @@ var text = function text(state, silent) {
   return true;
 }; // Alternative implementation, for memory.
 
-var isSpace$7 = utils$2.isSpace;
+var isSpace$3 = utils.isSpace;
 
 var newline = function newline(state, silent) {
   var pmax,
@@ -30030,7 +30030,7 @@ var newline = function newline(state, silent) {
 
   pos++; // skip heading spaces for next line
 
-  while (pos < max && isSpace$7(state.src.charCodeAt(pos))) {
+  while (pos < max && isSpace$3(state.src.charCodeAt(pos))) {
     pos++;
   }
 
@@ -30038,7 +30038,7 @@ var newline = function newline(state, silent) {
   return true;
 };
 
-var isSpace$8 = utils$2.isSpace;
+var isSpace$2 = utils.isSpace;
 var ESCAPED = [];
 
 for (var i = 0; i < 256; i++) {
@@ -30049,7 +30049,7 @@ for (var i = 0; i < 256; i++) {
   ESCAPED[ch.charCodeAt(0)] = 1;
 });
 
-var _escape$2 = function escape(state, silent) {
+var _escape = function escape(state, silent) {
   var ch,
       pos = state.pos,
       max = state.posMax;
@@ -30084,7 +30084,7 @@ var _escape$2 = function escape(state, silent) {
       while (pos < max) {
         ch = state.src.charCodeAt(pos);
 
-        if (!isSpace$8(ch)) {
+        if (!isSpace$2(ch)) {
           break;
         }
 
@@ -30167,7 +30167,7 @@ var backticks = function backtick(state, silent) {
 // ~~strike through~~
 //
 
-var tokenize = function strikethrough(state, silent) {
+var tokenize$1 = function strikethrough(state, silent) {
   var i,
       scanned,
       token,
@@ -30219,7 +30219,7 @@ var tokenize = function strikethrough(state, silent) {
   return true;
 };
 
-function postProcess(state, delimiters) {
+function postProcess$1(state, delimiters) {
   var i,
       j,
       startDelim,
@@ -30286,28 +30286,28 @@ function postProcess(state, delimiters) {
 //
 
 
-var postProcess_1 = function strikethrough(state) {
+var postProcess_1$1 = function strikethrough(state) {
   var curr,
       tokens_meta = state.tokens_meta,
       max = state.tokens_meta.length;
-  postProcess(state, state.delimiters);
+  postProcess$1(state, state.delimiters);
 
   for (curr = 0; curr < max; curr++) {
     if (tokens_meta[curr] && tokens_meta[curr].delimiters) {
-      postProcess(state, tokens_meta[curr].delimiters);
+      postProcess$1(state, tokens_meta[curr].delimiters);
     }
   }
 };
 
 var strikethrough = {
-  tokenize: tokenize,
-  postProcess: postProcess_1
+  tokenize: tokenize$1,
+  postProcess: postProcess_1$1
 };
 
 // Process *this* and _that_
 //
 
-var tokenize$1 = function emphasis(state, silent) {
+var tokenize = function emphasis(state, silent) {
   var i,
       scanned,
       token,
@@ -30365,7 +30365,7 @@ var tokenize$1 = function emphasis(state, silent) {
   return true;
 };
 
-function postProcess$1(state, delimiters) {
+function postProcess(state, delimiters) {
   var i,
       startDelim,
       endDelim,
@@ -30421,28 +30421,28 @@ function postProcess$1(state, delimiters) {
 //
 
 
-var postProcess_1$1 = function emphasis(state) {
+var postProcess_1 = function emphasis(state) {
   var curr,
       tokens_meta = state.tokens_meta,
       max = state.tokens_meta.length;
-  postProcess$1(state, state.delimiters);
+  postProcess(state, state.delimiters);
 
   for (curr = 0; curr < max; curr++) {
     if (tokens_meta[curr] && tokens_meta[curr].delimiters) {
-      postProcess$1(state, tokens_meta[curr].delimiters);
+      postProcess(state, tokens_meta[curr].delimiters);
     }
   }
 };
 
 var emphasis = {
-  tokenize: tokenize$1,
-  postProcess: postProcess_1$1
+  tokenize: tokenize,
+  postProcess: postProcess_1
 };
 
-var normalizeReference$1 = utils$2.normalizeReference;
-var isSpace$9 = utils$2.isSpace;
+var normalizeReference$1 = utils.normalizeReference;
+var isSpace$1 = utils.isSpace;
 
-var link = function link(state, silent) {
+var link$1 = function link(state, silent) {
   var attrs,
       code,
       label,
@@ -30489,7 +30489,7 @@ var link = function link(state, silent) {
       for (; pos < max; pos++) {
         code = state.src.charCodeAt(pos);
 
-        if (!isSpace$9(code) && code !== 0x0A) {
+        if (!isSpace$1(code) && code !== 0x0A) {
           break;
         }
       }
@@ -30520,7 +30520,7 @@ var link = function link(state, silent) {
       for (; pos < max; pos++) {
         code = state.src.charCodeAt(pos);
 
-        if (!isSpace$9(code) && code !== 0x0A) {
+        if (!isSpace$1(code) && code !== 0x0A) {
           break;
         }
       } // [link](  <href>  "title"  )
@@ -30537,7 +30537,7 @@ var link = function link(state, silent) {
         for (; pos < max; pos++) {
           code = state.src.charCodeAt(pos);
 
-          if (!isSpace$9(code) && code !== 0x0A) {
+          if (!isSpace$1(code) && code !== 0x0A) {
             break;
           }
         }
@@ -30618,10 +30618,10 @@ var link = function link(state, silent) {
   return true;
 };
 
-var normalizeReference$2 = utils$2.normalizeReference;
-var isSpace$a = utils$2.isSpace;
+var normalizeReference = utils.normalizeReference;
+var isSpace = utils.isSpace;
 
-var image$1 = function image(state, silent) {
+var image = function image(state, silent) {
   var attrs,
       code,
       content,
@@ -30673,7 +30673,7 @@ var image$1 = function image(state, silent) {
       for (; pos < max; pos++) {
         code = state.src.charCodeAt(pos);
 
-        if (!isSpace$a(code) && code !== 0x0A) {
+        if (!isSpace(code) && code !== 0x0A) {
           break;
         }
       }
@@ -30704,7 +30704,7 @@ var image$1 = function image(state, silent) {
       for (; pos < max; pos++) {
         code = state.src.charCodeAt(pos);
 
-        if (!isSpace$a(code) && code !== 0x0A) {
+        if (!isSpace(code) && code !== 0x0A) {
           break;
         }
       } // [link](  <href>  "title"  )
@@ -30721,7 +30721,7 @@ var image$1 = function image(state, silent) {
         for (; pos < max; pos++) {
           code = state.src.charCodeAt(pos);
 
-          if (!isSpace$a(code) && code !== 0x0A) {
+          if (!isSpace(code) && code !== 0x0A) {
             break;
           }
         }
@@ -30766,7 +30766,7 @@ var image$1 = function image(state, silent) {
       label = state.src.slice(labelStart, labelEnd);
     }
 
-    ref = state.env.references[normalizeReference$2(label)];
+    ref = state.env.references[normalizeReference(label)];
 
     if (!ref) {
       state.pos = oldPos;
@@ -30879,7 +30879,7 @@ var autolink = function autolink(state, silent) {
   return false;
 };
 
-var HTML_TAG_RE$1 = html_re.HTML_TAG_RE;
+var HTML_TAG_RE = html_re.HTML_TAG_RE;
 
 function isLetter(ch) {
   /*eslint no-bitwise:0*/
@@ -30925,7 +30925,7 @@ var html_inline = function html_inline(state, silent) {
     return false;
   }
 
-  match = state.src.slice(pos).match(HTML_TAG_RE$1);
+  match = state.src.slice(pos).match(HTML_TAG_RE);
 
   if (!match) {
     return false;
@@ -30940,9 +30940,9 @@ var html_inline = function html_inline(state, silent) {
   return true;
 };
 
-var has = utils$2.has;
-var isValidEntityCode = utils$2.isValidEntityCode;
-var fromCodePoint = utils$2.fromCodePoint;
+var has = utils.has;
+var isValidEntityCode = utils.isValidEntityCode;
+var fromCodePoint = utils.fromCodePoint;
 var DIGITAL_RE = /^&#((?:x[a-f0-9]{1,6}|[0-9]{1,7}));/i;
 var NAMED_RE = /^&([a-z][a-z0-9]{1,31});/i;
 
@@ -31131,9 +31131,9 @@ var text_collapse = function text_collapse(state) {
   }
 };
 
-var isWhiteSpace$1 = utils$2.isWhiteSpace;
-var isPunctChar$1 = utils$2.isPunctChar;
-var isMdAsciiPunct$1 = utils$2.isMdAsciiPunct;
+var isWhiteSpace = utils.isWhiteSpace;
+var isPunctChar = utils.isPunctChar;
+var isMdAsciiPunct = utils.isMdAsciiPunct;
 
 function StateInline(src, md, env, outTokens) {
   this.src = src;
@@ -31234,10 +31234,10 @@ StateInline.prototype.scanDelims = function (start, canSplitWord) {
   count = pos - start; // treat end of the line as a whitespace
 
   nextChar = pos < max ? this.src.charCodeAt(pos) : 0x20;
-  isLastPunctChar = isMdAsciiPunct$1(lastChar) || isPunctChar$1(String.fromCharCode(lastChar));
-  isNextPunctChar = isMdAsciiPunct$1(nextChar) || isPunctChar$1(String.fromCharCode(nextChar));
-  isLastWhiteSpace = isWhiteSpace$1(lastChar);
-  isNextWhiteSpace = isWhiteSpace$1(nextChar);
+  isLastPunctChar = isMdAsciiPunct(lastChar) || isPunctChar(String.fromCharCode(lastChar));
+  isNextPunctChar = isMdAsciiPunct(nextChar) || isPunctChar(String.fromCharCode(nextChar));
+  isLastWhiteSpace = isWhiteSpace(lastChar);
+  isNextWhiteSpace = isWhiteSpace(nextChar);
 
   if (isNextWhiteSpace) {
     left_flanking = false;
@@ -31277,7 +31277,7 @@ var state_inline = StateInline;
 // Parser rules
 
 
-var _rules$2 = [['text', text], ['newline', newline], ['escape', _escape$2], ['backticks', backticks], ['strikethrough', strikethrough.tokenize], ['emphasis', emphasis.tokenize], ['link', link], ['image', image$1], ['autolink', autolink], ['html_inline', html_inline], ['entity', entity]];
+var _rules = [['text', text], ['newline', newline], ['escape', _escape], ['backticks', backticks], ['strikethrough', strikethrough.tokenize], ['emphasis', emphasis.tokenize], ['link', link$1], ['image', image], ['autolink', autolink], ['html_inline', html_inline], ['entity', entity]];
 var _rules2 = [['balance_pairs', balance_pairs], ['strikethrough', strikethrough.postProcess], ['emphasis', emphasis.postProcess], ['text_collapse', text_collapse]];
 /**
  * new ParserInline()
@@ -31293,8 +31293,8 @@ function ParserInline() {
 
   this.ruler = new ruler();
 
-  for (i = 0; i < _rules$2.length; i++) {
-    this.ruler.push(_rules$2[i][0], _rules$2[i][1]);
+  for (i = 0; i < _rules.length; i++) {
+    this.ruler.push(_rules[i][0], _rules[i][1]);
   }
   /**
    * ParserInline#ruler2 -> Ruler
@@ -31431,10 +31431,10 @@ var parser_inline = ParserInline;
 var re = function (opts) {
   var re = {}; // Use direct extract instead of `regenerate` to reduse browserified size
 
-  re.src_Any = regex$1.source;
+  re.src_Any = regex$3.source;
   re.src_Cc = regex$2.source;
-  re.src_Z = regex$4.source;
-  re.src_P = regex.source; // \p{\Z\P\Cc\CF} (white spaces + control + format + punctuation)
+  re.src_Z = regex.source;
+  re.src_P = regex$4.source; // \p{\Z\P\Cc\CF} (white spaces + control + format + punctuation)
 
   re.src_ZPCc = [re.src_Z, re.src_P, re.src_Cc].join('|'); // \p{\Z\Cc} (white spaces + control)
 
@@ -31508,7 +31508,7 @@ var re = function (opts) {
 //
 
 
-function assign$1(obj
+function assign(obj
 /*from1, from2, from3, ...*/
 ) {
   var sources = Array.prototype.slice.call(arguments, 1);
@@ -31881,14 +31881,14 @@ function LinkifyIt(schemas, options) {
     }
   }
 
-  this.__opts__ = assign$1({}, defaultOptions, options); // Cache last tested result. Used to skip repeating steps on next `match` call.
+  this.__opts__ = assign({}, defaultOptions, options); // Cache last tested result. Used to skip repeating steps on next `match` call.
 
   this.__index__ = -1;
   this.__last_index__ = -1; // Next scan position
 
   this.__schema__ = '';
   this.__text_cache__ = '';
-  this.__schemas__ = assign$1({}, defaultSchemas, schemas);
+  this.__schemas__ = assign({}, defaultSchemas, schemas);
   this.__compiled__ = {};
   this.__tlds__ = tlds_default;
   this.__tlds_replaced__ = false;
@@ -31918,7 +31918,7 @@ LinkifyIt.prototype.add = function add(schema, definition) {
 
 
 LinkifyIt.prototype.set = function set(options) {
-  this.__opts__ = assign$1(this.__opts__, options);
+  this.__opts__ = assign(this.__opts__, options);
   return this;
 };
 /**
@@ -32175,7 +32175,7 @@ var _default = {
 
 // "Zero" preset, with nothing enabled. Useful for manual configuring of simple
 
-var zero = {
+var zero$1 = {
   options: {
     html: false,
     // Enable HTML tags in source
@@ -32271,7 +32271,7 @@ var commonmark = {
 
 var config = {
   'default': _default,
-  zero: zero,
+  zero: zero$1,
   commonmark: commonmark
 }; ////////////////////////////////////////////////////////////////////////////////
 //
@@ -32478,7 +32478,7 @@ function MarkdownIt(presetName, options) {
   }
 
   if (!options) {
-    if (!utils$2.isString(presetName)) {
+    if (!utils.isString(presetName)) {
       options = presetName || {};
       presetName = 'default';
     }
@@ -32583,7 +32583,7 @@ function MarkdownIt(presetName, options) {
    * [here](https://github.com/markdown-it/markdown-it/blob/master/lib/common/utils.js).
    **/
 
-  this.utils = utils$2;
+  this.utils = utils;
   /**
    * MarkdownIt#helpers -> helpers
    *
@@ -32591,7 +32591,7 @@ function MarkdownIt(presetName, options) {
    * [here](https://github.com/markdown-it/markdown-it/blob/master/lib/helpers).
    **/
 
-  this.helpers = utils$2.assign({}, helpers);
+  this.helpers = utils.assign({}, helpers);
   this.options = {};
   this.configure(presetName);
 
@@ -32621,7 +32621,7 @@ function MarkdownIt(presetName, options) {
 
 
 MarkdownIt.prototype.set = function (options) {
-  utils$2.assign(this.options, options);
+  utils.assign(this.options, options);
   return this;
 };
 /** chainable, internal
@@ -32640,7 +32640,7 @@ MarkdownIt.prototype.configure = function (presets) {
   var self = this,
       presetName;
 
-  if (utils$2.isString(presets)) {
+  if (utils.isString(presets)) {
     presetName = presets;
     presets = config[presetName];
 
@@ -32841,13 +32841,13 @@ MarkdownIt.prototype.renderInline = function (src, env) {
   return this.renderer.render(this.parseInline(src, env), this.options, env);
 };
 
-var lib$2 = MarkdownIt;
+var lib = MarkdownIt;
 
-var markdownIt = lib$2;
+var markdownIt = lib;
 
 // let viz = new Viz()
 
-hljsDefineSolidity(lib);
+hljsDefineSolidity(lib$2);
 
 function highlightRender(code, lang) {
   if (!lang || /no(-?)highlight|plain|text/.test(lang)) {
@@ -32913,7 +32913,7 @@ function highlightRender(code, lang) {
   var params = parseFenceCodeParams(lang);
   var attr = serializeParamToAttribute(params);
   lang = lang.split(/\s+/g)[0];
-  code = _escape(code);
+  code = _escape$2(code);
   var langAlias = fenceCodeAlias[lang];
 
   if (langAlias) {
@@ -33121,12 +33121,12 @@ function finishView(view) {
         };
       } else {
         code = _unescape(code);
-        var languages = lib.listLanguages();
+        var languages = lib$2.listLanguages();
 
         if (!languages.includes(reallang)) {
-          result = lib.highlightAuto(code);
+          result = lib$2.highlightAuto(code);
         } else {
-          result = lib.highlight(reallang, code);
+          result = lib$2.highlight(reallang, code);
         }
       }
 
@@ -33462,7 +33462,7 @@ function injectLineNumber(md) {
 
 var grinning = "😀";
 var smiley = "😃";
-var smile$1 = "😄";
+var smile = "😄";
 var grin = "😁";
 var laughing = "😆";
 var satisfied = "😆";
@@ -33596,7 +33596,7 @@ var fu = "🖕";
 var writing_hand = "✍️";
 var selfie = "🤳";
 var nail_care = "💅";
-var ring$1 = "💍";
+var ring = "💍";
 var lipstick = "💄";
 var kiss = "💋";
 var lips = "👄";
@@ -33803,7 +33803,7 @@ var monkey_face = "🐵";
 var see_no_evil = "🙈";
 var hear_no_evil = "🙉";
 var speak_no_evil = "🙊";
-var monkey$1 = "🐒";
+var monkey = "🐒";
 var chicken = "🐔";
 var penguin = "🐧";
 var bird = "🐦";
@@ -33823,7 +33823,7 @@ var honeybee = "🐝";
 var bug = "🐛";
 var butterfly = "🦋";
 var snail = "🐌";
-var shell$1 = "🐚";
+var shell = "🐚";
 var beetle = "🐞";
 var ant = "🐜";
 var spider = "🕷";
@@ -33918,7 +33918,7 @@ var first_quarter_moon_with_face = "🌛";
 var last_quarter_moon_with_face = "🌜";
 var crescent_moon = "🌙";
 var dizzy = "💫";
-var star$1 = "⭐️";
+var star = "⭐️";
 var star2 = "🌟";
 var sparkles = "✨";
 var zap = "⚡️";
@@ -33941,7 +33941,7 @@ var snowman_with_snow = "☃️";
 var snowman = "⛄️";
 var snowflake = "❄️";
 var wind_face = "🌬";
-var dash$1 = "💨";
+var dash = "💨";
 var tornado = "🌪";
 var fog = "🌫";
 var ocean = "🌊";
@@ -34113,7 +34113,7 @@ var trumpet = "🎺";
 var guitar = "🎸";
 var violin = "🎻";
 var game_die = "🎲";
-var dart$1 = "🎯";
+var dart = "🎯";
 var bowling = "🎳";
 var video_game = "🎮";
 var slot_machine = "🎰";
@@ -34261,7 +34261,7 @@ var movie_camera = "🎥";
 var film_projector = "📽";
 var film_strip = "🎞";
 var telephone_receiver = "📞";
-var phone$1 = "☎️";
+var phone = "☎️";
 var telephone = "☎️";
 var pager = "📟";
 var fax = "📠";
@@ -34285,10 +34285,10 @@ var candle = "🕯";
 var wastebasket = "🗑";
 var oil_drum = "🛢";
 var money_with_wings = "💸";
-var dollar$1 = "💵";
-var yen$1 = "💴";
-var euro$1 = "💶";
-var pound$1 = "💷";
+var dollar = "💵";
+var yen = "💴";
+var euro = "💶";
+var pound = "💷";
 var moneybag = "💰";
 var credit_card = "💳";
 var gem = "💎";
@@ -34305,7 +34305,7 @@ var gun = "🔫";
 var bomb = "💣";
 var hocho = "🔪";
 var knife = "🔪";
-var dagger$1 = "🗡";
+var dagger = "🗡";
 var crossed_swords = "⚔️";
 var shield = "🛡";
 var smoking = "🚬";
@@ -34393,7 +34393,7 @@ var books = "📚";
 var book = "📖";
 var open_book = "📖";
 var bookmark = "🔖";
-var link$1 = "🔗";
+var link = "🔗";
 var paperclip = "📎";
 var paperclips = "🖇";
 var triangular_ruler = "📐";
@@ -34542,7 +34542,7 @@ var ok = "🆗";
 var up = "🆙";
 var cool = "🆒";
 var free = "🆓";
-var zero$1 = "0️⃣";
+var zero = "0️⃣";
 var one = "1️⃣";
 var two = "2️⃣";
 var three = "3️⃣";
@@ -34605,7 +34605,7 @@ var loop = "➿";
 var end = "🔚";
 var back = "🔙";
 var on = "🔛";
-var top$1 = "🔝";
+var top = "🔝";
 var soon = "🔜";
 var heavy_check_mark = "✔️";
 var ballot_box_with_check = "☑️";
@@ -34642,9 +34642,9 @@ var eye_speech_bubble = "👁‍🗨";
 var speech_balloon = "💬";
 var thought_balloon = "💭";
 var right_anger_bubble = "🗯";
-var spades$1 = "♠️";
-var clubs$1 = "♣️";
-var hearts$1 = "♥️";
+var spades = "♠️";
+var clubs = "♣️";
+var hearts = "♥️";
 var diamonds = "♦️";
 var black_joker = "🃏";
 var flower_playing_cards = "🎴";
@@ -34788,7 +34788,7 @@ var iraq = "🇮🇶";
 var ireland = "🇮🇪";
 var isle_of_man = "🇮🇲";
 var israel = "🇮🇱";
-var it$1 = "🇮🇹";
+var it = "🇮🇹";
 var jamaica = "🇯🇲";
 var jp = "🇯🇵";
 var crossed_flags = "🎌";
@@ -34933,7 +34933,7 @@ var emojies_defs = {
 	"1234": "🔢",
 	grinning: grinning,
 	smiley: smiley,
-	smile: smile$1,
+	smile: smile,
 	grin: grin,
 	laughing: laughing,
 	satisfied: satisfied,
@@ -35069,7 +35069,7 @@ var emojies_defs = {
 	writing_hand: writing_hand,
 	selfie: selfie,
 	nail_care: nail_care,
-	ring: ring$1,
+	ring: ring,
 	lipstick: lipstick,
 	kiss: kiss,
 	lips: lips,
@@ -35276,7 +35276,7 @@ var emojies_defs = {
 	see_no_evil: see_no_evil,
 	hear_no_evil: hear_no_evil,
 	speak_no_evil: speak_no_evil,
-	monkey: monkey$1,
+	monkey: monkey,
 	chicken: chicken,
 	penguin: penguin,
 	bird: bird,
@@ -35296,7 +35296,7 @@ var emojies_defs = {
 	bug: bug,
 	butterfly: butterfly,
 	snail: snail,
-	shell: shell$1,
+	shell: shell,
 	beetle: beetle,
 	ant: ant,
 	spider: spider,
@@ -35391,7 +35391,7 @@ var emojies_defs = {
 	last_quarter_moon_with_face: last_quarter_moon_with_face,
 	crescent_moon: crescent_moon,
 	dizzy: dizzy,
-	star: star$1,
+	star: star,
 	star2: star2,
 	sparkles: sparkles,
 	zap: zap,
@@ -35414,7 +35414,7 @@ var emojies_defs = {
 	snowman: snowman,
 	snowflake: snowflake,
 	wind_face: wind_face,
-	dash: dash$1,
+	dash: dash,
 	tornado: tornado,
 	fog: fog,
 	ocean: ocean,
@@ -35590,7 +35590,7 @@ var emojies_defs = {
 	guitar: guitar,
 	violin: violin,
 	game_die: game_die,
-	dart: dart$1,
+	dart: dart,
 	bowling: bowling,
 	video_game: video_game,
 	slot_machine: slot_machine,
@@ -35738,7 +35738,7 @@ var emojies_defs = {
 	film_projector: film_projector,
 	film_strip: film_strip,
 	telephone_receiver: telephone_receiver,
-	phone: phone$1,
+	phone: phone,
 	telephone: telephone,
 	pager: pager,
 	fax: fax,
@@ -35762,10 +35762,10 @@ var emojies_defs = {
 	wastebasket: wastebasket,
 	oil_drum: oil_drum,
 	money_with_wings: money_with_wings,
-	dollar: dollar$1,
-	yen: yen$1,
-	euro: euro$1,
-	pound: pound$1,
+	dollar: dollar,
+	yen: yen,
+	euro: euro,
+	pound: pound,
 	moneybag: moneybag,
 	credit_card: credit_card,
 	gem: gem,
@@ -35782,7 +35782,7 @@ var emojies_defs = {
 	bomb: bomb,
 	hocho: hocho,
 	knife: knife,
-	dagger: dagger$1,
+	dagger: dagger,
 	crossed_swords: crossed_swords,
 	shield: shield,
 	smoking: smoking,
@@ -35872,7 +35872,7 @@ var emojies_defs = {
 	book: book,
 	open_book: open_book,
 	bookmark: bookmark,
-	link: link$1,
+	link: link,
 	paperclip: paperclip,
 	paperclips: paperclips,
 	triangular_ruler: triangular_ruler,
@@ -36023,7 +36023,7 @@ var emojies_defs = {
 	cool: cool,
 	"new": "🆕",
 	free: free,
-	zero: zero$1,
+	zero: zero,
 	one: one,
 	two: two,
 	three: three,
@@ -36086,7 +36086,7 @@ var emojies_defs = {
 	end: end,
 	back: back,
 	on: on,
-	top: top$1,
+	top: top,
 	soon: soon,
 	heavy_check_mark: heavy_check_mark,
 	ballot_box_with_check: ballot_box_with_check,
@@ -36123,9 +36123,9 @@ var emojies_defs = {
 	speech_balloon: speech_balloon,
 	thought_balloon: thought_balloon,
 	right_anger_bubble: right_anger_bubble,
-	spades: spades$1,
-	clubs: clubs$1,
-	hearts: hearts$1,
+	spades: spades,
+	clubs: clubs,
+	hearts: hearts,
 	diamonds: diamonds,
 	black_joker: black_joker,
 	flower_playing_cards: flower_playing_cards,
@@ -36269,7 +36269,7 @@ var emojies_defs = {
 	ireland: ireland,
 	isle_of_man: isle_of_man,
 	israel: israel,
-	it: it$1,
+	it: it,
 	jamaica: jamaica,
 	jp: jp,
 	crossed_flags: crossed_flags,
@@ -36603,7 +36603,7 @@ var markdownItEmoji = function emoji_plugin(md, options) {
 
 // Process ~subscript~
 
-var UNESCAPE_RE = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
+var UNESCAPE_RE$1 = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
 
 function subscript(state, silent) {
   var found,
@@ -36659,7 +36659,7 @@ function subscript(state, silent) {
   token = state.push('sub_open', 'sub', 1);
   token.markup = '~';
   token = state.push('text', '', 0);
-  token.content = content.replace(UNESCAPE_RE, '$1');
+  token.content = content.replace(UNESCAPE_RE$1, '$1');
   token = state.push('sub_close', 'sub', -1);
   token.markup = '~';
   state.pos = state.posMax + 1;
@@ -36673,7 +36673,7 @@ var markdownItSub = function sub_plugin(md) {
 
 // Process ^superscript^
 
-var UNESCAPE_RE$1 = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
+var UNESCAPE_RE = /\\([ \\!"#$%&'()*+,.\/:;<=>?@[\]^_`{|}~-])/g;
 
 function superscript(state, silent) {
   var found,
@@ -36729,7 +36729,7 @@ function superscript(state, silent) {
   token = state.push('sup_open', 'sup', 1);
   token.markup = '^';
   token = state.push('text', '', 0);
-  token.content = content.replace(UNESCAPE_RE$1, '$1');
+  token.content = content.replace(UNESCAPE_RE, '$1');
   token = state.push('sup_close', 'sup', -1);
   token.markup = '^';
   state.pos = state.posMax + 1;
@@ -38070,7 +38070,7 @@ var n = {
   true: "unshift"
 },
     e = Object.prototype.hasOwnProperty,
-    r$1 = function (n, r, t) {
+    r = function (n, r, t) {
   var i = n,
       u = 2;
   if (t && e.call(r, i)) throw Error("User defined id attribute '" + n + "' is NOT unique. Please fix it in your markdown to continue.");
@@ -38102,7 +38102,7 @@ var n = {
         return n + e.content;
       }, ""),
           c = e.attrGet("id");
-      c = null == c ? r$1(t.slugify(o), i, !1) : r$1(c, i, !0), e.attrSet("id", c), t.permalink && t.renderPermalink(c, t, n, u.indexOf(e)), t.callback && t.callback(e, {
+      c = null == c ? r(t.slugify(o), i, !1) : r(c, i, !0), e.attrSet("id", c), t.permalink && t.renderPermalink(c, t, n, u.indexOf(e)), t.callback && t.callback(e, {
         slug: c,
         title: o
       });
@@ -38544,13 +38544,13 @@ var markdownItMathjax = createCommonjsModule(function (module, exports) {
 });
 
 // import hljsLangs from '../core/hljs/lang.hljs.js'
-var markdown$1 = md; // let mihe = require('markdown-it-highlightjs-external');
+var markdown = md; // let mihe = require('markdown-it-highlightjs-external');
 
-var defaultRender = markdown$1.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+var defaultRender = markdown.renderer.rules.link_open || function (tokens, idx, options, env, self) {
   return self.renderToken(tokens, idx, options);
 };
 
-markdown$1.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+markdown.renderer.rules.link_open = function (tokens, idx, options, env, self) {
   var hIndex = tokens[idx].attrIndex('href');
   if (tokens[idx].attrs[hIndex][1].startsWith('#')) return defaultRender(tokens, idx, options, env, self); // If you are sure other plugins can't add `target` - drop check below
 
@@ -38576,7 +38576,13 @@ markdown$1.renderer.rules.link_open = function (tokens, idx, options, env, self)
 }; // use(mihe, hljs_opts)
 
 
-markdown$1.use(markdownItEmoji).use(markdownItSup).use(markdownItSub).use(markdownItContainer) // 下面三个和原来库保持一致
+markdown.use(markdownItEmoji).use(markdownItSup).use(markdownItSub).use(markdownItContainer).use(markdownItContainer, 'hljs-left')
+/* align left */
+.use(markdownItContainer, 'hljs-center')
+/* align center */
+.use(markdownItContainer, 'hljs-right')
+/* align right */
+// 下面三个和原来库保持一致
 .use(markdownItDeflist).use(markdownItAbbr).use(markdownItFootnote).use(markdownItIns).use(markdownItMark).use(markdownItImagesPreview).use(markdownItMathjax({
   beforeMath: '<span class="mathjax raw">',
   afterMath: '</span>',
@@ -38590,8 +38596,8 @@ markdown$1.use(markdownItEmoji).use(markdownItSup).use(markdownItSub).use(markdo
   markerPattern: /^\[toc\]|^\[\[toc\]\]/im // 如果想 支持 [[toc]] [toc] 的话不能添加 $
 
 });
-injectLineNumber(markdown$1);
+injectLineNumber(markdown);
 
-console.log('markdown render version ' + version);
+console.log('markdown render version ' + version$1);
 
-export { finishView, markdown$1 as markdown };
+export { finishView, markdown };
